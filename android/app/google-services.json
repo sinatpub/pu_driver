@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "586311766700",
+    "project_id": "taarraa-passenger",
+    "storage_bucket": "taarraa-passenger.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:586311766700:android:92a8d9669bc164f50e0509",
+        "android_client_info": {
+          "package_name": "com.tara.driver_application"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDRAfLHdhIGRrtad0pW1vv1pwnKnFHNrIU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:586311766700:android:619e2666411aad5d0e0509",
+        "android_client_info": {
+          "package_name": "com.tara.passenger.tara_passenger_mobile_application"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDRAfLHdhIGRrtad0pW1vv1pwnKnFHNrIU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
