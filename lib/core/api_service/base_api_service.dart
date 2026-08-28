@@ -1,11 +1,10 @@
 import 'dart:io';
-import 'package:tara_driver_application/core/storages/get_storages.dart';
-import 'package:tara_driver_application/core/utils/app_constant.dart';
 import 'package:dio/dio.dart';
 import 'package:tara_driver_application/core/api_service/client/dio_http_client.dart';
 import 'package:tara_driver_application/core/api_service/client/http_exception.dart';
 import 'package:tara_driver_application/core/utils/errror_message.dart';
 import 'package:tara_driver_application/core/utils/pretty_logger.dart';
+import 'package:tara_driver_application/services/session_service.dart';
 
 class BaseApiService {
   late Dio dio;
@@ -31,16 +30,15 @@ class BaseApiService {
   }) async {
     late Response response;
 
-    // Await token retrieval
-    var driverData = await StorageGet.getDriverData();
-    String? accessToken = driverData?.data?.token;
-    AppConstant.driverToken = accessToken;
+    // Token now sourced from SessionService's in-memory cache — no per-request
+    // SharedPreferences decode (docs/08 H-10).
+    final accessToken =
+        requiredToken ? await SessionService.instance.getToken() : null;
 
     try {
       final httpOption = Options(method: method, headers: {});
       if (requiredToken && accessToken != null) {
-        httpOption.headers!['Authorization'] =
-            "Bearer ${AppConstant.driverToken}";
+        httpOption.headers!['Authorization'] = "Bearer $accessToken";
       }
 
       if (customToken != null) {
@@ -117,6 +115,10 @@ DioErrorException _onDioError(DioException exception) {
     return DioErrorException(ErrorMessage.TIMEOUT_ERROR);
   } else if (exception.type == DioExceptionType.badResponse) {
     ///Error that range from 400-500
+    final status = exception.response?.statusCode;
+    if (status == 401 || status == 403) {
+      SessionService.instance.handleUnauthorized();
+    }
     String serverMessage;
     if (exception.response!.data is Map) {
       serverMessage =
@@ -124,8 +126,7 @@ DioErrorException _onDioError(DioException exception) {
     } else {
       serverMessage = ErrorMessage.UNEXPECTED_ERROR;
     }
-    return DioErrorException(serverMessage,
-        code: exception.response!.statusCode);
+    return DioErrorException(serverMessage, code: status);
   }
   throw DioErrorException(ErrorMessage.UNEXPECTED_ERROR);
 }

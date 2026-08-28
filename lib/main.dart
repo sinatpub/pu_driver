@@ -1,5 +1,9 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:tara_driver_application/app/root_main.dart';
+import 'package:tara_driver_application/features/profile/data/datasource/profile_datasource.dart';
+import 'package:tara_driver_application/features/profile/data/repository/profile_repository.dart';
+import 'package:tara_driver_application/features/profile/presentation/controller/profile_controller.dart';
 import 'package:tara_driver_application/presentation/widgets/custom_animated_loading.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:tara_driver_application/core/api_service/client/dio_http_client.dart';
@@ -27,6 +31,11 @@ void main() async {
   TaxiLocation.shared.onInit();
   // * config easy loading
   configLoading();
+
+  // D-12: permanent feature controller, mirrors the old global ProfileBloc's
+  // app-lifetime scope — proper route-scoped binding deferred to F-06.
+  Get.put(ProfileRepository(ProfileDatasource()));
+  Get.put(ProfileController(Get.find()), permanent: true);
   runApp(
     EasyLocalization(
       supportedLocales: const [Locale('km'), Locale('en')],

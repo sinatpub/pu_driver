@@ -20,11 +20,11 @@ class AppConstant {
 
   static const driverConnect = "driver_connect";
 
-  static String? driverToken;
-  // Custom Token
-  static const String customeToken =
-      '28|MTbCFQGmG4orNpm7GA0lVKPR4gopEjMHO8Zrq4iY';
-  static const googleKeyApi = "AIzaSyAEZtLQKJGA-Phcfn339c2A5ppu9eh9lAY";
+  // Custom Token — supplied via `--dart-define-from-file=dart_defines.json`
+  static const String customeToken = String.fromEnvironment(
+    'API_BEARER_TOKEN',
+  );
+  static const googleKeyApi = String.fromEnvironment('GOOGLE_MAPS_API_KEY');
 
   // Image Placeholder
   static const imagePlaceholder =

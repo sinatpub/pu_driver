@@ -11,7 +11,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:tara_driver_application/core/theme/colors.dart';
 import 'package:tara_driver_application/core/theme/text_styles.dart';
-import 'package:tara_driver_application/presentation/blocs/get_profile_bloc.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:tara_driver_application/features/profile/presentation/controller/profile_controller.dart';
 import 'package:tara_driver_application/presentation/screens/contact_us_screen.dart';
 import 'package:tara_driver_application/presentation/screens/home_screen/widgets/switch_online_widget.dart';
 import 'package:tara_driver_application/presentation/screens/home_screen/home_screen.dart';
@@ -133,65 +134,71 @@ class _DrawerScreenState extends State<DrawerScreen> {
               decoration: BoxDecoration(
                   color: AppColors.main,
                   border: Border.all(color: Colors.transparent)),
-              child: BlocBuilder<ProfileBloc, ProfileState>(
-                builder: (context, state) {
-                  if (state is ProfileLoading) {
-                    return const ShimmerProfile();
-                  } else if (state is ProfileLoaded) {
-                    var data = state.profileData.data;
-                    return Container(
-                      padding: EdgeInsets.all(16),
-                      alignment: Alignment.bottomLeft,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // Profile Image
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: TImageWidget(
-                              image:
-                                  NetworkImage(data!.profileImage.toString()),
-                              width: 80,
-                              height: 80,
-                            ),
+              child: Obx(() {
+                final controller = Get.find<ProfileController>();
+                final status = controller.status.value;
+                if (status == ProfileStatus.loaded) {
+                  var data = controller.profile.value?.data;
+                  return Container(
+                    padding: EdgeInsets.all(16),
+                    alignment: Alignment.bottomLeft,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Profile Image
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: TImageWidget(
+                            image: NetworkImage(data!.profileImage.toString()),
+                            width: 80,
+                            height: 80,
                           ),
-                          const SizedBox(width: 16),
-                          // Info Column
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  data.name.toString(),
-                                  style: ThemeConstands.font22SemiBold
-                                      .copyWith(color: AppColors.light4),
-                                ),
-                                Text(
-                                  data.phone.toString(),
+                        ),
+                        const SizedBox(width: 16),
+                        // Info Column
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                data.name.toString(),
+                                style: ThemeConstands.font22SemiBold
+                                    .copyWith(color: AppColors.light4),
+                              ),
+                              Text(
+                                data.phone.toString(),
+                                style: ThemeConstands.font16Regular
+                                    .copyWith(color: AppColors.light4),
+                              ),
+                              Builder(builder: (context) {
+                                return Text(
+                                  "${typeVehicle(int.parse(data.vehicle!.typeVehicleId.toString()))} - ${data.driverId ?? "---"}",
                                   style: ThemeConstands.font16Regular
                                       .copyWith(color: AppColors.light4),
-                                ),
-                                Builder(builder: (context) {
-                                  return Text(
-                                    "${typeVehicle(int.parse(data.vehicle!.typeVehicleId.toString()))} - ${data.driverId ?? "---"}",
-                                    style: ThemeConstands.font16Regular
-                                        .copyWith(color: AppColors.light4),
-                                    maxLines: 3,
-                                    overflow: TextOverflow.ellipsis,
-                                  );
-                                }),
-                              ],
-                            ),
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                );
+                              }),
+                            ],
                           ),
-                        ],
-                      ),
-                    );
-                  } else {
-                    return const ShimmerProfile();
-                  }
-                },
-              ),
+                        ),
+                      ],
+                    ),
+                  );
+                } else if (status == ProfileStatus.error) {
+                  return Center(
+                    child: Text(
+                      controller.errorMessage.value ?? 'Something went wrong.',
+                      style: ThemeConstands.font16Regular
+                          .copyWith(color: AppColors.light4),
+                      textAlign: TextAlign.center,
+                    ),
+                  );
+                } else {
+                  return const ShimmerProfile();
+                }
+              }),
             ),
             // Body List
             Expanded(

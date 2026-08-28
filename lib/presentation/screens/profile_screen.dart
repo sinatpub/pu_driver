@@ -1,12 +1,12 @@
 import 'package:tara_driver_application/app/alert_widget.dart';
-import 'package:tara_driver_application/presentation/blocs/get_profile_bloc.dart';
+import 'package:tara_driver_application/features/profile/presentation/controller/profile_controller.dart';
 import 'package:tara_driver_application/presentation/screens/drawer_screen.dart';
 import 'package:tara_driver_application/presentation/widgets/simmer_widget.dart';
 import 'package:tara_driver_application/presentation/widgets/t_image_widget.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:tara_driver_application/core/resources/asset_resource.dart';
 import 'package:tara_driver_application/core/theme/colors.dart';
 import 'package:tara_driver_application/core/theme/text_styles.dart';
@@ -41,9 +41,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   void initState() {
-    setState(() {
-      BlocProvider.of<ProfileBloc>(context).add(GetProfileEvent());
-    });
+    Get.find<ProfileController>().fetchProfile();
     super.initState();
   }
 
@@ -99,53 +97,61 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                BlocBuilder<ProfileBloc, ProfileState>(
-                  builder: (context, state) {
-                    if (state is ProfileLoading) {
-                      return const ShimmerProfile();
-                    } else if (state is ProfileLoaded) {
-                      var data = state.profileData.data;
-                      return Container(
-                        margin: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 12),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: TImageWidget(
-                                image:
-                                    NetworkImage(data!.profileImage.toString()),
-                                width: 80,
-                                height: 80,
-                              ),
+                Obx(() {
+                  final controller = Get.find<ProfileController>();
+                  final status = controller.status.value;
+                  if (status == ProfileStatus.loaded) {
+                    var data = controller.profile.value?.data;
+                    return Container(
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: TImageWidget(
+                              image:
+                                  NetworkImage(data!.profileImage.toString()),
+                              width: 80,
+                              height: 80,
                             ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    data.name.toString(),
-                                    style: ThemeConstands.font22SemiBold
-                                        .copyWith(color: AppColors.dark1),
-                                  ),
-                                  Text(
-                                    data.phone.toString(),
-                                    style: ThemeConstands.font14Regular
-                                        .copyWith(color: AppColors.dark1),
-                                  ),
-                                ],
-                              ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  data.name.toString(),
+                                  style: ThemeConstands.font22SemiBold
+                                      .copyWith(color: AppColors.dark1),
+                                ),
+                                Text(
+                                  data.phone.toString(),
+                                  style: ThemeConstands.font14Regular
+                                      .copyWith(color: AppColors.dark1),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      );
-                    } else {
-                      return const ShimmerProfile();
-                    }
-                  },
-                ),
+                          ),
+                        ],
+                      ),
+                    );
+                  } else if (status == ProfileStatus.error) {
+                    return Center(
+                      child: Text(
+                        controller.errorMessage.value ??
+                            'Something went wrong.',
+                        style: ThemeConstands.font14Regular
+                            .copyWith(color: AppColors.dark1),
+                        textAlign: TextAlign.center,
+                      ),
+                    );
+                  } else {
+                    return const ShimmerProfile();
+                  }
+                }),
                 Container(
                     margin: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 16),

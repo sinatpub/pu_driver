@@ -1,8 +1,8 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:tara_driver_application/app/funtion_convert.dart';
 import 'package:tara_driver_application/data/datasources/confirm_booking_api.dart';
 import 'package:tara_driver_application/data/models/complete_driver_model.dart';
-import 'package:tara_driver_application/presentation/blocs/get_profile_bloc.dart';
+import 'package:tara_driver_application/features/profile/presentation/controller/profile_controller.dart';
 import 'package:tara_driver_application/presentation/screens/drawer_screen.dart';
 import 'package:tara_driver_application/presentation/widgets/error_dialog_widget.dart';
 import 'package:tara_driver_application/presentation/widgets/t_image_widget.dart';
@@ -151,7 +151,8 @@ class _CalculateFeeScreenState extends State<CalculateFeeScreen> {
                                   widget.routFrom == "FromDropBooking"
                                       ? widget.dataComplete!.data!.bookingCode
                                           .toString()
-                                      : widget.dataDriverInfo!.bookingCode.toString();
+                                      : widget.dataDriverInfo!.bookingCode
+                                          .toString();
                               String bookingId =
                                   widget.routFrom == "FromDropBooking"
                                       ? widget.dataComplete!.data!.id.toString()
@@ -164,7 +165,7 @@ class _CalculateFeeScreenState extends State<CalculateFeeScreen> {
                               setState(() {
                                 loadingCompletePay = false;
                               });
-                              BlocProvider.of<ProfileBloc>(context).add(GetProfileEvent());
+                              Get.find<ProfileController>().fetchProfile();
                               Navigator.pushAndRemoveUntil(
                                 context,
                                 PageRouteBuilder(
@@ -182,7 +183,8 @@ class _CalculateFeeScreenState extends State<CalculateFeeScreen> {
                                 showErrorCustomDialog(
                                     context,
                                     "Please Try Again!",
-                                    "Please try again. Something went wrong.",false);
+                                    "Please try again. Something went wrong.",
+                                    false);
                               });
                             }
                           });

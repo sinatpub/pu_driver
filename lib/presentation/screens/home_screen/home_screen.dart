@@ -14,8 +14,9 @@ import 'package:tara_driver_application/core/utils/pretty_logger.dart';
 import 'package:tara_driver_application/data/datasources/update_driver_location_api.dart';
 import 'package:tara_driver_application/data/models/current_driver_info_model.dart';
 import 'package:tara_driver_application/data/models/register_model.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:tara_driver_application/features/profile/presentation/controller/profile_controller.dart';
 import 'package:tara_driver_application/presentation/blocs/get_current_driver_info_bloc.dart';
-import 'package:tara_driver_application/presentation/blocs/get_profile_bloc.dart';
 import 'package:tara_driver_application/presentation/blocs/get_version_app.dart';
 import 'package:tara_driver_application/presentation/screens/booking/booking/booking_screen.dart';
 import 'package:tara_driver_application/presentation/screens/calculate_fee_screen.dart';
@@ -150,7 +151,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     /// Get FCM Token for notification
     pushFCMToken();
-    BlocProvider.of<ProfileBloc>(context).add(GetProfileEvent());
+    final profileController = Get.find<ProfileController>();
+    profileController.fetchProfile();
+    // Reacts to every load, not just this one — the controller is a
+    // permanent, app-lifetime singleton re-fetched elsewhere too
+    // (see calculate_fee_screen.dart), mirroring the old global bloc.
+    ever<ProfileStatus>(profileController.status, (status) {
+      if (status == ProfileStatus.loaded) {
+        final vehicle = profileController.profile.value?.data?.vehicle;
+        if (vehicle?.typeVehicleId != null) {
+          typeVehicleId = vehicle!.typeVehicleId!;
+          getLocation();
+        }
+      }
+    });
     BlocProvider.of<VersionAppBloc>(context).add(GetVersionApp());
     BlocProvider.of<LocationBloc>(context).add(RequestLocationPermission());
     BlocProvider.of<HomeBloc>(context).add(CheckDriverStatusEvent());
@@ -206,65 +220,57 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           handleStateChanges(state);
         },
         builder: (blocContext, state) {
-          return BlocListener<ProfileBloc, ProfileState>(
+          return BlocListener<VersionAppBloc, VersionAppState>(
             listener: (context, state) {
-              if (state is ProfileLoaded) {
-                typeVehicleId = state.profileData.data!.vehicle!.typeVehicleId!;
-                getLocation();
-              }
-            },
-            child: BlocListener<VersionAppBloc, VersionAppState>(
-              listener: (context, state) {
-                if (state is VersionAppLoaded) {
-                  var data = state.versionData.data;
-                  var plateform = checkPlatformDevice();
-                  if (plateform == "Android") {
-                    if (data!.versionAndroid.toString() ==
-                            currentVersionAndroid ||
-                        data.releaseDate == releaseDateVersionAndroid) {
-                      setState(() {
-                        updateVersion = false;
-                      });
-                    } else {
-                      setState(() {
-                        updateVersion = true;
-                      });
-                    }
-                  }
-                  if (plateform == "ios") {
-                    if (data!.versionIos.toString() == currentVersionIos ||
-                        data.releaseDateIos == releaseDateVersionIos) {
-                      setState(() {
-                        updateVersion = false;
-                      });
-                    } else {
-                      setState(() {
-                        updateVersion = true;
-                      });
-                    }
+              if (state is VersionAppLoaded) {
+                var data = state.versionData.data;
+                var plateform = checkPlatformDevice();
+                if (plateform == "Android") {
+                  if (data!.versionAndroid.toString() ==
+                          currentVersionAndroid ||
+                      data.releaseDate == releaseDateVersionAndroid) {
+                    setState(() {
+                      updateVersion = false;
+                    });
+                  } else {
+                    setState(() {
+                      updateVersion = true;
+                    });
                   }
                 }
-              },
-              child: Column(
-                children: [
-                  Expanded(
-                      child: Stack(
-                    children: [
-                      buildGoogleMap(),
-                      updateVersion == false
-                          ? Container()
-                          : Positioned.fill(
-                              left: 0,
-                              right: 0,
-                              child: Container(
-                                  color: AppColors.dark1.withAlpha(60),
-                                  child: Center(child: WidgetUpdate())),
-                            ),
-                    ],
-                  )),
-                  if (state is CurrentDriverLoading) const SizedBox(),
-                ],
-              ),
+                if (plateform == "ios") {
+                  if (data!.versionIos.toString() == currentVersionIos ||
+                      data.releaseDateIos == releaseDateVersionIos) {
+                    setState(() {
+                      updateVersion = false;
+                    });
+                  } else {
+                    setState(() {
+                      updateVersion = true;
+                    });
+                  }
+                }
+              }
+            },
+            child: Column(
+              children: [
+                Expanded(
+                    child: Stack(
+                  children: [
+                    buildGoogleMap(),
+                    updateVersion == false
+                        ? Container()
+                        : Positioned.fill(
+                            left: 0,
+                            right: 0,
+                            child: Container(
+                                color: AppColors.dark1.withAlpha(60),
+                                child: Center(child: WidgetUpdate())),
+                          ),
+                  ],
+                )),
+                if (state is CurrentDriverLoading) const SizedBox(),
+              ],
             ),
           );
         },

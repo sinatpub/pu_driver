@@ -17,6 +17,17 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
+// Flutter forwards `--dart-define`/`--dart-define-from-file` values here as
+// base64-encoded "key=value" pairs, comma-separated.
+fun dartDefine(key: String): String {
+    val raw = project.findProperty("dart-defines") as String? ?: return ""
+    return raw.split(",")
+        .map { String(java.util.Base64.getDecoder().decode(it)) }
+        .map { it.split("=", limit = 2) }
+        .firstOrNull { it.getOrNull(0) == key }
+        ?.getOrNull(1) ?: ""
+}
+
 android {
     namespace = "com.tara.driver_application"
     compileSdk = 36
@@ -42,6 +53,7 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         multiDexEnabled = true
+        manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = dartDefine("GOOGLE_MAPS_API_KEY")
     }
 
     signingConfigs {

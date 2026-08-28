@@ -6,7 +6,8 @@ import '../../utils/app_log.dart';
 
 Future<void> sendToTelegram(String message, {String? platform}) async {
   String chatId = '858455855';
-  String botToken = '8250916419:AAEdEf7nUuJbSiEEYSVxmiqlL-jZ_Fn-tT4';
+  // Supplied via `--dart-define-from-file=dart_defines.json`
+  String botToken = const String.fromEnvironment('TELEGRAM_BOT_TOKEN');
 
   var url = Uri.parse('https://api.telegram.org/bot$botToken/sendMessage');
   // Prepare the request body

@@ -6,6 +6,21 @@ A new Flutter project.
 
 This project is a starting point for a Flutter application.
 
+## Secrets
+
+Runtime secrets (`API_BEARER_TOKEN`, `GOOGLE_MAPS_API_KEY`, `TELEGRAM_BOT_TOKEN`) are
+compiled in via `--dart-define-from-file`, not hardcoded. Copy `dart_defines.example.json`
+to `dart_defines.json`, fill in real values, then:
+
+```sh
+flutter run --dart-define-from-file=dart_defines.json
+flutter build apk --dart-define-from-file=dart_defines.json
+flutter build ios --dart-define-from-file=dart_defines.json
+```
+
+`dart_defines.json` is gitignored — never commit it. CI should inject it from a secrets
+store at build time.
+
 ## Clean Achectiture
 ### Cores
 1. This directory contains code that is used across multiple features, such as error handling, common use cases, and utility functions.

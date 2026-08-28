@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:tara_driver_application/app/funtion_convert.dart';
 import 'package:tara_driver_application/core/storages/get_storages.dart';
-import 'package:tara_driver_application/core/utils/app_constant.dart';
 import 'package:tara_driver_application/presentation/screens/drawer_screen.dart';
 import 'package:tara_driver_application/presentation/screens/login_page.dart';
 import 'package:tara_driver_application/taxi_single_ton/taxi.dart';
@@ -20,7 +19,6 @@ class _SplashScreenState extends State<SplashScreen> {
     var driverData = await StorageGet.getDriverData();
     if (driverData != null) {
       Taxi.shared.checkDriverAvailability();
-      AppConstant.driverToken = driverData.data?.token;
       Navigator.pushReplacement(
           context, MaterialPageRoute(builder: (context) => DrawerScreen()));
     } else {
