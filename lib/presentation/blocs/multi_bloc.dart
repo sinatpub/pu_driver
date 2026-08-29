@@ -10,7 +10,6 @@ import 'package:tara_driver_application/presentation/blocs/register_bloc.dart';
 import 'package:tara_driver_application/presentation/blocs/vehical_bloc.dart';
 import 'package:tara_driver_application/presentation/screens/booking/booking/bloc/booking_bloc.dart';
 import 'package:tara_driver_application/presentation/screens/home_screen/bloc/home_bloc.dart';
-import 'package:tara_driver_application/services/location_bloc/location_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 List<BlocProvider> _listBlocProvider = [
@@ -27,7 +26,6 @@ List<BlocProvider> _listBlocProvider = [
   BlocProvider<CurrentDriverInfoBloc>(
       create: (context) => CurrentDriverInfoBloc()),
   BlocProvider<BookingBloc>(create: (context) => BookingBloc()),
-  BlocProvider<LocationBloc>(create: (context) => LocationBloc()),
   BlocProvider<DriverWalletBloc>(create: (context) => DriverWalletBloc()),
   BlocProvider<VersionAppBloc>(create: (context) => VersionAppBloc()),
   BlocProvider<NotificationDetailBloc>(

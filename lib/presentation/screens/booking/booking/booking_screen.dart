@@ -6,7 +6,6 @@ import 'package:tara_driver_application/core/storages/get_storages.dart';
 import 'package:tara_driver_application/core/utils/app_constant.dart';
 import 'package:tara_driver_application/core/utils/calculate_distance.dart';
 import 'package:tara_driver_application/core/utils/pretty_logger.dart';
-import 'package:tara_driver_application/data/datasources/update_driver_location_api.dart';
 import 'package:tara_driver_application/data/models/register_model.dart';
 import 'package:tara_driver_application/presentation/blocs/vehical_bloc.dart';
 import 'package:tara_driver_application/presentation/screens/booking/booking/bloc/booking_bloc.dart';
@@ -18,6 +17,7 @@ import 'package:tara_driver_application/presentation/screens/home_screen/home_sc
 import 'package:tara_driver_application/presentation/widgets/count_down_widget.dart';
 import 'package:tara_driver_application/presentation/widgets/error_dialog_widget.dart';
 import 'package:tara_driver_application/presentation/widgets/loading_widget.dart';
+import 'package:tara_driver_application/services/location_service.dart';
 import 'package:tara_driver_application/taxi_single_ton/init_socket.dart';
 import 'package:tara_driver_application/taxi_single_ton/taxi.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -28,7 +28,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:location/location.dart' hide LocationAccuracy;
 import 'package:url_launcher/url_launcher.dart';
 
 class BookingScreen extends StatefulWidget {
@@ -94,7 +93,6 @@ class _BookingScreenState extends State<BookingScreen> {
 
   //
   final DriverSocketService socketService = DriverSocketService();
-  UpdateDriverLocation updateLocationRepo = UpdateDriverLocation();
 
   final Set<Marker> _markers = {};
   final Set<Polyline> _polylines = {};
@@ -102,8 +100,6 @@ class _BookingScreenState extends State<BookingScreen> {
   late PolylinePoints polylinePoints;
 
   bool laodCalculateDistance = true;
-
-  Location location = Location();
 
   double bearing = 0.0;
 
@@ -164,13 +160,9 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   void _startLocationListener() async {
-    await Geolocator.requestPermission();
-    _positionStream = Geolocator.getPositionStream(
-      locationSettings: LocationSettings(
-        accuracy: LocationAccuracy.best,
-        distanceFilter: 10, // triggers for every 1 meter
-      ),
-    ).listen((Position position) async {
+    LocationService.instance.start();
+    _positionStream =
+        LocationService.instance.positionStream.listen((Position position) async {
       LatLng current = LatLng(position.latitude, position.longitude);
       setState(() {
         bearing = position.heading;
@@ -180,13 +172,7 @@ class _BookingScreenState extends State<BookingScreen> {
         widget.lngDriver = position.longitude;
         _turnRight();
         syncMarker();
-        print("fasdflsadf${position.heading}");
       });
-      await updateLocationRepo.updateDriverLocationApi(
-        lat: position.latitude,
-        log: position.longitude,
-        heading: position.heading,
-      );
       if (widget.processStepBook == 4 &&
           (widget.desLatPassenger == null || widget.desLatPassenger == 0.0)) {
         if (_lastPosition != null) {

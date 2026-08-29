@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:geolocator/geolocator.dart';
-import 'package:location/location.dart' hide LocationAccuracy;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tara_driver_application/app/alert_widget.dart';
@@ -11,7 +10,6 @@ import 'package:tara_driver_application/core/theme/text_styles.dart';
 import 'package:tara_driver_application/core/utils/app_constant.dart';
 import 'package:tara_driver_application/core/utils/check_platform_device.dart';
 import 'package:tara_driver_application/core/utils/pretty_logger.dart';
-import 'package:tara_driver_application/data/datasources/update_driver_location_api.dart';
 import 'package:tara_driver_application/data/models/current_driver_info_model.dart';
 import 'package:tara_driver_application/data/models/register_model.dart';
 import 'package:get/get.dart' hide Trans;
@@ -22,9 +20,7 @@ import 'package:tara_driver_application/presentation/screens/booking/booking/boo
 import 'package:tara_driver_application/presentation/screens/calculate_fee_screen.dart';
 import 'package:tara_driver_application/presentation/screens/home_screen/bloc/home_bloc.dart';
 import 'package:tara_driver_application/presentation/widgets/widge_update.dart';
-import 'package:tara_driver_application/services/location_bloc/location_bloc.dart';
-import 'package:tara_driver_application/services/location_bloc/location_event.dart';
-import 'package:tara_driver_application/services/location_bloc/location_state.dart';
+import 'package:tara_driver_application/services/location_service.dart';
 import 'package:tara_driver_application/taxi_single_ton/init_socket.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -33,6 +29,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../data/datasources/device_info_repo.dart';
+
+enum _LocationLoadStatus { inProgress, success, permissionDenied, failure }
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -60,25 +58,47 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   final Set<Marker> _markers = {};
   late BitmapDescriptor driverMarker;
-  StreamSubscription<Position>? _positionStream;
+  StreamSubscription<Position>? _positionSub;
   GoogleMapController? _mapController;
 
-  UpdateDriverLocation updateLocationRepo = UpdateDriverLocation();
-
   LatLng? currentLocation;
-
-  StreamSubscription<LocationData>? _locationSub;
+  _LocationLoadStatus _locationStatus = _LocationLoadStatus.inProgress;
+  String? _locationError;
 
   ///=========== Update Version ==============
 
-  Future<void> _listenLocation() async {
-    await Geolocator.requestPermission();
-    _positionStream = Geolocator.getPositionStream(
-      locationSettings: LocationSettings(
-        accuracy: LocationAccuracy.best,
-        distanceFilter: 10, // triggers for every 1 meter
-      ),
-    ).listen((Position position) async {
+  Future<void> _initLocation() async {
+    setState(() => _locationStatus = _LocationLoadStatus.inProgress);
+
+    final hasPermission = await LocationService.instance.requestPermission();
+    if (!mounted) return;
+    if (!hasPermission) {
+      setState(() => _locationStatus = _LocationLoadStatus.permissionDenied);
+      return;
+    }
+
+    try {
+      final position = await LocationService.instance.primeCurrentLocation();
+      if (!mounted) return;
+      if (position == null) {
+        setState(() => _locationStatus = _LocationLoadStatus.failure);
+        return;
+      }
+      _updateMarker(LatLng(position.latitude, position.longitude), position.heading);
+      setState(() {
+        currentLocation = LatLng(position.latitude, position.longitude);
+        _locationStatus = _LocationLoadStatus.success;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _locationError = e.toString();
+        _locationStatus = _LocationLoadStatus.failure;
+      });
+    }
+
+    LocationService.instance.start();
+    _positionSub = LocationService.instance.positionStream.listen((position) {
       _updateMarker(
         LatLng(position.latitude, position.longitude),
         position.heading,
@@ -87,11 +107,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         CameraUpdate.newLatLng(
           LatLng(position.latitude, position.longitude),
         ),
-      );
-      await updateLocationRepo.updateDriverLocationApi(
-        lat: position.latitude,
-        log: position.longitude,
-        heading: position.heading,
       );
       currentLocation = LatLng(position.latitude, position.longitude);
     });
@@ -108,26 +123,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       flat: true,
     ));
     setState(() {});
-  }
-
-  Future<void> getLocation() async {
-    Position? position = await Geolocator.getCurrentPosition();
-    if (position != null) {
-      await updateLocationRepo.updateDriverLocationApi(
-        heading: position.heading,
-        lat: position.latitude,
-        log: position.longitude,
-      );
-      _updateMarker(
-          LatLng(position.latitude, position.longitude), position.heading);
-      Future.delayed(Duration(seconds: 0), () {
-        setState(() {
-          currentLocation = LatLng(position.latitude, position.longitude);
-        });
-      });
-    } else {
-      debugPrint("Failed to get location.");
-    }
   }
 
   Future<void> pushFCMToken() async {
@@ -161,12 +156,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         final vehicle = profileController.profile.value?.data?.vehicle;
         if (vehicle?.typeVehicleId != null) {
           typeVehicleId = vehicle!.typeVehicleId!;
-          getLocation();
+          // Regenerate the marker with the now-known vehicle icon from the
+          // last known fix — no need to re-fetch GPS or re-report to the
+          // server just to redraw an icon.
+          final position = LocationService.instance.lastPosition;
+          if (position != null) {
+            _updateMarker(
+              LatLng(position.latitude, position.longitude),
+              position.heading,
+            );
+          }
         }
       }
     });
     BlocProvider.of<VersionAppBloc>(context).add(GetVersionApp());
-    BlocProvider.of<LocationBloc>(context).add(RequestLocationPermission());
     BlocProvider.of<HomeBloc>(context).add(CheckDriverStatusEvent());
     WidgetsBinding.instance.addPostFrameCallback((_) {
       registerSocket();
@@ -182,8 +185,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Future<void> initAsync() async {
     await NotificationLocal().requestPermission();
     BlocProvider.of<HomeBloc>(context).add(CheckDriverStatusEvent());
-    await _listenLocation();
-    await getLocation();
+    await _initLocation();
   }
 
   // * Register Socket
@@ -201,7 +203,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
-    _locationSub?.cancel();
+    _positionSub?.cancel();
     super.dispose();
   }
 
@@ -368,67 +370,61 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Widget buildGoogleMap() {
-    return BlocBuilder<LocationBloc, LocationState>(
-      builder: (context, state) {
-        if (state is LocationLoadInProgress) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (state is LocationLoadSuccess) {
-          currentLocation = state.currentLocation;
-          return GoogleMap(
-            gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
-              Factory<OneSequenceGestureRecognizer>(
-                () => EagerGestureRecognizer(),
-              ),
-            },
-            key: ValueKey(_mapKey),
-            mapType: MapType.normal,
-            myLocationEnabled: false,
-            indoorViewEnabled: true,
-            myLocationButtonEnabled: true,
-            compassEnabled: true,
-            trafficEnabled: true,
-            initialCameraPosition: CameraPosition(
-              target: currentLocation!,
-              zoom: _currentZoom,
+    switch (_locationStatus) {
+      case _LocationLoadStatus.inProgress:
+        return const Center(child: CircularProgressIndicator());
+      case _LocationLoadStatus.success:
+        return GoogleMap(
+          gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+            Factory<OneSequenceGestureRecognizer>(
+              () => EagerGestureRecognizer(),
             ),
-            markers: _markers,
-            onMapCreated: (GoogleMapController controller) {
-              _mapController = controller;
-            },
-            onCameraMove: (CameraPosition position) {
-              setState(() {
-                _currentZoom = position.zoom;
-              });
-            },
-          );
-        } else if (state is LocationPermissionDenied) {
-          return const Center(child: Text('Location permission denied'));
-        } else if (state is LocationLoadFailure) {
-          return Center(
-              child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('Failed to load location: ${state.error}'),
-              MaterialButton(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-                color: AppColors.info,
-                onPressed: () async {
-                  await openAppSettings();
-                },
-                child: Text(
-                  'Open location permission',
-                  style: ThemeConstands.font16SemiBold
-                      .copyWith(color: AppColors.dark4),
-                ),
-              )
-            ],
-          ));
-        } else {
-          return const Center(child: CircularProgressIndicator());
-        }
-      },
-    );
+          },
+          key: ValueKey(_mapKey),
+          mapType: MapType.normal,
+          myLocationEnabled: false,
+          indoorViewEnabled: true,
+          myLocationButtonEnabled: true,
+          compassEnabled: true,
+          trafficEnabled: true,
+          initialCameraPosition: CameraPosition(
+            target: currentLocation!,
+            zoom: _currentZoom,
+          ),
+          markers: _markers,
+          onMapCreated: (GoogleMapController controller) {
+            _mapController = controller;
+          },
+          onCameraMove: (CameraPosition position) {
+            setState(() {
+              _currentZoom = position.zoom;
+            });
+          },
+        );
+      case _LocationLoadStatus.permissionDenied:
+        return const Center(child: Text('Location permission denied'));
+      case _LocationLoadStatus.failure:
+        return Center(
+            child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Failed to load location: ${_locationError ?? ''}'),
+            MaterialButton(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              color: AppColors.info,
+              onPressed: () async {
+                await openAppSettings();
+              },
+              child: Text(
+                'Open location permission',
+                style: ThemeConstands.font16SemiBold
+                    .copyWith(color: AppColors.dark4),
+              ),
+            )
+          ],
+        ));
+    }
   }
 }
 
