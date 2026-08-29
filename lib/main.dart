@@ -1,3 +1,7 @@
+import 'dart:ui';
+
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:tara_driver_application/app/root_main.dart';
@@ -22,8 +26,19 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 void main() async {
   BaseHttpClient.init();
   WidgetsFlutterBinding.ensureInitialized();
-  // init firebase notification
+  // init firebase notification — also initializes Firebase itself, which
+  // Crashlytics below depends on
   await NotificationLogic().setupInteractedMessage();
+
+  // F-09 (docs/12): Crashlytics was declared as a dependency but never
+  // wired up (docs/05). Disabled in debug builds so local crashes don't
+  // pollute production data.
+  await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(!kDebugMode);
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+  PlatformDispatcher.instance.onError = (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    return true;
+  };
 
   // init local notification
   await NotificationLocal().initLocationNotification();
