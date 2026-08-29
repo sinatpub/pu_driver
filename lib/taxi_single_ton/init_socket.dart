@@ -32,8 +32,14 @@ abstract class BaseSocketService {
       io.OptionBuilder()
           .setTransports(['websocket'])
           .enableAutoConnect()
-          .setReconnectionAttempts(10)
-          .setReconnectionDelay(60000)
+          .enableReconnection()
+          // F-03 (docs/12) — the old config (10 attempts, flat 60s delay)
+          // gave up for good after ~10 minutes of no connectivity and never
+          // tried again, silently going deaf mid-trip. No attempts cap
+          // means the client default (infinite retries) applies; delay
+          // backs off from 2s toward a 30s ceiling instead of a flat wait.
+          .setReconnectionDelay(2000)
+          .setReconnectionDelayMax(30000)
           .build(),
     );
 
@@ -76,9 +82,6 @@ class DriverSocketService extends BaseSocketService {
   }
   DriverSocketService._internal();
 
-  // Add a flag to track whether listeners were already set up
-  bool _listenersSetup = false;
-
   @override
   void register(String driverId) {
     emitEvent(SocketEvent.registerDriver.name, driverId);
@@ -95,11 +98,16 @@ class DriverSocketService extends BaseSocketService {
     super.connectToSocket(url, id, role, context: context);
     tlog("Socket connecting to $url, userId=$id, role=$role");
 
-    if (!_listenersSetup) {
-      newRide();
-      cancelDrive(context);
-      _listenersSetup = true;
-    }
+    // F-03 (docs/12) — this branch only runs when `_socket` was just
+    // replaced with a fresh instance above (the guard at the top of this
+    // method returns early otherwise), so it's always safe — and, unlike
+    // the old one-shot `_listenersSetup` flag, always necessary — to
+    // attach these to the new socket. The flag left every socket created
+    // after the app's first one (e.g. after the built-in reconnection
+    // exhausted its attempts and the driver reopened a screen) with no
+    // listener for new ride requests or passenger cancellations at all.
+    newRide();
+    cancelDrive(context);
   }
 
   // * Listener
