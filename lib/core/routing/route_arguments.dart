@@ -1,16 +1,21 @@
 import 'package:tara_driver_application/data/models/complete_driver_model.dart';
 import 'package:tara_driver_application/data/models/current_driver_info_model.dart';
-import 'package:tara_driver_application/data/models/phone_model.dart';
+import 'package:tara_driver_application/features/auth/data/models/phone_model.dart';
 
 /// Typed `Get.arguments` payloads (F-06, docs/12) — every screen that takes
 /// constructor parameters gets one of these instead of an untyped map, so a
 /// route call site and its screen agree on shape at compile time.
 
 class OtpPageArgs {
-  const OtpPageArgs({this.phoneNumberModel, this.phoneNumber});
+  const OtpPageArgs({this.phoneNumberModel, this.phoneNumber, required this.onResend});
 
   final PhoneNumberModel? phoneNumberModel;
   final String? phoneNumber;
+
+  /// Re-triggers the same phone-submit flow that got here — bound to the
+  /// PhoneLoginController LoginPage already created, not a fresh one, so
+  /// this doesn't duplicate in-flight state or re-navigate on success.
+  final void Function() onResend;
 }
 
 class NotificationDetailArgs {

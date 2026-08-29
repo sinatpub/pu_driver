@@ -3,7 +3,9 @@ import 'package:tara_driver_application/core/routing/app_routes.dart';
 import 'package:tara_driver_application/core/routing/route_arguments.dart';
 import 'package:tara_driver_application/core/utils/phone_formatter.dart';
 import 'package:tara_driver_application/data/datasources/device_info_repo.dart';
-import 'package:tara_driver_application/presentation/blocs/phone_login_bloc.dart';
+import 'package:tara_driver_application/features/auth/data/datasource/auth_datasource.dart';
+import 'package:tara_driver_application/features/auth/data/repository/auth_repository.dart';
+import 'package:tara_driver_application/features/auth/presentation/controller/phone_login_controller.dart';
 import 'package:tara_driver_application/presentation/repository/language_data.dart';
 import 'package:tara_driver_application/presentation/widgets/error_dialog_widget.dart';
 import 'package:tara_driver_application/presentation/widgets/loading_widget.dart';
@@ -17,7 +19,6 @@ import 'package:tara_driver_application/core/theme/colors.dart';
 import 'package:tara_driver_application/core/theme/text_styles.dart';
 import 'package:tara_driver_application/presentation/widgets/fbtn_widget.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
 class LoginPage extends StatefulWidget {
@@ -32,9 +33,41 @@ class _LoginPageState extends State<LoginPage> {
   TextEditingController controller = TextEditingController();
   bool hasNavigated = false;
   List<Lang> langs = allLangs;
+  late final PhoneLoginController phoneLoginController;
 
   updateLanguageLocal(Locale locale, BuildContext context) {
     context.setLocale(locale);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    phoneLoginController = PhoneLoginController(AuthRepository(AuthDatasource()));
+    ever<PhoneLoginStatus>(phoneLoginController.status, (status) {
+      if (status == PhoneLoginStatus.loaded) {
+        Get.toNamed(
+          AppRoutes.otp,
+          arguments: OtpPageArgs(
+            phoneNumberModel: phoneLoginController.phoneModel.value,
+            phoneNumber: controller.text.toString(),
+            onResend: () => phoneLoginController.submit(controller.text.toString()),
+          ),
+        );
+      } else if (status == PhoneLoginStatus.fail) {
+        hasNavigated = false;
+        showErrorCustomDialog(
+          context,
+          "PLEASE_TRY_AGAIN".tr(),
+          "CHECK_YOUR_PHONE_NUMBER_ERROR".tr(),false,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    phoneLoginController.dispose();
+    super.dispose();
   }
 
   @override
@@ -42,40 +75,13 @@ class _LoginPageState extends State<LoginPage> {
     final translate = context.locale.toString();
     return Scaffold(
       backgroundColor: AppColors.light4,
-      body: BlocListener<PhoneLoginBloc, PhoneLoginState>(
-        listener: (context, state) {
-          if (state is PhoneLoginLoadedState) {
-            Get.toNamed(
-              AppRoutes.otp,
-              arguments: OtpPageArgs(
-                phoneNumberModel: state.phoneNumberModel,
-                phoneNumber: controller.text.toString(),
-              ),
-            );
-            // }
-          } else if (state is PhoneLoginFailState) {
-            hasNavigated = false;
-            showErrorCustomDialog(
-              context,
-              "PLEASE_TRY_AGAIN".tr(),
-              "CHECK_YOUR_PHONE_NUMBER_ERROR".tr(),false,
-            );
-          } else {
-            FocusScope.of(context).unfocus();
-          }
-        },
-        child: SafeArea(
+      body: SafeArea(
           bottom: false,
-          child: BlocBuilder<PhoneLoginBloc, PhoneLoginState>(
-            builder: (context, state) {
-              bool isLoading = state is PhoneLoginLoadingState;
-              bool? isInvalidPhone;
-              bool? isRequired8Digit;
-              if (state is PhoneLoginValidationErrorState) {
-                // errorMessage = state.errorMessage;
-                isInvalidPhone = state.isInvalid;
-                isRequired8Digit = state.isRequired8DigitError;
-              }
+          child: Obx(() {
+              final state = phoneLoginController.status.value;
+              bool isLoading = state == PhoneLoginStatus.loading;
+              bool isInvalidPhone = phoneLoginController.isInvalidPhone.value;
+              bool isRequired8Digit = phoneLoginController.isRequired8Digit.value;
               return Stack(
                 children: [
                   Container(
@@ -154,9 +160,7 @@ class _LoginPageState extends State<LoginPage> {
                                           height: 12,
                                         ),
                                         ShakeWidget(
-                                          key: context
-                                              .read<PhoneLoginBloc>()
-                                              .phoneShake,
+                                          key: phoneLoginController.phoneShake,
                                           shakeCount: 3,
                                           shakeOffset: 10,
                                           shakeDuration:
@@ -199,12 +203,10 @@ class _LoginPageState extends State<LoginPage> {
                                               maxLength: 25,
                                               onChanged: (value) {},
                                               onFieldSubmitted: (value) {
-                                                context
-                                                    .read<PhoneLoginBloc>()
-                                                    .add(
-                                                      PhoneNumValidateEvent(
-                                                          phoneNumber: value),
-                                                    );
+                                                if (!phoneLoginController
+                                                    .validate(value)) {
+                                                  FocusScope.of(context).unfocus();
+                                                }
                                               },
 
                                               // logic.loginPhoneNumber(),
@@ -227,12 +229,8 @@ class _LoginPageState extends State<LoginPage> {
                                         ),
                                         FBTNWidget(
                                           onPressed: () async {
-                                            context.read<PhoneLoginBloc>().add(
-                                                  PhoneNumLoginEvent(
-                                                    phoneNumber:
-                                                        controller.value.text,
-                                                  ),
-                                                );
+                                            phoneLoginController
+                                                .submit(controller.value.text);
                                           },
                                           color: AppColors.red,
                                           textColor: AppColors.light4,
@@ -253,10 +251,8 @@ class _LoginPageState extends State<LoginPage> {
                   if (isLoading) const LoadingWidget(),
                 ],
               );
-            },
-          ),
+          }),
         ),
-      ),
     );
   }
 

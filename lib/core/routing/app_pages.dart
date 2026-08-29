@@ -25,10 +25,11 @@ class AppPages {
     GetPage(
       name: AppRoutes.otp,
       page: () {
-        final args = Get.arguments as OtpPageArgs?;
+        final args = Get.arguments as OtpPageArgs;
         return OtpPage(
-          phoneNumberModel: args?.phoneNumberModel,
-          phoneNumber: args?.phoneNumber,
+          phoneNumberModel: args.phoneNumberModel,
+          phoneNumber: args.phoneNumber,
+          onResend: args.onResend,
         );
       },
     ),

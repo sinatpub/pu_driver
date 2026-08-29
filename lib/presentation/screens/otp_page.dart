@@ -2,14 +2,14 @@ import 'dart:async';
 import 'package:smart_auth/smart_auth.dart';
 import 'package:tara_driver_application/core/routing/app_routes.dart';
 import 'package:tara_driver_application/core/utils/otp_auto_fill.dart';
-import 'package:tara_driver_application/data/models/phone_model.dart';
-import 'package:tara_driver_application/presentation/blocs/otp_bloc.dart';
-import 'package:tara_driver_application/presentation/blocs/phone_login_bloc.dart';
+import 'package:tara_driver_application/features/auth/data/datasource/auth_datasource.dart';
+import 'package:tara_driver_application/features/auth/data/models/phone_model.dart';
+import 'package:tara_driver_application/features/auth/data/repository/auth_repository.dart';
+import 'package:tara_driver_application/features/auth/presentation/controller/otp_controller.dart';
 import 'package:tara_driver_application/presentation/widgets/error_dialog_widget.dart';
 import 'package:tara_driver_application/presentation/widgets/loading_widget.dart';
 import 'package:easy_localization/easy_localization.dart' as easy_locale;
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:pinput/pinput.dart';
 // import 'package:smart_auth/smart_auth.dart';
@@ -19,7 +19,8 @@ import 'package:tara_driver_application/core/theme/text_styles.dart';
 class OtpPage extends StatefulWidget {
   final PhoneNumberModel? phoneNumberModel;
   final String? phoneNumber;
-  const OtpPage({super.key, this.phoneNumberModel, this.phoneNumber});
+  final void Function() onResend;
+  const OtpPage({super.key, this.phoneNumberModel, this.phoneNumber, required this.onResend});
 
   @override
   State<OtpPage> createState() => _OtpPageState();
@@ -28,6 +29,7 @@ class OtpPage extends StatefulWidget {
 class _OtpPageState extends State<OtpPage> {
   TextEditingController pinputController = TextEditingController();
   int? resentToken;
+  late final OtpController otpController;
 
   late Timer timer;
   int secondsRemaining = 0;
@@ -48,6 +50,17 @@ class _OtpPageState extends State<OtpPage> {
     pinController = TextEditingController();
     focusNode = FocusNode();
     smsRetriever = SmsRetrieverImpl(smartAuth);
+    otpController = OtpController(AuthRepository(AuthDatasource()));
+    ever<OtpStatus>(otpController.status, (status) {
+      if (status == OtpStatus.newDriver) {
+        Get.toNamed(AppRoutes.register);
+      } else if (status == OtpStatus.loaded) {
+        Get.offAllNamed(AppRoutes.home);
+      } else if (status == OtpStatus.fail) {
+        showErrorCustomDialog(context, "Please Try Again",
+            "Please make sure enter correct OTP",false);
+      }
+    });
 
     // Initialize countdown timer
     secondsRemaining = widget.phoneNumberModel?.data.seconde ?? 60;
@@ -74,6 +87,7 @@ class _OtpPageState extends State<OtpPage> {
     pinController.dispose();
     focusNode.dispose();
     timer.cancel(); // Cancel timer
+    otpController.dispose();
     super.dispose();
   }
 
@@ -94,20 +108,7 @@ class _OtpPageState extends State<OtpPage> {
         bottom: false,
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 18),
-          child: BlocListener<OTPVerifyBloc, OTPState>(
-            listener: (context, state) {
-              if (state is NewDriverState) {
-                Get.toNamed(AppRoutes.register);
-              } else if (state is OTPVerifyLoadedState) {
-                Get.offAllNamed(AppRoutes.home);
-              } else if (state is OTPVerifyFailState) {
-                showErrorCustomDialog(context, "Please Try Again",
-                    "Please make sure enter correct OTP",false);
-              }
-            },
-            child: BlocBuilder<OTPVerifyBloc, OTPState>(
-              builder: (context, state) {
-
+          child: Obx(() {
                 return Stack(
                   children: [
                     Column(
@@ -170,13 +171,10 @@ class _OtpPageState extends State<OtpPage> {
                                         debugPrint("---> value ---> $value");
                                       },
                                       onCompleted: (value) async {
-                                        context.read<OTPVerifyBloc>().add(
-                                              VerifyOTPEvent(
-                                                phoneNumber: widget.phoneNumber
-                                                    .toString(),
-                                                otpCode: value.toString(),
-                                              ),
-                                            );
+                                        otpController.verify(
+                                          phone: widget.phoneNumber.toString(),
+                                          otpCode: value.toString(),
+                                        );
                                       },
                                       focusedPinTheme: defaultPinTheme.copyWith(
                                         decoration: defaultPinTheme.decoration!
@@ -231,17 +229,7 @@ class _OtpPageState extends State<OtpPage> {
                                   const SizedBox(height: 16), // Add some space
                                   TextButton(
                                     onPressed: isResendEnabled
-                                        ? () {
-
-                                            BlocProvider.of<PhoneLoginBloc>(
-                                                    context)
-                                                .add(
-                                              PhoneNumLoginEvent(
-                                                phoneNumber: widget.phoneNumber
-                                                    .toString(),
-                                              ),
-                                            );
-                                          }
+                                        ? widget.onResend
                                         : null,
                                     child: Text(
                                       "RESEND_CODE".tr(),
@@ -262,9 +250,7 @@ class _OtpPageState extends State<OtpPage> {
                     ),
                   ],
                 );
-              },
-            ),
-          ),
+          }),
         ),
       ),
     );

@@ -4,7 +4,9 @@ import 'package:tara_driver_application/core/theme/colors.dart';
 import 'package:tara_driver_application/core/theme/text_styles.dart';
 import 'package:tara_driver_application/core/utils/pretty_logger.dart';
 import 'package:tara_driver_application/data/models/vehical_model.dart';
-import 'package:tara_driver_application/presentation/blocs/register_bloc.dart';
+import 'package:tara_driver_application/features/auth/data/datasource/auth_datasource.dart';
+import 'package:tara_driver_application/features/auth/data/repository/auth_repository.dart';
+import 'package:tara_driver_application/features/auth/presentation/controller/register_controller.dart';
 import 'package:tara_driver_application/presentation/blocs/vehical_bloc.dart';
 import 'package:tara_driver_application/presentation/widgets/card_atta_widget.dart';
 import 'package:tara_driver_application/presentation/widgets/error_dialog_widget.dart';
@@ -40,11 +42,28 @@ class _RegisterPageState extends State<RegisterPage> {
   String? selectedValueService;
   int? vehicalId;
   String? selectedValueColor;
+  late final RegisterController registerController;
 
   @override
   void initState() {
-    BlocProvider.of<VehicalBloc>(context).add(GetAllVehicalEvent());
     super.initState();
+    BlocProvider.of<VehicalBloc>(context).add(GetAllVehicalEvent());
+    registerController = RegisterController(AuthRepository(AuthDatasource()));
+    ever<RegisterStatus>(registerController.status, (status) {
+      if (status == RegisterStatus.fail) {
+        showErrorCustomDialog(context, "Something went wrong!",
+            "All of the fields are require",false);
+      } else if (status == RegisterStatus.loaded) {
+        Taxi.shared.checkDriverAvailability();
+        Get.offAllNamed(AppRoutes.home);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    registerController.dispose();
+    super.dispose();
   }
 
   @override
@@ -53,18 +72,8 @@ class _RegisterPageState extends State<RegisterPage> {
       backgroundColor: AppColors.light4,
       body: SafeArea(
         bottom: false,
-        child: BlocConsumer<RegisterBloc, RegisterState>(
-          listener: (context, state) {
-            if (state is DriverRegisterFail) {
-              showErrorCustomDialog(context, "Something went wrong!",
-                  "All of the fields are require",false);
-            } else if (state is DriverRegisterLoaded) {
-              Taxi.shared.checkDriverAvailability();
-              Get.offAllNamed(AppRoutes.home);
-            }
-          },
-          builder: (context, state) {
-            bool isLoading = state is DriverRegisterLoading;
+        child: Obx(() {
+            bool isLoading = registerController.status.value == RegisterStatus.loading;
             return Stack(
               children: [
                 Padding(
@@ -434,33 +443,24 @@ class _RegisterPageState extends State<RegisterPage> {
                                                 tlog(
                                                     "Register Driver ${controllerName.text.toString()},Vehical ID: $vehicalId, Plate Number ${controllerPlate.text},profile: $imageProfile, cardId: $imageCardID, driver license: $imageLicense");
 
-                                                BlocProvider.of<RegisterBloc>(
-                                                        context)
-                                                    .add(
-                                                  DriverRegisterEvent(
-                                                    vechicleImage:
-                                                        imageVehicle!,
-                                                    fullname: controllerName
-                                                        .text
-                                                        .toString(),
-                                                    plateNumber: controllerPlate
-                                                        .text
-                                                        .toString(),
-                                                    vehicalId: "$vehicalId",
-                                                    vehicalColor:
-                                                        vehicleColorController
-                                                                .text ??
-                                                            "Unknown",
-                                                    // selectedValueColor !=
-                                                    //         null
-                                                    //     ? '$selectedValueColor'
-                                                    //     : "Unknown",
-                                                    deviceToken: '9999',
-                                                    cardImage: imageCardID!,
-                                                    profileImage: imageProfile!,
-                                                    driverLicenseImage:
-                                                        imageLicense!,
-                                                  ),
+                                                registerController.register(
+                                                  vehicleImage:
+                                                      imageVehicle!,
+                                                  fullname: controllerName
+                                                      .text
+                                                      .toString(),
+                                                  plateNumber: controllerPlate
+                                                      .text
+                                                      .toString(),
+                                                  vehicalId: "$vehicalId",
+                                                  vehicalColor:
+                                                      vehicleColorController
+                                                              .text ??
+                                                          "Unknown",
+                                                  cardImage: imageCardID!,
+                                                  profileImage: imageProfile!,
+                                                  driverLicenseImage:
+                                                      imageLicense!,
                                                 );
                                               },
                                         textColor: AppColors.light4,
@@ -484,8 +484,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   )
               ],
             );
-          },
-        ),
+        }),
       ),
     );
   }
