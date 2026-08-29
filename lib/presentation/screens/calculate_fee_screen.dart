@@ -1,8 +1,10 @@
 import 'package:get/get.dart' hide Trans;
 import 'package:tara_driver_application/app/funtion_convert.dart';
 import 'package:tara_driver_application/core/routing/app_routes.dart';
-import 'package:tara_driver_application/data/datasources/confirm_booking_api.dart';
 import 'package:tara_driver_application/data/models/complete_driver_model.dart';
+import 'package:tara_driver_application/features/payment/data/datasource/payment_datasource.dart';
+import 'package:tara_driver_application/features/payment/data/repository/payment_repository.dart';
+import 'package:tara_driver_application/features/payment/presentation/controller/payment_controller.dart';
 import 'package:tara_driver_application/features/profile/presentation/controller/profile_controller.dart';
 import 'package:tara_driver_application/presentation/widgets/error_dialog_widget.dart';
 import 'package:tara_driver_application/presentation/widgets/t_image_widget.dart';
@@ -43,11 +45,48 @@ class _CalculateFeeScreenState extends State<CalculateFeeScreen> {
     return DateFormat("EEE/d/MMM/yyyy - HH:mma").format(dt);
   }
 
-  bool loadingCompletePay = false;
+  late final PaymentController paymentController;
+
+  int get _rideId => widget.routFrom == "FromDropBooking"
+      ? widget.dataComplete!.data!.id!
+      : int.parse(widget.dataDriverInfo!.id.toString());
+
+  String get _passengerId => widget.routFrom == "FromDropBooking"
+      ? widget.dataComplete!.data!.passenger!.id.toString()
+      : widget.dataDriverInfo!.passenger!.id.toString();
+
+  String get _bookingCode => widget.routFrom == "FromDropBooking"
+      ? widget.dataComplete!.data!.bookingCode.toString()
+      : widget.dataDriverInfo!.bookingCode.toString();
+
+  String get _bookingId => widget.routFrom == "FromDropBooking"
+      ? widget.dataComplete!.data!.id.toString()
+      : widget.dataDriverInfo!.id.toString();
 
   @override
   void initState() {
     super.initState();
+    paymentController = PaymentController(PaymentRepository(PaymentDatasource()));
+    ever<PaymentStatus>(paymentController.status, (status) {
+      if (status == PaymentStatus.success) {
+        // Trigger Accept Payment Done Socket
+        DriverSocketService().acceptPayment(
+            passengerId: _passengerId,
+            bookingCode: _bookingCode,
+            bookingId: _bookingId);
+        Get.find<ProfileController>().fetchProfile();
+        Get.offAllNamed(AppRoutes.home);
+      } else if (status == PaymentStatus.error) {
+        showErrorCustomDialog(context, "Please Try Again!",
+            "Please try again. Something went wrong.", false);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    paymentController.dispose();
+    super.dispose();
   }
 
   @override
@@ -127,64 +166,15 @@ class _CalculateFeeScreenState extends State<CalculateFeeScreen> {
                       const SizedBox(
                         height: 18,
                       ),
-                      FBTNWidget(
-                        loadingBut: loadingCompletePay,
-                        onPressed: () async {
-                          setState(() {
-                            loadingCompletePay = true;
-                          });
-                          await BookingApi()
-                              .completePayment(
-                                  rideId: widget.routFrom == "FromDropBooking"
-                                      ? widget.dataComplete!.data!.id!
-                                      : int.parse(
-                                          widget.dataDriverInfo!.id.toString()))
-                              .then((onValue) {
-                            if (onValue == true) {
-                              String passengerId =
-                                  widget.routFrom == "FromDropBooking"
-                                      ? widget.dataComplete!.data!.passenger!.id
-                                          .toString()
-                                      : widget.dataDriverInfo!.passenger!.id
-                                          .toString();
-                              String bookingCode =
-                                  widget.routFrom == "FromDropBooking"
-                                      ? widget.dataComplete!.data!.bookingCode
-                                          .toString()
-                                      : widget.dataDriverInfo!.bookingCode
-                                          .toString();
-                              String bookingId =
-                                  widget.routFrom == "FromDropBooking"
-                                      ? widget.dataComplete!.data!.id.toString()
-                                      : widget.dataDriverInfo!.id.toString();
-                              // Trigger Accept Payment Done Socket
-                              DriverSocketService().acceptPayment(
-                                  passengerId: passengerId,
-                                  bookingCode: bookingCode,
-                                  bookingId: bookingId);
-                              setState(() {
-                                loadingCompletePay = false;
-                              });
-                              Get.find<ProfileController>().fetchProfile();
-                              Get.offAllNamed(AppRoutes.home);
-                            } else {
-                              setState(() {
-                                loadingCompletePay = false;
-                                showErrorCustomDialog(
-                                    context,
-                                    "Please Try Again!",
-                                    "Please try again. Something went wrong.",
-                                    false);
-                              });
-                            }
-                          });
-                        },
+                      Obx(() => FBTNWidget(
+                        loadingBut: paymentController.status.value == PaymentStatus.loading,
+                        onPressed: () => paymentController.acceptPayment(_rideId),
                         width: 200,
                         color: AppColors.red,
                         textColor: AppColors.light4,
                         label: "PAYMENT_DONE".tr(),
                         enableWidth: true,
-                      )
+                      ))
                     ],
                   ),
                 ),
