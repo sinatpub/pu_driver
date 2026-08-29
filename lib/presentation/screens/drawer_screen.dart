@@ -5,11 +5,8 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import 'package:tara_driver_application/app/funtion_convert.dart';
 import 'package:tara_driver_application/core/resources/asset_resource.dart';
 import 'package:tara_driver_application/core/routing/app_routes.dart';
-import 'package:tara_driver_application/core/utils/pretty_logger.dart';
 import 'package:tara_driver_application/features/home/presentation/controller/home_controller.dart';
-import 'package:tara_driver_application/presentation/blocs/get_current_driver_info_bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:tara_driver_application/core/theme/colors.dart';
 import 'package:tara_driver_application/core/theme/text_styles.dart';
@@ -63,7 +60,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
       }
     });
     //=============Eend Check internet====================
-    BlocProvider.of<CurrentDriverInfoBloc>(context).add(GetCurrentInfoEvent());
+    Get.find<HomeController>().fetchCurrentDriveInfo();
     super.initState();
   }
 
@@ -402,74 +399,60 @@ class _DrawerScreenState extends State<DrawerScreen> {
           ],
         ),
       ),
-      body: BlocListener<CurrentDriverInfoBloc, CurrentDriverInfoState>(
-        listener: (context, state) {
-          if (state is CurrentDriverLoading) {
-            tlog("Current Driver Loading");
-          } else if (state is CurrentDriverInfoLoaded) {
-            tlog("Current Driver Loaded");
-            Get.find<HomeController>().setApprovalStatus(
-              state.currentDriverInfoModel.data?.driver?.status,
+      body: Stack(
+        children: [
+          SafeArea(
+              bottom: false,
+              child: isActiveIndex == 0
+                  ? HomeScreen()
+                  : isActiveIndex == 1
+                      ? const RidingHistoryScreen()
+                      : isActiveIndex == 2
+                          ? PaymentScreen()
+                          : isActiveIndex == 4
+                              ? ContactUsScreen()
+                              : isActiveIndex == 3
+                                  ? TermsOfServicePage()
+                                  : isActiveIndex == 5
+                                      ? NotificationPage()
+                                      : const HomeScreen()),
+          Obx(() {
+            if (Get.find<HomeController>().isApproved) return const SizedBox();
+            return Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              top: 0,
+              child: Container(
+                color: Colors.white.withValues(alpha: .1),
+              ),
             );
-          } else {
-            tlog("Current Driver Fail");
-          }
-        },
-        child: Stack(
-          children: [
-            SafeArea(
-                bottom: false,
-                child: isActiveIndex == 0
-                    ? HomeScreen()
-                    : isActiveIndex == 1
-                        ? const RidingHistoryScreen()
-                        : isActiveIndex == 2
-                            ? PaymentScreen()
-                            : isActiveIndex == 4
-                                ? ContactUsScreen()
-                                : isActiveIndex == 3
-                                    ? TermsOfServicePage()
-                                    : isActiveIndex == 5
-                                        ? NotificationPage()
-                                        : const HomeScreen()),
-            Obx(() {
-              if (Get.find<HomeController>().isApproved) return const SizedBox();
-              return Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                top: 0,
-                child: Container(
-                  color: Colors.white.withValues(alpha: .1),
+          }),
+          Obx(() {
+            if (Get.find<HomeController>().isApproved) return const SizedBox();
+            return Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Container(
+                height: 250,
+                color: Colors.white,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 10),
+                    SvgPicture.asset("assets/icon/svg/waiting_approve.svg"),
+                    Text(
+                      "WAITING_APPROVED_FROM_ADMIN".tr(),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 18, color: Colors.red),
+                    ),
+                  ],
                 ),
-              );
-            }),
-            Obx(() {
-              if (Get.find<HomeController>().isApproved) return const SizedBox();
-              return Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: Container(
-                  height: 250,
-                  color: Colors.white,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 10),
-                      SvgPicture.asset("assets/icon/svg/waiting_approve.svg"),
-                      Text(
-                        "WAITING_APPROVED_FROM_ADMIN".tr(),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 18, color: Colors.red),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }),
-          ],
-        ),
+              ),
+            );
+          }),
+        ],
       ),
     );
   }

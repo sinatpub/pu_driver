@@ -13,7 +13,6 @@ import 'package:tara_driver_application/core/theme/text_styles.dart';
 import 'package:tara_driver_application/core/utils/app_constant.dart';
 import 'package:tara_driver_application/core/utils/check_platform_device.dart';
 import 'package:tara_driver_application/core/utils/load_custom_marker.dart';
-import 'package:tara_driver_application/core/utils/pretty_logger.dart';
 import 'package:tara_driver_application/data/models/current_driver_info_model.dart';
 import 'package:tara_driver_application/data/models/register_model.dart';
 import 'package:get/get.dart' hide Trans;
@@ -22,14 +21,12 @@ import 'package:tara_driver_application/features/profile/presentation/controller
 import 'package:tara_driver_application/features/version_check/data/datasource/version_check_datasource.dart';
 import 'package:tara_driver_application/features/version_check/data/repository/version_check_repository.dart';
 import 'package:tara_driver_application/features/version_check/presentation/controller/version_check_controller.dart';
-import 'package:tara_driver_application/presentation/blocs/get_current_driver_info_bloc.dart';
 import 'package:tara_driver_application/presentation/widgets/widge_update.dart';
 import 'package:tara_driver_application/services/location_service.dart';
 import 'package:tara_driver_application/taxi_single_ton/init_socket.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../data/datasources/device_info_repo.dart';
@@ -195,6 +192,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       }
     });
     versionCheckController.check();
+    // D-04 (docs/12) — replaces BlocConsumer<CurrentDriverInfoBloc,
+    // CurrentDriverInfoState>. The fetch itself is triggered once from
+    // drawer_screen.dart's initState (HomeController.fetchCurrentDriveInfo),
+    // same trigger point the bloc dispatch had; this reacts to each new
+    // value the same way the bloc's listener did.
+    ever<CurrentDriverInfoModel?>(
+      Get.find<HomeController>().currentDriveInfo,
+      (data) {
+        if (data?.data != null) {
+          navigateBasedOnDriverStatus(data!.data!);
+        }
+      },
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       registerSocket();
     });
@@ -235,52 +245,26 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocConsumer<CurrentDriverInfoBloc, CurrentDriverInfoState>(
-        listener: (blocContext, state) {
-          if (state is CurrentDriverInfoLoaded) {
-            if (state.currentDriverInfoModel.data != null &&
-                state.currentDriverInfoModel.data!.driver != null &&
-                state.currentDriverInfoModel.data!.driver!.vehicle != null) {
-              setState(() {});
-            }
-          }
-          handleStateChanges(state);
-        },
-        builder: (blocContext, state) {
-          return Column(
-              children: [
-                Expanded(
-                    child: Stack(
-                  children: [
-                    buildGoogleMap(),
-                    updateVersion == false
-                        ? Container()
-                        : Positioned.fill(
-                            left: 0,
-                            right: 0,
-                            child: Container(
-                                color: AppColors.dark1.withAlpha(60),
-                                child: Center(child: WidgetUpdate())),
-                          ),
-                  ],
-                )),
-                if (state is CurrentDriverLoading) const SizedBox(),
-              ],
-          );
-        },
+      body: Column(
+        children: [
+          Expanded(
+              child: Stack(
+            children: [
+              buildGoogleMap(),
+              updateVersion == false
+                  ? Container()
+                  : Positioned.fill(
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                          color: AppColors.dark1.withAlpha(60),
+                          child: Center(child: WidgetUpdate())),
+                    ),
+            ],
+          )),
+        ],
       ),
     );
-  }
-
-  void handleStateChanges(CurrentDriverInfoState state) {
-    if (state is CurrentDriverLoading) {
-      tlog("Current Driver Loading");
-    } else if (state is CurrentDriverInfoLoaded) {
-      tlog("Current Driver Loaded");
-      navigateBasedOnDriverStatus(state.currentDriverInfoModel.data!);
-    } else {
-      tlog("Current Driver Fail");
-    }
   }
 
   void navigateBasedOnDriverStatus(DataDriverInfo dataDriver) {

@@ -1,5 +1,6 @@
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart' hide Trans;
+import 'package:tara_driver_application/data/models/current_driver_info_model.dart';
 import 'package:tara_driver_application/features/home/data/repository/home_repository.dart';
 
 /// D-03 (docs/12) — the backend's `driver.status` field on
@@ -47,6 +48,26 @@ class HomeController extends GetxController {
 
   void setApprovalStatus(int? code) {
     approvalStatus.value = driverApprovalStatusFromCode(code);
+  }
+
+  /// D-04 (docs/12) — replaces `CurrentDriverInfoBloc`. Fetched once from
+  /// `drawer_screen.dart`'s `initState`, same trigger point the bloc had;
+  /// `home_screen.dart` reacts to changes via `ever()` to redirect into an
+  /// in-progress ride, and this also feeds the D-03 approval gate above —
+  /// the bloc's driver-approval consumer and its ride-status consumer read
+  /// the same API response, so one fetch now serves both instead of the
+  /// approval half being wired separately in `drawer_screen.dart`.
+  final currentDriveInfo = Rx<CurrentDriverInfoModel?>(null);
+
+  Future<void> fetchCurrentDriveInfo() async {
+    final result = await _repository.getCurrentDriveInfo();
+    result.when(
+      ok: (data) {
+        setApprovalStatus(data.data?.driver?.status);
+        currentDriveInfo.value = data;
+      },
+      err: (_) {},
+    );
   }
 
   Future<void> checkStatus() async {
