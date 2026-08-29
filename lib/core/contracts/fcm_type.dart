@@ -1,13 +1,10 @@
-class BookingStatus {
-  static const int acceted = 2;
-  static const int waiting = 3;
-  static const int driverCancel = 4;
-  static const int passengerCancel = 5;
-  static const int riding = 6;
-  static const int completed = 7;
-}
-
+/// F-01 (docs/12) — relocated from `core/utils/status_util.dart` verbatim.
+/// Only [request] is actually referenced today (as a local-notification
+/// ID, not for FCM payload type dispatch); the rest are unverified against
+/// any FCM payload this app currently sends or receives.
 class FcmType {
+  const FcmType._();
+
   static const int none = -1;
   static const int news = 0;
   static const int request = 1;

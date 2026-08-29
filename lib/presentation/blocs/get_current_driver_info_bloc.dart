@@ -1,8 +1,6 @@
 // Define the states
-import 'package:tara_driver_application/core/utils/status_util.dart';
 import 'package:tara_driver_application/data/datasources/current_driver_info_api.dart';
 import 'package:tara_driver_application/data/models/current_driver_info_model.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 // Define the events

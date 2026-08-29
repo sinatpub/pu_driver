@@ -3,6 +3,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tara_driver_application/app/alert_widget.dart';
+import 'package:tara_driver_application/core/contracts/booking_status.dart';
 import 'package:tara_driver_application/core/helper/local_notification_helper.dart';
 import 'package:tara_driver_application/core/routing/app_routes.dart';
 import 'package:tara_driver_application/core/routing/route_arguments.dart';
@@ -283,7 +284,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   void navigateBasedOnDriverStatus(DataDriverInfo dataDriver) {
-    if (dataDriver.status == 6) {
+    if (dataDriver.status == BookingStatus.pendingPayment) {
       navigateToCalculateFeeScreen(dataDriver);
     } else if (dataDriver.status != null) {
       navigateToBookingScreen(dataDriver);

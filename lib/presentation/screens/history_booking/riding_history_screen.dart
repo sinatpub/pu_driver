@@ -1,4 +1,5 @@
 import 'package:tara_driver_application/app/funtion_convert.dart';
+import 'package:tara_driver_application/core/contracts/booking_status.dart';
 import 'package:tara_driver_application/core/routing/app_routes.dart';
 import 'package:tara_driver_application/core/routing/route_arguments.dart';
 import 'package:tara_driver_application/features/history/data/datasource/history_datasource.dart';
@@ -175,7 +176,7 @@ class _RidingHistoryScreenState extends State<RidingHistoryScreen> {
                                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                 children: [
                                                   Text("${"INVOICE".tr()}: #${items[index].payment!.invoiceId}",style: ThemeConstands.font14Regular.copyWith(color:AppColors.dark2),textAlign: TextAlign.start,),
-                                                  Text(items[index].statusName.toString().toUpperCase().tr(),style: ThemeConstands.font14SemiBold.copyWith(color:items[index].status==4?AppColors.success:AppColors.dark2),textAlign: TextAlign.end,),
+                                                  Text(items[index].statusName.toString().toUpperCase().tr(),style: ThemeConstands.font14SemiBold.copyWith(color:items[index].status==BookingStatus.completed?AppColors.success:AppColors.dark2),textAlign: TextAlign.end,),
                                                 ],
                                               ),
                                               Text(items[index].passenger!.name.toString(),style: ThemeConstands.font20SemiBold.copyWith(color:AppColors.dark1),),
@@ -205,7 +206,7 @@ class _RidingHistoryScreenState extends State<RidingHistoryScreen> {
                                           children: [
                                             SvgPicture.asset(ImageAssets.time_outline,width: 20,color: AppColors.red,),
                                             const SizedBox(width: 8,),
-                                            Text(items[index].status == 4?convertTimeString(items[index].payment!.duration.toString()):"UNKNOWN".tr(),style: ThemeConstands.font14Regular.copyWith(color:AppColors.dark1),),
+                                            Text(items[index].status == BookingStatus.completed?convertTimeString(items[index].payment!.duration.toString()):"UNKNOWN".tr(),style: ThemeConstands.font14Regular.copyWith(color:AppColors.dark1),),
                                           ],
                                         ),
                                       ),
@@ -233,7 +234,7 @@ class _RidingHistoryScreenState extends State<RidingHistoryScreen> {
                                     children: [
                                       Text("DATE_TIME".tr(),style: ThemeConstands.font14Regular.copyWith(color:AppColors.dark1),),
                                       const SizedBox(width: 8,),
-                                      Text(items[index].status == 4?formatDateTime(items[index].startTime.toString()):"UNKNOWN".tr(),style: ThemeConstands.font14Regular.copyWith(color:AppColors.dark1),),
+                                      Text(items[index].status == BookingStatus.completed?formatDateTime(items[index].startTime.toString()):"UNKNOWN".tr(),style: ThemeConstands.font14Regular.copyWith(color:AppColors.dark1),),
                                     ],
                                   ),
                                   const SizedBox(height: 18,),
@@ -278,10 +279,10 @@ class _RidingHistoryScreenState extends State<RidingHistoryScreen> {
                                         children: [
                                           SvgPicture.asset(ImageAssets.current_location,width: 22,color: AppColors.dark1,),
                                           const SizedBox(width: 8,),
-                                          Expanded(child: Text(items[index].status == 4?items[index].startAddress.toString():"UNKNOWN".tr(),style: ThemeConstands.font16Regular.copyWith(color:AppColors.dark1),)),
+                                          Expanded(child: Text(items[index].status == BookingStatus.completed?items[index].startAddress.toString():"UNKNOWN".tr(),style: ThemeConstands.font16Regular.copyWith(color:AppColors.dark1),)),
                                         ],
                                       ),
-                                      items[index].status == 5?const SizedBox():Container(
+                                      items[index].status == BookingStatus.cancel?const SizedBox():Container(
                                         margin:const EdgeInsets.only(left: 10),
                                         alignment: Alignment.centerLeft,
                                         child:const DottedLine(
@@ -292,12 +293,12 @@ class _RidingHistoryScreenState extends State<RidingHistoryScreen> {
                                           dashColor: AppColors.dark1,
                                         ),
                                       ),
-                                      items[index].status == 5?const SizedBox(): Row(
+                                      items[index].status == BookingStatus.cancel?const SizedBox(): Row(
                                         mainAxisAlignment: MainAxisAlignment.start,
                                         children: [
                                           SvgPicture.asset(ImageAssets.book_outline,width: 20,color: AppColors.red,),
                                           const SizedBox(width: 8,),
-                                          Expanded(child: Text(items[index].status == 4?items[index].endAddress.toString():"UNKNOWN".tr(),style: ThemeConstands.font16Regular.copyWith(color:AppColors.dark1),)),
+                                          Expanded(child: Text(items[index].status == BookingStatus.completed?items[index].endAddress.toString():"UNKNOWN".tr(),style: ThemeConstands.font16Regular.copyWith(color:AppColors.dark1),)),
                                         ],
                                       ),
                                     ],
