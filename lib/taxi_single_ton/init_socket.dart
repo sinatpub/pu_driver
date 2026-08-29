@@ -1,7 +1,7 @@
 import 'package:tara_driver_application/app/alert_widget.dart';
 import 'package:tara_driver_application/core/routing/app_routes.dart';
-import 'package:tara_driver_application/core/routing/route_arguments.dart';
 import 'package:tara_driver_application/core/utils/pretty_logger.dart';
+import 'package:tara_driver_application/features/trip/data/new_ride_payload_parser.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;
@@ -108,38 +108,20 @@ class DriverSocketService extends BaseSocketService {
       tlog("New ride data: $data");
 
       try {
-        Get.toNamed(
-          AppRoutes.booking,
-          arguments: BookingScreenArgs(
-            latStart: 0.0,
-            lngStart: 0.0,
-            startTime: "",
-            refreshApp: false,
-            typeVehicleId: data["vehicleType"],
-            pricrVehicle: data["vehiclePrice"],
-            namePassanger: data["passenger"]["name"],
-            phonePassanger: data["passenger"]["phone"],
-            imagePassanger: data["passenger"]["profile"],
-            timeOut: data["timeout"],
-            processStepBook: 1,
-            bookingCode: int.parse(data["booking_code"]),
-            bookingId: int.parse(data["booking_id"]),
-            latPassenger: data["location"]['latitude'],
-            lngPassenger: data["location"]['longitude'],
-            desLatPassenger:
-                double.tryParse("${data["destination"]['latitude']}"),
-            desLngPassenger:
-                double.tryParse("${data["destination"]['longitude']}"),
-            passengerId: int.parse(data["passengerId"]),
-          ),
-        );
-        Taxi.shared.notifyBooking(
-            title: "NEWREQUEST".tr(),
-            description: "DESREQUEST".tr(),
-            isSound: true);
+        final args = parseNewRideArgs(Map<String, dynamic>.from(data as Map));
+        Get.toNamed(AppRoutes.booking, arguments: args);
       } catch (e) {
-        tlog("Navigation failed: $e");
+        tlog("Failed to show new ride request: $e — raw data: $data");
       }
+
+      // Fires unconditionally — a malformed/partial payload still means a
+      // ride request arrived, and the driver silently never finding out
+      // was the actual defect here (docs/08 L-10), not the parse failure
+      // itself.
+      Taxi.shared.notifyBooking(
+          title: "NEWREQUEST".tr(),
+          description: "DESREQUEST".tr(),
+          isSound: true);
     });
   }
 
