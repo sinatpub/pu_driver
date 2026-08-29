@@ -7,28 +7,24 @@ class AppConstant {
 
   static const String titleApp = 'TAARRAA';
 
-  // Based Url
-  static const baseUrlApi =
-      "https://api.tara-taxi.com"; //'http://206.189.38.88:3007/'; // Dev
+  // Based Url — overridable via `--dart-define=API_BASE_URL=...`
+  // (F-07, docs/12); defaults to prod, so an ordinary build is unaffected.
+  static const baseUrlApi = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'https://api.tara-taxi.com',
+  );
 
-  // Socket IO Client
-  static const socketBasedUrl =
-      "https://socket.tara-taxi.com"; //"http://206.189.38.88:3009/";
-  static const driverId = "5";
-
-  // Socket Event Client
-
-  static const driverConnect = "driver_connect";
+  // Socket IO Client — overridable via `--dart-define=SOCKET_BASE_URL=...`
+  static const socketBasedUrl = String.fromEnvironment(
+    'SOCKET_BASE_URL',
+    defaultValue: 'https://socket.tara-taxi.com',
+  );
 
   // Custom Token — supplied via `--dart-define-from-file=dart_defines.json`
   static const String customeToken = String.fromEnvironment(
     'API_BEARER_TOKEN',
   );
   static const googleKeyApi = String.fromEnvironment('GOOGLE_MAPS_API_KEY');
-
-  // Image Placeholder
-  static const imagePlaceholder =
-      "https://www.unityhighschool.org/wp-content/uploads/2014/08/default-placeholder.png";
 
   static const String playStoreUrl =
       "https://play.google.com/store/apps/details?id=com.tara.driver_application";
