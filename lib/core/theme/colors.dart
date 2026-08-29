@@ -10,7 +10,6 @@ class AppColors {
 
   // State Colors
   static const Color error = Color(0xFFD32F2F);
-  static const Color warning = Color(0xFFFFA000);
   static const Color info = Color(0xFF1976D2);
   static const Color success = Color(0xFF10CF7C);
 
