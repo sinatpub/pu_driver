@@ -1,6 +1,7 @@
 import 'package:tara_driver_application/app/funtion_convert.dart';
+import 'package:tara_driver_application/core/routing/app_routes.dart';
+import 'package:tara_driver_application/core/routing/route_arguments.dart';
 import 'package:tara_driver_application/presentation/screens/history_booking/state/history_book_bloc.dart';
-import 'package:tara_driver_application/presentation/screens/map_history_detail_screen.dart';
 import 'package:tara_driver_application/presentation/widgets/simmer_widget.dart';
 import 'package:tara_driver_application/presentation/widgets/t_image_widget.dart';
 import 'package:dotted_line/dotted_line.dart';
@@ -8,6 +9,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:tara_driver_application/core/resources/asset_resource.dart';
 import 'package:tara_driver_application/core/theme/colors.dart';
 import 'package:tara_driver_application/core/theme/text_styles.dart';
@@ -255,7 +257,9 @@ class _RidingHistoryScreenState extends State<RidingHistoryScreen> {
                                   const SizedBox(height: 18,),
                                   indexActive == 1?Container():GestureDetector(
                                     onTap: () {
-                                      Navigator.push(context,MaterialPageRoute(builder: (context) => MapHistoryDetailScreen(
+                                      Get.toNamed(
+                                        AppRoutes.mapHistoryDetail,
+                                        arguments: MapHistoryDetailArgs(
                                         cost: formatToTwoDecimalPlaces(state.items[index].payment!.amount.toString()),
                                         duration:convertTimeString(state.items[index].payment!.duration.toString()),
                                         distand:formatDistanceWithUnits(state.items[index].payment!.distance.toString(),context),
@@ -264,7 +268,8 @@ class _RidingHistoryScreenState extends State<RidingHistoryScreen> {
                                         latStart: double.parse(state.items[index].startLatitude.toString()),
                                         lngEnd:  double.parse(state.items[index].endLongitude.toString()),
                                         lngStart: double.parse(state.items[index].startLongitude.toString()),
-                                      )),);
+                                      ),
+                                      );
                                     },
                                     child: Container(
                                       margin: EdgeInsets.only(bottom: 12),

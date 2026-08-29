@@ -1,9 +1,9 @@
 import 'package:get/get.dart' hide Trans;
 import 'package:tara_driver_application/app/funtion_convert.dart';
+import 'package:tara_driver_application/core/routing/app_routes.dart';
 import 'package:tara_driver_application/data/datasources/confirm_booking_api.dart';
 import 'package:tara_driver_application/data/models/complete_driver_model.dart';
 import 'package:tara_driver_application/features/profile/presentation/controller/profile_controller.dart';
-import 'package:tara_driver_application/presentation/screens/drawer_screen.dart';
 import 'package:tara_driver_application/presentation/widgets/error_dialog_widget.dart';
 import 'package:tara_driver_application/presentation/widgets/t_image_widget.dart';
 import 'package:tara_driver_application/taxi_single_ton/init_socket.dart';
@@ -166,17 +166,7 @@ class _CalculateFeeScreenState extends State<CalculateFeeScreen> {
                                 loadingCompletePay = false;
                               });
                               Get.find<ProfileController>().fetchProfile();
-                              Navigator.pushAndRemoveUntil(
-                                context,
-                                PageRouteBuilder(
-                                  pageBuilder:
-                                      (context, animation1, animation2) =>
-                                          DrawerScreen(),
-                                  transitionDuration: Duration.zero,
-                                  reverseTransitionDuration: Duration.zero,
-                                ),
-                                (route) => false,
-                              );
+                              Get.offAllNamed(AppRoutes.home);
                             } else {
                               setState(() {
                                 loadingCompletePay = false;

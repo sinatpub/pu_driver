@@ -1,20 +1,20 @@
 import 'dart:async';
 import 'package:smart_auth/smart_auth.dart';
+import 'package:tara_driver_application/core/routing/app_routes.dart';
 import 'package:tara_driver_application/core/utils/otp_auto_fill.dart';
 import 'package:tara_driver_application/data/models/phone_model.dart';
 import 'package:tara_driver_application/presentation/blocs/otp_bloc.dart';
 import 'package:tara_driver_application/presentation/blocs/phone_login_bloc.dart';
-import 'package:tara_driver_application/presentation/screens/drawer_screen.dart';
 import 'package:tara_driver_application/presentation/widgets/error_dialog_widget.dart';
 import 'package:tara_driver_application/presentation/widgets/loading_widget.dart';
 import 'package:easy_localization/easy_localization.dart' as easy_locale;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:pinput/pinput.dart';
 // import 'package:smart_auth/smart_auth.dart';
 import 'package:tara_driver_application/core/theme/colors.dart';
 import 'package:tara_driver_application/core/theme/text_styles.dart';
-import 'package:tara_driver_application/presentation/screens/register_page.dart';
 
 class OtpPage extends StatefulWidget {
   final PhoneNumberModel? phoneNumberModel;
@@ -97,22 +97,9 @@ class _OtpPageState extends State<OtpPage> {
           child: BlocListener<OTPVerifyBloc, OTPState>(
             listener: (context, state) {
               if (state is NewDriverState) {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const RegisterPage(),
-                    ));
+                Get.toNamed(AppRoutes.register);
               } else if (state is OTPVerifyLoadedState) {
-                Navigator.pushAndRemoveUntil(
-                context,
-                PageRouteBuilder(
-                  pageBuilder: (context, animation1, animation2) =>
-                      DrawerScreen(),
-                  transitionDuration: Duration.zero,
-                  reverseTransitionDuration: Duration.zero,
-                ),
-                (route) => false,
-              );
+                Get.offAllNamed(AppRoutes.home);
               } else if (state is OTPVerifyFailState) {
                 showErrorCustomDialog(context, "Please Try Again",
                     "Please make sure enter correct OTP",false);

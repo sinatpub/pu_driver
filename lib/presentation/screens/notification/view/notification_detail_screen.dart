@@ -1,11 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:tara_driver_application/app/funtion_convert.dart';
+import 'package:tara_driver_application/core/routing/app_routes.dart';
 import 'package:tara_driver_application/core/theme/colors.dart';
 import 'package:tara_driver_application/core/theme/text_styles.dart';
 import 'package:tara_driver_application/presentation/blocs/notification_detail_bloc.dart';
-import 'package:tara_driver_application/presentation/screens/drawer_screen.dart';
 
 class NotificationDetailPage extends StatefulWidget {
   final String? notificationId;
@@ -39,9 +40,9 @@ class _NotificationDetailPageState extends State<NotificationDetailPage> {
         backgroundColor: Colors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black),
-          onPressed: widget.appOpened == true ? () => Navigator.pop(context) 
-                   : () => Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => DrawerScreen())),
+          onPressed: widget.appOpened == true
+              ? () => Navigator.pop(context)
+              : () => Get.offNamed(AppRoutes.home),
         ),
         centerTitle: true,
         title: Text(

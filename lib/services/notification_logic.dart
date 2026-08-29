@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:tara_driver_application/presentation/screens/booking/booking/booking_screen.dart';
-import 'package:tara_driver_application/presentation/screens/notification/view/notification_detail_screen.dart';
-import 'package:tara_driver_application/services/navigation_service.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:tara_driver_application/core/routing/app_routes.dart';
+import 'package:tara_driver_application/core/routing/route_arguments.dart';
 import '../core/utils/app_log.dart';
 import '../taxi_single_ton/taxi.dart';
 
@@ -211,8 +211,9 @@ Future<void> routeByNotificationTime(RemoteMessage message, int durationRoute,
   }
   await Future.delayed(Duration(seconds: durationRoute), () {
     if (message.data['notification_type'] == 'service_booking') {
-      NavigationService().navigateTo(
-        BookingScreen(
+      Get.toNamed(
+        AppRoutes.booking,
+        arguments: BookingScreenArgs(
           latStart: 0.0,
           lngStart: 0.0,
           startTime: "",
@@ -234,8 +235,9 @@ Future<void> routeByNotificationTime(RemoteMessage message, int durationRoute,
         ),
       );
     } else {
-      NavigationService().navigateTo(
-        NotificationDetailPage(
+      Get.toNamed(
+        AppRoutes.notificationDetail,
+        arguments: NotificationDetailArgs(
           notificationId: message.data["notification_id"],
           appOpened: false,
         ),

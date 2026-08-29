@@ -1,10 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:tara_driver_application/core/routing/app_routes.dart';
+import 'package:tara_driver_application/core/routing/route_arguments.dart';
 import 'package:tara_driver_application/core/theme/colors.dart';
 import 'package:tara_driver_application/core/theme/text_styles.dart';
 import 'package:tara_driver_application/presentation/blocs/notification_bloc.dart';
-import 'package:tara_driver_application/presentation/screens/notification/view/notification_detail_screen.dart';
 import 'package:tara_driver_application/presentation/widgets/simmer_widget.dart';
 
 class NotificationPage extends StatefulWidget {
@@ -67,12 +69,12 @@ class _NotificationPageState extends State<NotificationPage> {
                         elevation: 0,
                         padding: EdgeInsets.all(12),
                         onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => NotificationDetailPage(
-                                    notificationId: item.id.toString(),
-                                    appOpened: true)),
+                          Get.toNamed(
+                            AppRoutes.notificationDetail,
+                            arguments: NotificationDetailArgs(
+                              notificationId: item.id.toString(),
+                              appOpened: true,
+                            ),
                           );
                         },
                         shape: RoundedRectangleBorder(

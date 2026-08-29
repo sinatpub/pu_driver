@@ -1,13 +1,15 @@
+import 'package:tara_driver_application/core/routing/app_pages.dart';
+import 'package:tara_driver_application/core/routing/app_routes.dart';
 import 'package:tara_driver_application/core/theme/app_theme.dart';
 import 'package:tara_driver_application/core/utils/app_constant.dart';
 import 'package:tara_driver_application/core/utils/check_platform_device.dart';
 import 'package:tara_driver_application/presentation/blocs/multi_bloc.dart';
-import 'package:tara_driver_application/presentation/screens/splash_screen.dart';
 import 'package:tara_driver_application/services/navigation_service.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:keyboard_dismisser/keyboard_dismisser.dart';
 
 class Root extends StatelessWidget {
@@ -19,7 +21,7 @@ class Root extends StatelessWidget {
       gestures: const [GestureType.onTap, GestureType.onPanUpdateDownDirection],
       child: MultiBlocProvider(
         providers: listBlocProvider,
-        child: MaterialApp(
+        child: GetMaterialApp(
           builder: (BuildContext context,Widget? child) {
             EasyLoading.init();
             return MediaQuery(
@@ -34,8 +36,8 @@ class Root extends StatelessWidget {
           locale: context.locale,
           title: AppConstant.titleApp,
           theme: AppTheme.lightTheme,
-          home: const SplashScreen(),
-          // builder: 
+          initialRoute: AppRoutes.splash,
+          getPages: AppPages.pages,
         ),
       ),
     );

@@ -1,9 +1,10 @@
 import 'package:tara_driver_application/core/resources/asset_resource.dart';
+import 'package:tara_driver_application/core/routing/app_routes.dart';
+import 'package:tara_driver_application/core/routing/route_arguments.dart';
 import 'package:tara_driver_application/core/utils/phone_formatter.dart';
 import 'package:tara_driver_application/data/datasources/device_info_repo.dart';
 import 'package:tara_driver_application/presentation/blocs/phone_login_bloc.dart';
 import 'package:tara_driver_application/presentation/repository/language_data.dart';
-import 'package:tara_driver_application/presentation/screens/otp_page.dart';
 import 'package:tara_driver_application/presentation/widgets/error_dialog_widget.dart';
 import 'package:tara_driver_application/presentation/widgets/loading_widget.dart';
 import 'package:tara_driver_application/presentation/widgets/shake_widget.dart';
@@ -11,6 +12,7 @@ import 'package:tara_driver_application/presentation/widgets/x_text_field.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:tara_driver_application/core/theme/colors.dart';
 import 'package:tara_driver_application/core/theme/text_styles.dart';
 import 'package:tara_driver_application/presentation/widgets/fbtn_widget.dart';
@@ -43,13 +45,11 @@ class _LoginPageState extends State<LoginPage> {
       body: BlocListener<PhoneLoginBloc, PhoneLoginState>(
         listener: (context, state) {
           if (state is PhoneLoginLoadedState) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => OtpPage(
-                  phoneNumberModel: state.phoneNumberModel,
-                  phoneNumber: controller.text.toString(),
-                ),
+            Get.toNamed(
+              AppRoutes.otp,
+              arguments: OtpPageArgs(
+                phoneNumberModel: state.phoneNumberModel,
+                phoneNumber: controller.text.toString(),
               ),
             );
             // }

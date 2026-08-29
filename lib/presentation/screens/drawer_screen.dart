@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:tara_driver_application/app/funtion_convert.dart';
 import 'package:tara_driver_application/core/resources/asset_resource.dart';
+import 'package:tara_driver_application/core/routing/app_routes.dart';
 import 'package:tara_driver_application/core/utils/pretty_logger.dart';
 import 'package:tara_driver_application/presentation/blocs/get_current_driver_info_bloc.dart';
 import 'package:flutter/material.dart';
@@ -106,10 +107,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
             ),
             IconButton(
               onPressed: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => NotificationPage()));
+                Get.toNamed(AppRoutes.notification);
               },
               icon: Icon(
                 CupertinoIcons.bell_circle_fill,

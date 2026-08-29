@@ -4,6 +4,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tara_driver_application/app/alert_widget.dart';
 import 'package:tara_driver_application/core/helper/local_notification_helper.dart';
+import 'package:tara_driver_application/core/routing/app_routes.dart';
+import 'package:tara_driver_application/core/routing/route_arguments.dart';
 import 'package:tara_driver_application/core/storages/get_storages.dart';
 import 'package:tara_driver_application/core/theme/colors.dart';
 import 'package:tara_driver_application/core/theme/text_styles.dart';
@@ -16,8 +18,6 @@ import 'package:get/get.dart' hide Trans;
 import 'package:tara_driver_application/features/profile/presentation/controller/profile_controller.dart';
 import 'package:tara_driver_application/presentation/blocs/get_current_driver_info_bloc.dart';
 import 'package:tara_driver_application/presentation/blocs/get_version_app.dart';
-import 'package:tara_driver_application/presentation/screens/booking/booking/booking_screen.dart';
-import 'package:tara_driver_application/presentation/screens/calculate_fee_screen.dart';
 import 'package:tara_driver_application/presentation/screens/home_screen/bloc/home_bloc.dart';
 import 'package:tara_driver_application/presentation/widgets/widge_update.dart';
 import 'package:tara_driver_application/services/location_service.dart';
@@ -300,15 +300,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   void navigateToCalculateFeeScreen(DataDriverInfo dataDriver) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CalculateFeeScreen(
-          dataDriverInfo: dataDriver,
-          routFrom: "FromHome",
-          startAddress: dataDriver.startAddress.toString(),
-          endAddress: dataDriver.endAddress.toString(),
-        ),
+    Get.offNamed(
+      AppRoutes.calculateFee,
+      arguments: CalculateFeeScreenArgs(
+        dataDriverInfo: dataDriver,
+        routFrom: "FromHome",
+        startAddress: dataDriver.startAddress.toString(),
+        endAddress: dataDriver.endAddress.toString(),
       ),
     );
   }
@@ -318,41 +316,39 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       context,
     );
     Future.delayed(Duration(seconds: 2), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => BookingScreen(
-            startTime: dataDriver.startTime.toString(),
-            latStart: double.parse(dataDriver.startLatitude.toString()),
-            lngStart: double.parse(dataDriver.startLongitude.toString()),
-            refreshApp: true,
-            typeVehicleId: dataDriver.driver!.vehicle!.typeVehicleId!,
-            pricrVehicle: dataDriver.driver!.vehicle!.pricrVehicle == null
-                ? 1200
-                : dataDriver.driver!.vehicle!.pricrVehicle!,
-            namePassanger: dataDriver.passenger!.name.toString(),
-            phonePassanger: dataDriver.passenger!.phone.toString(),
-            imagePassanger: dataDriver.passenger!.profileImage.toString(),
-            timeOut: 30,
-            processStepBook: getProcessStepBook(dataDriver.status!),
-            bookingCode: int.parse(dataDriver.bookingCode.toString()),
-            bookingId: int.parse(dataDriver.id.toString()),
-            latPassenger: double.parse(
-                dataDriver.passenger!.lastLocation!.latitude.toString()),
-            lngPassenger: double.parse(
-                dataDriver.passenger!.lastLocation!.longitude.toString()),
-            latDriver: double.parse(
-                dataDriver.driver!.lastLocation!.latitude.toString()),
-            lngDriver: double.parse(
-                dataDriver.driver!.lastLocation!.longitude.toString()),
-            passengerId: dataDriver.passenger!.id!,
-            desLatPassenger: dataDriver.endLatitude == null
-                ? null
-                : double.parse(dataDriver.endLatitude!.toString()),
-            desLngPassenger: dataDriver.endLongitude == null
-                ? null
-                : double.parse(dataDriver.endLongitude!.toString()),
-          ),
+      Get.offNamed(
+        AppRoutes.booking,
+        arguments: BookingScreenArgs(
+          startTime: dataDriver.startTime.toString(),
+          latStart: double.parse(dataDriver.startLatitude.toString()),
+          lngStart: double.parse(dataDriver.startLongitude.toString()),
+          refreshApp: true,
+          typeVehicleId: dataDriver.driver!.vehicle!.typeVehicleId!,
+          pricrVehicle: dataDriver.driver!.vehicle!.pricrVehicle == null
+              ? 1200
+              : dataDriver.driver!.vehicle!.pricrVehicle!,
+          namePassanger: dataDriver.passenger!.name.toString(),
+          phonePassanger: dataDriver.passenger!.phone.toString(),
+          imagePassanger: dataDriver.passenger!.profileImage.toString(),
+          timeOut: 30,
+          processStepBook: getProcessStepBook(dataDriver.status!),
+          bookingCode: int.parse(dataDriver.bookingCode.toString()),
+          bookingId: int.parse(dataDriver.id.toString()),
+          latPassenger: double.parse(
+              dataDriver.passenger!.lastLocation!.latitude.toString()),
+          lngPassenger: double.parse(
+              dataDriver.passenger!.lastLocation!.longitude.toString()),
+          latDriver: double.parse(
+              dataDriver.driver!.lastLocation!.latitude.toString()),
+          lngDriver: double.parse(
+              dataDriver.driver!.lastLocation!.longitude.toString()),
+          passengerId: dataDriver.passenger!.id!,
+          desLatPassenger: dataDriver.endLatitude == null
+              ? null
+              : double.parse(dataDriver.endLatitude!.toString()),
+          desLngPassenger: dataDriver.endLongitude == null
+              ? null
+              : double.parse(dataDriver.endLongitude!.toString()),
         ),
       );
     });

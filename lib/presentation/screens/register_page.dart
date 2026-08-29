@@ -1,11 +1,11 @@
 import 'dart:io';
+import 'package:tara_driver_application/core/routing/app_routes.dart';
 import 'package:tara_driver_application/core/theme/colors.dart';
 import 'package:tara_driver_application/core/theme/text_styles.dart';
 import 'package:tara_driver_application/core/utils/pretty_logger.dart';
 import 'package:tara_driver_application/data/models/vehical_model.dart';
 import 'package:tara_driver_application/presentation/blocs/register_bloc.dart';
 import 'package:tara_driver_application/presentation/blocs/vehical_bloc.dart';
-import 'package:tara_driver_application/presentation/screens/drawer_screen.dart';
 import 'package:tara_driver_application/presentation/widgets/card_atta_widget.dart';
 import 'package:tara_driver_application/presentation/widgets/error_dialog_widget.dart';
 import 'package:tara_driver_application/presentation/widgets/fbtn_widget.dart';
@@ -16,6 +16,7 @@ import 'package:tara_driver_application/presentation/widgets/x_showmodal_bottom.
 import 'package:tara_driver_application/taxi_single_ton/taxi.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:image_picker/image_picker.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -59,16 +60,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   "All of the fields are require",false);
             } else if (state is DriverRegisterLoaded) {
               Taxi.shared.checkDriverAvailability();
-              Navigator.pushAndRemoveUntil(
-                context,
-                PageRouteBuilder(
-                  pageBuilder: (context, animation1, animation2) =>
-                      DrawerScreen(),
-                  transitionDuration: Duration.zero,
-                  reverseTransitionDuration: Duration.zero,
-                ),
-                (route) => false,
-              );
+              Get.offAllNamed(AppRoutes.home);
             }
           },
           builder: (context, state) {

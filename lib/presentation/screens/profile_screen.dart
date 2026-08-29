@@ -1,6 +1,6 @@
 import 'package:tara_driver_application/app/alert_widget.dart';
+import 'package:tara_driver_application/core/routing/app_routes.dart';
 import 'package:tara_driver_application/features/profile/presentation/controller/profile_controller.dart';
-import 'package:tara_driver_application/presentation/screens/drawer_screen.dart';
 import 'package:tara_driver_application/presentation/widgets/simmer_widget.dart';
 import 'package:tara_driver_application/presentation/widgets/t_image_widget.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -294,16 +294,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         // Navigator.of(context).pop();
                         updateLanguageLocal(
                             Locale(langs[index].sublang), context);
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          PageRouteBuilder(
-                            pageBuilder: (context, animation1, animation2) =>
-                                DrawerScreen(),
-                            transitionDuration: Duration.zero,
-                            reverseTransitionDuration: Duration.zero,
-                          ),
-                          (route) => false,
-                        );
+                        Get.offAllNamed(AppRoutes.home);
                       });
                     },
                   ),

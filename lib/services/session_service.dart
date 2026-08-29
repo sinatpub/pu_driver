@@ -1,9 +1,8 @@
-import 'package:flutter/material.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:tara_driver_application/core/routing/app_routes.dart';
 import 'package:tara_driver_application/core/storage/token_store.dart';
 import 'package:tara_driver_application/core/storages/get_storages.dart';
-import 'package:tara_driver_application/presentation/screens/login_page.dart';
 import 'package:tara_driver_application/services/location_service.dart';
-import 'package:tara_driver_application/services/navigation_service.dart';
 
 class SessionService {
   SessionService._(this._tokenStore);
@@ -47,10 +46,7 @@ class SessionService {
   Future<void> handleUnauthorized() async {
     await clear();
     LocationService.instance.stop();
-    NavigationService().navigatorKey.currentState?.pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const LoginPage()),
-      (route) => false,
-    );
+    Get.offAllNamed(AppRoutes.login);
   }
 
   Future<String?> _readLegacyToken() async {

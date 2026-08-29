@@ -1,10 +1,11 @@
 import 'dart:async';
 
+import 'package:tara_driver_application/core/routing/app_routes.dart';
 import 'package:tara_driver_application/core/theme/colors.dart';
 import 'package:tara_driver_application/core/theme/text_styles.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:tara_driver_application/presentation/screens/drawer_screen.dart';
+import 'package:get/get.dart' hide Trans;
 
 Future<void> showCancelBookingDialog({required Function() onYes, required BuildContext context,required String title, required String description,}) {
   int number = 10;
@@ -17,15 +18,7 @@ Future<void> showCancelBookingDialog({required Function() onYes, required BuildC
         builder: (context, setState) {
             Future.delayed(Duration(seconds: number), () {
               if(close == false){
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  PageRouteBuilder(
-                    pageBuilder: (context, animation1, animation2) => DrawerScreen(),
-                    transitionDuration: Duration.zero,
-                    reverseTransitionDuration: Duration.zero,
-                  ),
-                  (route) => false,
-                );
+                Get.offAllNamed(AppRoutes.home);
               }
             });
           return AlertDialog(
@@ -46,15 +39,7 @@ Future<void> showCancelBookingDialog({required Function() onYes, required BuildC
                 ),
                 onPressed: () {
                   setState(() {
-                      Navigator.pushAndRemoveUntil(
-                  context,
-                  PageRouteBuilder(
-                      pageBuilder: (context, animation1, animation2) => DrawerScreen(),
-                      transitionDuration: Duration.zero,
-                      reverseTransitionDuration: Duration.zero,
-                    ),
-                    (route) => false,
-                  );
+                    Get.offAllNamed(AppRoutes.home);
                   });
                 },
                 child: Row(

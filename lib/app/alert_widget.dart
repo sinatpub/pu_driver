@@ -1,8 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:tara_driver_application/core/routing/app_routes.dart';
 import 'package:tara_driver_application/core/storages/remove_storage.dart';
-import 'package:tara_driver_application/presentation/screens/login_page.dart';
+import 'package:tara_driver_application/services/location_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:logger/logger.dart';
 import 'package:tara_driver_application/presentation/widgets/cancel_book_dialog_widget.dart';
 import 'package:tara_driver_application/presentation/widgets/process_book_dialog_widget.dart';
@@ -15,12 +17,8 @@ class AlertWidget {
       showYesNoCustomDialog(context:  context,title: "LOGOUT".tr(),description: "ARE_YOU_LOGOUT".tr(), onYes: () async {
         EasyLoading.show();
         await StorageRemove.removeDriverData();
-        Navigator.pushAndRemoveUntil(context,PageRouteBuilder(
-          pageBuilder: (context, animation1, animation2) => LoginPage(),
-          transitionDuration: Duration.zero,
-          reverseTransitionDuration: Duration.zero,
-        ),(route) => false,
-        );
+        LocationService.instance.stop();
+        Get.offAllNamed(AppRoutes.login, transition: Transition.noTransition);
         EasyLoading.dismiss();
       });
     } catch (e) {

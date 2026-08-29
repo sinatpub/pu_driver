@@ -1,6 +1,7 @@
+import 'package:tara_driver_application/core/routing/app_routes.dart';
 import 'package:tara_driver_application/core/theme/colors.dart';
-import 'package:tara_driver_application/presentation/screens/drawer_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart' hide Trans;
 
 class SmoothCircularCountdown extends StatefulWidget {
   final int countDuration;
@@ -30,12 +31,7 @@ class _SmoothCircularCountdownState extends State<SmoothCircularCountdown>
     );
     _controller.addListener(() {
       if (_controller.isDismissed && widget.isPop) {
-        Navigator.pushAndRemoveUntil(context,PageRouteBuilder(
-          pageBuilder: (context, animation1, animation2) =>  DrawerScreen(),
-          transitionDuration: Duration.zero,
-          reverseTransitionDuration: Duration.zero,
-        ),(route) => false,
-        ); // Pop the screen when countdown finishes
+        Get.offAllNamed(AppRoutes.home); // Pop the screen when countdown finishes
       }
     });
     _controller.reverse(from: 1.0);

@@ -1,9 +1,10 @@
 import 'package:tara_driver_application/app/alert_widget.dart';
+import 'package:tara_driver_application/core/routing/app_routes.dart';
+import 'package:tara_driver_application/core/routing/route_arguments.dart';
 import 'package:tara_driver_application/core/utils/pretty_logger.dart';
-import 'package:tara_driver_application/presentation/screens/booking/booking/booking_screen.dart';
-import 'package:tara_driver_application/services/navigation_service.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:tara_driver_application/taxi_single_ton/taxi.dart';
 
@@ -107,8 +108,9 @@ class DriverSocketService extends BaseSocketService {
       tlog("New ride data: $data");
 
       try {
-        NavigationService().navigateTo(
-          BookingScreen(
+        Get.toNamed(
+          AppRoutes.booking,
+          arguments: BookingScreenArgs(
             latStart: 0.0,
             lngStart: 0.0,
             startTime: "",

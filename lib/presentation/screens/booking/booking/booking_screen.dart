@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:tara_driver_application/app/funtion_convert.dart';
 import 'package:tara_driver_application/core/helper/get_address_latlng_helper.dart';
+import 'package:tara_driver_application/core/routing/app_routes.dart';
+import 'package:tara_driver_application/core/routing/route_arguments.dart';
 import 'package:tara_driver_application/core/storages/get_storages.dart';
 import 'package:tara_driver_application/core/utils/app_constant.dart';
 import 'package:tara_driver_application/core/utils/calculate_distance.dart';
@@ -11,9 +13,6 @@ import 'package:tara_driver_application/presentation/blocs/vehical_bloc.dart';
 import 'package:tara_driver_application/presentation/screens/booking/booking/bloc/booking_bloc.dart';
 import 'package:tara_driver_application/presentation/screens/booking/booking/widgets/ride_request_bottom_pop_widget.dart';
 import 'package:tara_driver_application/presentation/screens/booking/booking/widgets/show_distand_and_price_widget.dart';
-import 'package:tara_driver_application/presentation/screens/calculate_fee_screen.dart';
-import 'package:tara_driver_application/presentation/screens/drawer_screen.dart';
-import 'package:tara_driver_application/presentation/screens/home_screen/home_screen.dart';
 import 'package:tara_driver_application/presentation/widgets/count_down_widget.dart';
 import 'package:tara_driver_application/presentation/widgets/error_dialog_widget.dart';
 import 'package:tara_driver_application/presentation/widgets/loading_widget.dart';
@@ -27,6 +26,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -548,16 +548,7 @@ class _BookingScreenState extends State<BookingScreen> {
             if (state is BookingLoading) {
               tlog("Booking Loading");
             } else if (state is CancelBookingSuccess) {
-              Navigator.pushAndRemoveUntil(
-                context,
-                PageRouteBuilder(
-                  pageBuilder: (context, animation1, animation2) =>
-                      DrawerScreen(),
-                  transitionDuration: Duration.zero,
-                  reverseTransitionDuration: Duration.zero,
-                ),
-                (route) => false,
-              );
+              Get.offAllNamed(AppRoutes.home);
             } else if (state is ConfirmBookingSuccess) {
               var dataConfirmBooking = state.confirmBookingModel.data;
               if (dataConfirmBooking != null) {
@@ -650,15 +641,13 @@ class _BookingScreenState extends State<BookingScreen> {
                 String endAddress = await getAddressFromLatLng(
                     double.parse(data.data!.endLatitude.toString()),
                     double.parse(data.data!.endLongitude.toString()));
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => CalculateFeeScreen(
-                      routFrom: "FromDropBooking",
-                      dataComplete: data,
-                      startAddress: startAddress,
-                      endAddress: endAddress,
-                    ),
+                Get.offNamed(
+                  AppRoutes.calculateFee,
+                  arguments: CalculateFeeScreenArgs(
+                    routFrom: "FromDropBooking",
+                    dataComplete: data,
+                    startAddress: startAddress,
+                    endAddress: endAddress,
                   ),
                 );
               });
