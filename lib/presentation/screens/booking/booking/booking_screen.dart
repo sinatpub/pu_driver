@@ -7,6 +7,7 @@ import 'package:tara_driver_application/core/routing/route_arguments.dart';
 import 'package:tara_driver_application/core/storages/get_storages.dart';
 import 'package:tara_driver_application/core/utils/app_constant.dart';
 import 'package:tara_driver_application/core/utils/calculate_distance.dart';
+import 'package:tara_driver_application/core/utils/fare_estimate.dart';
 import 'package:tara_driver_application/core/utils/load_custom_marker.dart';
 import 'package:tara_driver_application/core/utils/pretty_logger.dart';
 import 'package:tara_driver_application/data/models/complete_driver_model.dart';
@@ -193,9 +194,11 @@ class _BookingScreenState extends State<BookingScreen> {
             setState(() {
               totalDistanceCount +=
                   double.parse(distance.toStringAsFixed(3).toString());
-              totalFee = totalDistanceCount <= 1000
-                  ? "$priceUnder1Km"
-                  : "${(((totalDistanceCount / 1000) - 1.0) * widget.pricrVehicle) + priceUnder1Km}";
+              totalFee = estimateFare(
+                distanceKm: totalDistanceCount / 1000,
+                pricePerKm: widget.pricrVehicle,
+                minimumFare: priceUnder1Km,
+              ).toString();
               _lastPosition = current;
             });
           }
@@ -277,9 +280,11 @@ class _BookingScreenState extends State<BookingScreen> {
                     LatLng(position.latitude, position.longitude),
                     LatLng(widget.latStart, widget.lngStart)) *
                 1000);
-            totalFee = totalDistanceCount <= 1000
-                ? "$priceUnder1Km"
-                : "${(((totalDistanceCount / 1000) - 1.0) * widget.pricrVehicle) + priceUnder1Km}";
+            totalFee = estimateFare(
+              distanceKm: totalDistanceCount / 1000,
+              pricePerKm: widget.pricrVehicle,
+              minimumFare: priceUnder1Km,
+            ).toString();
           }
         } else {
           currentAddressDriver =
@@ -382,9 +387,11 @@ class _BookingScreenState extends State<BookingScreen> {
             setState(() {
               totalDistance =
                   double.parse(distanceAsMeter.toStringAsFixed(2).toString());
-              totalFee = totalDistance <= 1.0
-                  ? "$priceUnder1Km"
-                  : "${((totalDistance - 1.0) * widget.pricrVehicle) + priceUnder1Km}";
+              totalFee = estimateFare(
+                distanceKm: totalDistance,
+                pricePerKm: widget.pricrVehicle,
+                minimumFare: priceUnder1Km,
+              ).toString();
               laodCalculateDistance = false;
             });
           }
