@@ -2,14 +2,12 @@ import 'package:tara_driver_application/app/funtion_convert.dart';
 import 'package:tara_driver_application/core/resources/asset_resource.dart';
 import 'package:tara_driver_application/core/theme/colors.dart';
 import 'package:tara_driver_application/core/theme/text_styles.dart';
-import 'package:tara_driver_application/presentation/screens/booking/booking/bloc/booking_bloc.dart';
 import 'package:tara_driver_application/presentation/widgets/fbtn_widget.dart';
 import 'package:tara_driver_application/presentation/widgets/t_image_widget.dart';
 import 'package:tara_driver_application/presentation/widgets/yesno_dialog_widget.dart';
 import 'package:dotted_line/dotted_line.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:tara_driver_application/taxi_single_ton/taxi.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -30,6 +28,7 @@ class ModelBottomSheetNewRequestWidget extends StatefulWidget {
   final double distandTotal;
   final String totalFee;
   final VoidCallback onTap;
+  final VoidCallback onCancel;
   ModelBottomSheetNewRequestWidget(
       {super.key,
       required this.bookingCode,
@@ -41,6 +40,7 @@ class ModelBottomSheetNewRequestWidget extends StatefulWidget {
       required this.phonePassanger,
       required this.profilePassanger,
       required this.onTap,
+      required this.onCancel,
       required this.processType,
       required this.currentLocationName,
       required this.whereToGoLocationName,
@@ -365,11 +365,7 @@ class _ModelBottomSheetNewRequestWidgetState
                                       //     "passengerId": widget.passengerId,
                                       //   },
                                       // );
-                                      BlocProvider.of<BookingBloc>(context).add(
-                                        CanceBookingEvent(
-                                          rideId: widget.bookingId,
-                                        ),
-                                      );
+                                      widget.onCancel();
                                     });
                               },
                               color: AppColors.dark1,

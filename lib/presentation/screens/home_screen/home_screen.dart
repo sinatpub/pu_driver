@@ -11,6 +11,7 @@ import 'package:tara_driver_application/core/theme/colors.dart';
 import 'package:tara_driver_application/core/theme/text_styles.dart';
 import 'package:tara_driver_application/core/utils/app_constant.dart';
 import 'package:tara_driver_application/core/utils/check_platform_device.dart';
+import 'package:tara_driver_application/core/utils/load_custom_marker.dart';
 import 'package:tara_driver_application/core/utils/pretty_logger.dart';
 import 'package:tara_driver_application/data/models/current_driver_info_model.dart';
 import 'package:tara_driver_application/data/models/register_model.dart';
@@ -415,30 +416,3 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 }
 
-Future<BitmapDescriptor> loadCustomMarker() async {
-  BitmapDescriptor convertMarkerIcon = await BitmapDescriptor.asset(
-    const ImageConfiguration(size: Size(90, 90)),
-    "assets/marker/passenger_marker.png",
-  );
-  return convertMarkerIcon;
-}
-
-Future<BitmapDescriptor> loadCustomMarkerTukTuk({
-  required int typeVehicleId,
-}) async {
-  BitmapDescriptor convertMarkerIcon = await BitmapDescriptor.asset(
-    const ImageConfiguration(size: Size(30, 50)),
-    typeVehicleId == 1
-        ? "assets/marker/rickshaw_icon_svg.png"
-        : typeVehicleId == 2
-            ? "assets/marker/classis_car.png"
-            : typeVehicleId == 3
-                ? "assets/marker/mini_van.png"
-                : typeVehicleId == 4
-                    ? "assets/marker/SUV.png"
-                    : typeVehicleId == 5
-                        ? "assets/marker/alphard_vip.png"
-                        : "",
-  );
-  return convertMarkerIcon;
-}

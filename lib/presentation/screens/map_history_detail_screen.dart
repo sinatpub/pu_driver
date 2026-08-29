@@ -5,8 +5,8 @@ import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:tara_driver_application/core/theme/colors.dart';
 import 'package:tara_driver_application/core/utils/app_constant.dart';
+import 'package:tara_driver_application/core/utils/load_custom_marker.dart';
 import 'package:tara_driver_application/presentation/screens/booking/booking/widgets/show_distand_and_price_widget.dart';
-import 'package:tara_driver_application/presentation/screens/home_screen/home_screen.dart';
 
 class MapHistoryDetailScreen extends StatefulWidget {
   double latStart;

@@ -7,10 +7,15 @@ import 'package:tara_driver_application/core/routing/route_arguments.dart';
 import 'package:tara_driver_application/core/storages/get_storages.dart';
 import 'package:tara_driver_application/core/utils/app_constant.dart';
 import 'package:tara_driver_application/core/utils/calculate_distance.dart';
+import 'package:tara_driver_application/core/utils/load_custom_marker.dart';
 import 'package:tara_driver_application/core/utils/pretty_logger.dart';
+import 'package:tara_driver_application/data/models/complete_driver_model.dart';
 import 'package:tara_driver_application/data/models/register_model.dart';
+import 'package:tara_driver_application/features/trip/data/datasource/trip_datasource.dart';
+import 'package:tara_driver_application/features/trip/data/repository/trip_repository.dart';
+import 'package:tara_driver_application/features/trip/domain/trip_state_machine.dart';
+import 'package:tara_driver_application/features/trip/presentation/controller/trip_controller.dart';
 import 'package:tara_driver_application/presentation/blocs/vehical_bloc.dart';
-import 'package:tara_driver_application/presentation/screens/booking/booking/bloc/booking_bloc.dart';
 import 'package:tara_driver_application/presentation/screens/booking/booking/widgets/ride_request_bottom_pop_widget.dart';
 import 'package:tara_driver_application/presentation/screens/booking/booking/widgets/show_distand_and_price_widget.dart';
 import 'package:tara_driver_application/presentation/widgets/count_down_widget.dart';
@@ -82,6 +87,8 @@ class BookingScreen extends StatefulWidget {
 }
 
 class _BookingScreenState extends State<BookingScreen> {
+  late final TripController tripController;
+
   late BitmapDescriptor driverMarker;
   late BitmapDescriptor passengerMarker;
   late BitmapDescriptor destinationPassengerMarker;
@@ -173,7 +180,7 @@ class _BookingScreenState extends State<BookingScreen> {
         _turnRight();
         syncMarker();
       });
-      if (widget.processStepBook == 4 &&
+      if (tripController.stage.value == TripStage.inProgress &&
           (widget.desLatPassenger == null || widget.desLatPassenger == 0.0)) {
         if (_lastPosition != null) {
           double distance = Geolocator.distanceBetween(
@@ -199,8 +206,14 @@ class _BookingScreenState extends State<BookingScreen> {
     });
   }
 
-  void getLocation(int processStep) async {
-    // Type  0 = initScreen, 1 = accept ,2 = arrive, 3 = start, 4 = drop;
+  /// Fetches the driver's current position and updates the address/polyline
+  /// state for [stage]. Unlike the old `getLocation(int processStep)`, this
+  /// no longer also re-sets the trip stage on a delayed timer — the stage
+  /// is already set by [tripController] by the time this runs (called only
+  /// from `initState`, with the stage the controller was constructed with,
+  /// or from the `ever()` listener below, right after a transition
+  /// succeeds), so re-setting it here was pure redundancy.
+  void getLocation(TripStage stage) async {
     Position? position = await Geolocator.getCurrentPosition();
     destinationPassengerPM =
         widget.desLatPassenger != null && widget.desLngPassenger != null
@@ -208,20 +221,14 @@ class _BookingScreenState extends State<BookingScreen> {
                 widget.desLatPassenger!, widget.desLngPassenger!)
             : "";
     if (position != null) {
-      if (processStep == 1) {
+      if (stage == TripStage.requestReceived) {
         setState(() {
           currentLatDriver = position.latitude;
           currentLngDriver = position.longitude;
           widget.latDriver = position.latitude;
           widget.lngDriver = position.longitude;
         });
-
-        Future.delayed(Duration(seconds: 1), () {
-          setState(() {
-            widget.processStepBook = 1;
-          });
-        });
-      } else if (processStep == 2) {
+      } else if (stage == TripStage.enRouteToPickup) {
         if (widget.refreshApp == true) {
           currentAddressDriver =
               await getAddressFromLatLng(widget.latDriver!, widget.lngDriver!);
@@ -238,12 +245,7 @@ class _BookingScreenState extends State<BookingScreen> {
         _drawPolylines(
             dLocation: LatLng(currentLatDriver, currentLngDriver),
             pLocation: LatLng(widget.latPassenger, widget.lngPassenger));
-        Future.delayed(Duration(seconds: 1), () {
-          setState(() {
-            widget.processStepBook = 2;
-          });
-        });
-      } else if (processStep == 3) {
+      } else if (stage == TripStage.waitingAtPickup) {
         if (widget.refreshApp == true) {
           currentAddressDriver =
               await getAddressFromLatLng(widget.latDriver!, widget.lngDriver!);
@@ -266,12 +268,7 @@ class _BookingScreenState extends State<BookingScreen> {
         } else {
           _clearPolyline();
         }
-        Future.delayed(Duration(seconds: 1), () {
-          setState(() {
-            widget.processStepBook = 3;
-          });
-        });
-      } else if (processStep == 4) {
+      } else if (stage == TripStage.inProgress) {
         if (widget.refreshApp == true) {
           currentAddressDriver =
               await getAddressFromLatLng(widget.latDriver!, widget.lngDriver!);
@@ -301,13 +298,7 @@ class _BookingScreenState extends State<BookingScreen> {
               pLocation:
                   LatLng(widget.desLatPassenger!, widget.desLngPassenger!));
         }
-
-        Future.delayed(Duration(seconds: 1), () {
-          setState(() {
-            widget.processStepBook = 4;
-          });
-        });
-      } else if (processStep == 6) {
+      } else if (stage == TripStage.completing) {
         debugPrint("drop - total distance ${Taxi.shared.totalDistance}");
         dropAddressDriver =
             await getAddressFromLatLng(position.latitude, position.longitude);
@@ -315,16 +306,15 @@ class _BookingScreenState extends State<BookingScreen> {
           dropLatDriver = position.latitude;
           dropLngDriver = position.longitude;
         });
-        BlocProvider.of<BookingBloc>(context).add(CompletedTripEvent(
+        tripController.complete(
           distance: widget.desLatPassenger == null
               ? double.parse(
                   (totalDistanceCount / 1000).toStringAsFixed(3).toString())
               : totalDistance,
-          rideId: widget.bookingId,
           endAddress: dropAddressDriver,
           endLatitude: dropLatDriver,
           endLongitude: dropLngDriver,
-        ));
+        );
       }
       Future.delayed(Duration(seconds: 1), () {
         setState(() {
@@ -383,7 +373,8 @@ class _BookingScreenState extends State<BookingScreen> {
         );
         if ((widget.desLatPassenger != null ||
                 widget.desLatPassenger != null) &&
-            (widget.processStepBook == 3 || widget.processStepBook == 4)) {
+            (tripController.stage.value == TripStage.waitingAtPickup ||
+                tripController.stage.value == TripStage.inProgress)) {
           double distanceAsMeter = await AsyncDistance().calculateDistance(
               LatLng(currentLatDriver, currentLngDriver),
               LatLng(widget.desLatPassenger!, widget.desLngPassenger!));
@@ -407,8 +398,16 @@ class _BookingScreenState extends State<BookingScreen> {
 
   @override
   void initState() {
+    tripController = TripController(
+      TripRepository(TripDatasource()),
+      rideId: widget.bookingId,
+      initialStage: TripStageProcessStep.fromProcessStep(widget.processStepBook),
+    );
+    ever<TripActionResult?>(tripController.lastResult, _onTripAction);
+    ever<TripActionError?>(tripController.lastError, _onTripError);
+
     BlocProvider.of<VehicalBloc>(context).add(GetAllVehicalEvent());
-    if (widget.processStepBook == 4) {
+    if (tripController.stage.value == TripStage.inProgress) {
       if (widget.startTime != "" || widget.startTime != "null") {
         setState(() {
           remaining =
@@ -418,7 +417,7 @@ class _BookingScreenState extends State<BookingScreen> {
       startTimer();
     }
     _startLocationListener();
-    getLocation(widget.processStepBook);
+    getLocation(tripController.stage.value);
     registerSocket();
     super.initState();
     polylinePoints = PolylinePoints();
@@ -427,10 +426,106 @@ class _BookingScreenState extends State<BookingScreen> {
     // Timer.periodic(const Duration(seconds: 10), (Timer t) => Taxi.shared.updateDriverLocation());
   }
 
+  void _onTripAction(TripActionResult? result) {
+    switch (result) {
+      case null:
+        break;
+      case TripAccepted(:final confirmed):
+        final data = confirmed.data!;
+        setState(() {
+          widget.refreshApp = false;
+          getLocation(TripStage.enRouteToPickup);
+        });
+        socketService.acceptRide(
+          driverId: data.driver!.id.toString(),
+          bookingId: data.id.toString(),
+          passengerId: data.passenger!.id.toString(),
+          currentLat: currentLatDriver,
+          currentLng: currentLngDriver,
+        );
+      case TripArrived():
+        // Trigger event Arrival to passenger
+        socketService.arrivedSocket(
+          bookingCode: widget.bookingCode.toString(),
+          passengerId: widget.passengerId.toString(),
+          lat: currentLatDriver.toString(),
+          lng: currentLngDriver.toString(),
+        );
+        setState(() {
+          widget.refreshApp = false;
+          getLocation(TripStage.waitingAtPickup);
+        });
+      case TripStarted():
+        setState(() {
+          widget.refreshApp = false;
+          getLocation(TripStage.inProgress);
+          startTimer();
+        });
+        // Trigger event Start Ride to passenger
+        socketService.startDrive(
+          bookingCode: widget.bookingCode.toString(),
+          bookingId: widget.bookingId.toString(),
+          passengerId: widget.passengerId.toString(),
+          currentLat: currentLatDriver,
+          currentLng: currentLngDriver,
+        );
+      case TripCompleted(:final completed):
+        setState(() {
+          widget.refreshApp = false;
+        });
+        // Trigger event Drop Driver or End Ride to passenger
+        socketService.dropDrive(
+          bookingId: widget.bookingId.toString(),
+          bookingCode: widget.bookingCode.toString(),
+          passengerId: widget.passengerId.toString(),
+          currentLat: currentLatDriver,
+          currentLng: currentLatDriver, // sic — same as the original
+        );
+        _navigateToCalculateFee(completed);
+      case TripCancelled():
+        Get.offAllNamed(AppRoutes.home);
+    }
+  }
+
+  void _onTripError(TripActionError? error) {
+    switch (error) {
+      case null:
+        break;
+      case TripActionError.rideAlreadyAccepted:
+        showErrorCustomDialog(context, "RIDE_ALREADY_ACCEPTED".tr(),
+            "BOOKING_ALREADY_ACCEPTED".tr(), true);
+      case TripActionError.confirmFailed:
+        showErrorCustomDialog(context, "COMFIRM_ERROR".tr(),
+            "CAN_NOT_CONFIRM_BOOKING".tr(), true);
+      case TripActionError.generic:
+        showErrorCustomDialog(context, "PLEASE_TRY_AGAIN".tr(),
+            "PLEASE_TRY_AGAIN_SOMETHING_WENT_WRONG".tr(), true);
+    }
+  }
+
+  Future<void> _navigateToCalculateFee(CompleteDriverModel data) async {
+    String startAddress = await getAddressFromLatLng(
+        double.parse(data.data!.startLatitude.toString()),
+        double.parse(data.data!.startLongitude.toString()));
+    String endAddress = await getAddressFromLatLng(
+        double.parse(data.data!.endLatitude.toString()),
+        double.parse(data.data!.endLongitude.toString()));
+    Get.offNamed(
+      AppRoutes.calculateFee,
+      arguments: CalculateFeeScreenArgs(
+        routFrom: "FromDropBooking",
+        dataComplete: data,
+        startAddress: startAddress,
+        endAddress: endAddress,
+      ),
+    );
+  }
+
   @override
   void dispose() {
     timer?.cancel();
     _positionStream?.cancel();
+    tripController.dispose();
     super.dispose();
   }
 
@@ -439,7 +534,8 @@ class _BookingScreenState extends State<BookingScreen> {
     driverMarker =
         await loadCustomMarkerTukTuk(typeVehicleId: widget.typeVehicleId);
     passengerMarker = await loadCustomMarker();
-    if (widget.desLatPassenger != null && widget.processStepBook != 1) {
+    final stage = tripController.stage.value;
+    if (widget.desLatPassenger != null && stage != TripStage.requestReceived) {
       _markers
         ..add(Marker(
           markerId: const MarkerId('driverMarker'),
@@ -451,12 +547,12 @@ class _BookingScreenState extends State<BookingScreen> {
         ))
         ..add(Marker(
           markerId: const MarkerId('passengerMarker'),
-          position: widget.processStepBook == 2
+          position: stage == TripStage.enRouteToPickup
               ? LatLng(widget.latPassenger, widget.lngPassenger)
               : LatLng(widget.desLatPassenger!, widget.desLngPassenger!),
           icon: passengerMarker,
         ));
-    } else if (widget.processStepBook == 2) {
+    } else if (stage == TripStage.enRouteToPickup) {
       _markers
         ..add(Marker(
           markerId: const MarkerId('driverMarker'),
@@ -471,7 +567,7 @@ class _BookingScreenState extends State<BookingScreen> {
           position: LatLng(widget.latPassenger, widget.lngPassenger),
           icon: passengerMarker,
         ));
-    } else if (widget.processStepBook == 0 || widget.processStepBook == 1) {
+    } else if (stage == TripStage.idle || stage == TripStage.requestReceived) {
       _markers.removeWhere((m) => m.markerId.value == "driverMarker");
       _markers.add(Marker(
         markerId: const MarkerId('passengerMarker'),
@@ -500,14 +596,15 @@ class _BookingScreenState extends State<BookingScreen> {
   // Move the camera to a static LatLng
   void _turnRight() {
     if (_mapController != null) {
+      final stage = tripController.stage.value;
       _mapController!.animateCamera(
         CameraUpdate.newCameraPosition(
           CameraPosition(
             target: LatLng(
-              widget.processStepBook == 1 || widget.processStepBook == 2
+              stage == TripStage.requestReceived || stage == TripStage.enRouteToPickup
                   ? widget.latPassenger
                   : widget.latDriver!,
-              widget.processStepBook == 1 || widget.processStepBook == 2
+              stage == TripStage.requestReceived || stage == TripStage.enRouteToPickup
                   ? widget.lngPassenger
                   : widget.lngDriver!,
             ), // Use the provided LatLng for camera movement
@@ -531,133 +628,35 @@ class _BookingScreenState extends State<BookingScreen> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text(
-          widget.processStepBook == 1
-              ? "NEW_RIDE_REQUEST".tr()
-              : widget.processStepBook == 2
-                  ? "GO_TO_PASSENGER".tr()
-                  : widget.processStepBook == 3
-                      ? "PREPAIR_TO_GO".tr()
-                      : "CARRYING_PASSENGER".tr(),
-        ),
+        title: Obx(() => Text(
+              tripController.stage.value == TripStage.requestReceived
+                  ? "NEW_RIDE_REQUEST".tr()
+                  : tripController.stage.value == TripStage.enRouteToPickup
+                      ? "GO_TO_PASSENGER".tr()
+                      : tripController.stage.value == TripStage.waitingAtPickup
+                          ? "PREPAIR_TO_GO".tr()
+                          : "CARRYING_PASSENGER".tr(),
+            )),
       ),
       body: PopScope(
         canPop: false,
-        child: BlocConsumer<BookingBloc, BookingState>(
+        child: BlocListener<VehicalBloc, VehicalState>(
           listener: (context, state) {
-            if (state is BookingLoading) {
-              tlog("Booking Loading");
-            } else if (state is CancelBookingSuccess) {
-              Get.offAllNamed(AppRoutes.home);
-            } else if (state is ConfirmBookingSuccess) {
-              var dataConfirmBooking = state.confirmBookingModel.data;
-              if (dataConfirmBooking != null) {
+            if (state is VehicalLoaded) {
+              var data = state.vehicalData;
+              var dataTypeVechical = data.data
+                  .where((element) => element.id == widget.typeVehicleId)
+                  .toList();
+              if (dataTypeVechical.isNotEmpty) {
                 setState(() {
-                  widget.processStepBook = 2;
-                  widget.refreshApp = false;
-                  getLocation(2);
+                  priceUnder1Km = dataTypeVechical[0].minimumFare;
                 });
-                Future.delayed(Duration(seconds: 1), () {
-                  setState(() {
-                    widget.processStepBook = 2;
-                  });
-                });
-                socketService.acceptRide(
-                    driverId: dataConfirmBooking.driver!.id.toString(),
-                    bookingId: dataConfirmBooking.id.toString(),
-                    passengerId: dataConfirmBooking.passenger!.id.toString(),
-                    currentLat: currentLatDriver,
-                    currentLng: currentLngDriver);
-              } else if (state.confirmBookingModel.message ==
-                  "RIDE_ALREADY_ACCEPTED") {
-                showErrorCustomDialog(context, "RIDE_ALREADY_ACCEPTED".tr(),
-                    "BOOKING_ALREADY_ACCEPTED".tr(), true);
-              } else {
-                showErrorCustomDialog(context, "COMFIRM_ERROR".tr(),
-                    "CAN_NOT_CONFIRM_BOOKING".tr(), true);
               }
-            } else if (state is StartTripSuccess) {
-              setState(() {
-                widget.processStepBook = 4;
-                widget.refreshApp = false;
-                getLocation(4);
-                startTimer();
-              });
-              Future.delayed(Duration(seconds: 1), () {
-                setState(() {
-                  widget.processStepBook = 4;
-                });
-              });
-              // Trigger event Start Ride to passenger
-              socketService.startDrive(
-                bookingCode: widget.bookingCode.toString(),
-                bookingId: widget.bookingId.toString(),
-                passengerId: widget.passengerId.toString(),
-                currentLat: currentLatDriver,
-                currentLng: currentLngDriver,
-              );
-            } else if (state is ArriveSuccess) {
-              // Trigger event Arrival to passenger
-              socketService.arrivedSocket(
-                bookingCode: widget.bookingCode.toString(),
-                passengerId: widget.passengerId.toString(),
-                lat: currentLatDriver.toString(),
-                lng: currentLngDriver.toString(),
-              );
-              setState(() {
-                widget.processStepBook = 3;
-                widget.refreshApp = false;
-                getLocation(3);
-              });
-              Future.delayed(Duration(seconds: 1), () {
-                setState(() {
-                  widget.processStepBook = 3;
-                });
-              });
-            } else if (state is CompletedTripSuccess) {
-              setState(() {
-                // widget.processStepBook = 6;
-                widget.refreshApp = false;
-                // getLocation(6);
-              });
-              // Future.delayed(Duration(seconds: 1),(){
-              //   setState(() {
-              //     widget.processStepBook = 6;
-              //   });
-              // });
-              // Trigger event Drop Driver or End Ride to passenger
-              socketService.dropDrive(
-                bookingId: widget.bookingId.toString(),
-                bookingCode: widget.bookingCode.toString(),
-                passengerId: widget.passengerId.toString(),
-                currentLat: currentLatDriver,
-                currentLng: currentLatDriver,
-              );
-              setState(() async {
-                var data = state.completeDriver;
-                String startAddress = await getAddressFromLatLng(
-                    double.parse(data.data!.startLatitude.toString()),
-                    double.parse(data.data!.startLongitude.toString()));
-                String endAddress = await getAddressFromLatLng(
-                    double.parse(data.data!.endLatitude.toString()),
-                    double.parse(data.data!.endLongitude.toString()));
-                Get.offNamed(
-                  AppRoutes.calculateFee,
-                  arguments: CalculateFeeScreenArgs(
-                    routFrom: "FromDropBooking",
-                    dataComplete: data,
-                    startAddress: startAddress,
-                    endAddress: endAddress,
-                  ),
-                );
-              });
-            } else {
-              showErrorCustomDialog(context, "PLEASE_TRY_AGAIN".tr(),
-                  "PLEASE_TRY_AGAIN_SOMETHING_WENT_WRONG".tr(), true);
             }
           },
-          builder: (context, state) {
-            bool isLoading = state is BookingLoading;
+          child: Obx(() {
+            final stage = tripController.stage.value;
+            bool isLoading = tripController.isLoading.value;
             return Stack(
               children: [
                 GoogleMap(
@@ -691,26 +690,7 @@ class _BookingScreenState extends State<BookingScreen> {
                     });
                   },
                 ),
-                BlocListener<VehicalBloc, VehicalState>(
-                  listener: (context, state) {
-                    if (state is VehicalLoaded) {
-                      var data = state.vehicalData;
-                      var dataTypeVechical = data.data
-                          .where(
-                              (element) => element.id == widget.typeVehicleId)
-                          .toList();
-                      if (dataTypeVechical.isNotEmpty) {
-                        setState(() {
-                          priceUnder1Km = dataTypeVechical[0].minimumFare;
-                        });
-                      }
-                    }
-                  },
-                  child: Container(
-                    height: 0,
-                  ),
-                ),
-                widget.processStepBook == 4
+                stage == TripStage.inProgress
                     ? ShowDistandWidget(
                         distand: (widget.desLatPassenger == null ||
                                 widget.desLatPassenger == 0.0)
@@ -730,7 +710,7 @@ class _BookingScreenState extends State<BookingScreen> {
                     : Container(
                         height: 0,
                       ),
-                widget.processStepBook == 1
+                stage == TripStage.requestReceived
                     ? Positioned(
                         top: 60,
                         left: 0,
@@ -753,45 +733,24 @@ class _BookingScreenState extends State<BookingScreen> {
                   currentLocationName: currentAddressDriver,
                   whereToGoLocationName: destinationPassengerPM,
                   passegerLocationName: currentPassengerPM,
-                  processType: widget.processStepBook,
+                  processType: stage.toProcessStep(),
+                  onCancel: tripController.cancel,
                   onTap: () {
-                    if (widget.processStepBook == 1) {
-                      setState(() {
-                        BlocProvider.of<BookingBloc>(context).add(
-                          ConfirmBookingEvent(
-                            rideId: int.parse(widget.bookingId.toString()),
-                          ),
-                        );
-                        debugPrint("accept and get positon");
-                      });
-                    } else if (widget.processStepBook == 2) {
-                      BlocProvider.of<BookingBloc>(context).add(
-                        ArrivedEvent(
-                          rideId: widget.bookingId,
-                        ),
-                      );
-                    } else if (widget.processStepBook == 3) {
-                      BlocProvider.of<BookingBloc>(context).add(
-                        StartTripEvent(
-                          rideId: widget.bookingId,
-                        ),
-                      );
-                    } else if (widget.processStepBook == 4) {
-                      setState(() {
-                        widget.processStepBook = 6;
-                        getLocation(6);
-                      });
-                    } else {
-                      setState(() {
-                        isLoading = true;
-                      });
+                    if (stage == TripStage.requestReceived) {
+                      tripController.accept();
+                    } else if (stage == TripStage.enRouteToPickup) {
+                      tripController.arrive();
+                    } else if (stage == TripStage.waitingAtPickup) {
+                      tripController.start();
+                    } else if (stage == TripStage.inProgress) {
+                      getLocation(TripStage.completing);
                     }
                   },
                 ),
                 if (isLoading) const Positioned(child: LoadingWidget()),
               ],
             );
-          },
+          }),
         ),
       ),
     );
