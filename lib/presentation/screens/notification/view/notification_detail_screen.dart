@@ -1,12 +1,13 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:tara_driver_application/app/funtion_convert.dart';
 import 'package:tara_driver_application/core/routing/app_routes.dart';
 import 'package:tara_driver_application/core/theme/colors.dart';
 import 'package:tara_driver_application/core/theme/text_styles.dart';
-import 'package:tara_driver_application/presentation/blocs/notification_detail_bloc.dart';
+import 'package:tara_driver_application/features/notifications/data/datasource/notification_datasource.dart';
+import 'package:tara_driver_application/features/notifications/data/repository/notification_repository.dart';
+import 'package:tara_driver_application/features/notifications/presentation/controller/notification_detail_controller.dart';
 
 class NotificationDetailPage extends StatefulWidget {
   final String? notificationId;
@@ -18,19 +19,27 @@ class NotificationDetailPage extends StatefulWidget {
 }
 
 class _NotificationDetailPageState extends State<NotificationDetailPage> {
+  late final NotificationDetailController controller;
 
   String formatDate(String date) {
     final DateTime dateTime = DateTime.parse(date).toLocal();
     return DateFormat('dd-MMM-yyyy hh:mm a').format(dateTime);
   }
-  
+
 
   @override
   void initState() {
-    BlocProvider.of<NotificationDetailBloc>(context).add(LoadNotificationDetail(widget.notificationId ?? ''));
     super.initState();
+    controller = NotificationDetailController(NotificationRepository(NotificationDatasource()));
+    controller.load(widget.notificationId ?? '');
   }
-  
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,19 +62,18 @@ class _NotificationDetailPageState extends State<NotificationDetailPage> {
           ),
         ),
       ),
-      body: BlocBuilder<NotificationDetailBloc, NotificationDetailState>(
-        builder: (context, state) {
-          if( state is NotificationDetailLoading){
+      body: Obx(() {
+          if (controller.status.value == NotificationDetailStatus.loading) {
             return const Center(child: CircularProgressIndicator());
           }
-          else if(state is NotificationDetailError){
-            return Center(child: Text(state.message));
+          else if (controller.status.value == NotificationDetailStatus.error) {
+            return Center(child: Text(controller.errorMessage.value ?? ''));
           }
-          else if(state is NotificationDetailInitial){
+          else if (controller.status.value == NotificationDetailStatus.initial) {
             return const SizedBox();
           }
-          else if(state is NotificationDetailSuccess){
-            final detail = state.detail;
+          else {
+            final detail = controller.detail.value!;
             return SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -132,11 +140,8 @@ class _NotificationDetailPageState extends State<NotificationDetailPage> {
                 ],
               ),
             );
-          } else {
-            return const SizedBox();
           }
-        },
-      ),
+      }),
     );
   }
 

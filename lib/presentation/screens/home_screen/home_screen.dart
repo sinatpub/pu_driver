@@ -16,8 +16,10 @@ import 'package:tara_driver_application/data/models/current_driver_info_model.da
 import 'package:tara_driver_application/data/models/register_model.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:tara_driver_application/features/profile/presentation/controller/profile_controller.dart';
+import 'package:tara_driver_application/features/version_check/data/datasource/version_check_datasource.dart';
+import 'package:tara_driver_application/features/version_check/data/repository/version_check_repository.dart';
+import 'package:tara_driver_application/features/version_check/presentation/controller/version_check_controller.dart';
 import 'package:tara_driver_application/presentation/blocs/get_current_driver_info_bloc.dart';
-import 'package:tara_driver_application/presentation/blocs/get_version_app.dart';
 import 'package:tara_driver_application/presentation/screens/home_screen/bloc/home_bloc.dart';
 import 'package:tara_driver_application/presentation/widgets/widge_update.dart';
 import 'package:tara_driver_application/services/location_service.dart';
@@ -48,6 +50,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int typeVehicleId = 0;
 
   ///=========== Update Version ==============
+  late final VersionCheckController versionCheckController;
   bool updateVersion = false;
   String currentVersionIos = "1.1.9";
   String currentVersionAndroid = "1.1.9";
@@ -169,7 +172,27 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         }
       }
     });
-    BlocProvider.of<VersionAppBloc>(context).add(GetVersionApp());
+    versionCheckController =
+        VersionCheckController(VersionCheckRepository(VersionCheckDatasource()));
+    ever<VersionCheckStatus>(versionCheckController.status, (status) {
+      if (status != VersionCheckStatus.loaded) return;
+      final data = versionCheckController.versionData.value?.data;
+      if (data == null) return;
+      final platform = checkPlatformDevice();
+      if (platform == "Android") {
+        setState(() {
+          updateVersion = !(data.versionAndroid.toString() == currentVersionAndroid ||
+              data.releaseDate == releaseDateVersionAndroid);
+        });
+      }
+      if (platform == "ios") {
+        setState(() {
+          updateVersion = !(data.versionIos.toString() == currentVersionIos ||
+              data.releaseDateIos == releaseDateVersionIos);
+        });
+      }
+    });
+    versionCheckController.check();
     BlocProvider.of<HomeBloc>(context).add(CheckDriverStatusEvent());
     WidgetsBinding.instance.addPostFrameCallback((_) {
       registerSocket();
@@ -204,6 +227,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void dispose() {
     _positionSub?.cancel();
+    versionCheckController.dispose();
     super.dispose();
   }
 
@@ -222,39 +246,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           handleStateChanges(state);
         },
         builder: (blocContext, state) {
-          return BlocListener<VersionAppBloc, VersionAppState>(
-            listener: (context, state) {
-              if (state is VersionAppLoaded) {
-                var data = state.versionData.data;
-                var plateform = checkPlatformDevice();
-                if (plateform == "Android") {
-                  if (data!.versionAndroid.toString() ==
-                          currentVersionAndroid ||
-                      data.releaseDate == releaseDateVersionAndroid) {
-                    setState(() {
-                      updateVersion = false;
-                    });
-                  } else {
-                    setState(() {
-                      updateVersion = true;
-                    });
-                  }
-                }
-                if (plateform == "ios") {
-                  if (data!.versionIos.toString() == currentVersionIos ||
-                      data.releaseDateIos == releaseDateVersionIos) {
-                    setState(() {
-                      updateVersion = false;
-                    });
-                  } else {
-                    setState(() {
-                      updateVersion = true;
-                    });
-                  }
-                }
-              }
-            },
-            child: Column(
+          return Column(
               children: [
                 Expanded(
                     child: Stack(
@@ -273,7 +265,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 )),
                 if (state is CurrentDriverLoading) const SizedBox(),
               ],
-            ),
           );
         },
       ),

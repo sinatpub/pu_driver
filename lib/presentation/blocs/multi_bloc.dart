@@ -1,9 +1,6 @@
 import 'package:tara_driver_application/data/datasources/get_vehical_remote_data_source.dart';
 import 'package:tara_driver_application/presentation/blocs/driver_wallet_bloc.dart';
 import 'package:tara_driver_application/presentation/blocs/get_current_driver_info_bloc.dart';
-import 'package:tara_driver_application/presentation/blocs/get_version_app.dart';
-import 'package:tara_driver_application/presentation/blocs/notification_bloc.dart';
-import 'package:tara_driver_application/presentation/blocs/notification_detail_bloc.dart';
 import 'package:tara_driver_application/presentation/blocs/otp_bloc.dart';
 import 'package:tara_driver_application/presentation/blocs/phone_login_bloc.dart';
 import 'package:tara_driver_application/presentation/blocs/register_bloc.dart';
@@ -27,8 +24,5 @@ List<BlocProvider> _listBlocProvider = [
       create: (context) => CurrentDriverInfoBloc()),
   BlocProvider<BookingBloc>(create: (context) => BookingBloc()),
   BlocProvider<DriverWalletBloc>(create: (context) => DriverWalletBloc()),
-  BlocProvider<VersionAppBloc>(create: (context) => VersionAppBloc()),
-  BlocProvider<NotificationDetailBloc>(
-      create: (context) => NotificationDetailBloc()),
 ];
 List<BlocProvider> get listBlocProvider => _listBlocProvider;

@@ -1,12 +1,13 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:tara_driver_application/core/routing/app_routes.dart';
 import 'package:tara_driver_application/core/routing/route_arguments.dart';
 import 'package:tara_driver_application/core/theme/colors.dart';
 import 'package:tara_driver_application/core/theme/text_styles.dart';
-import 'package:tara_driver_application/presentation/blocs/notification_bloc.dart';
+import 'package:tara_driver_application/features/notifications/data/datasource/notification_datasource.dart';
+import 'package:tara_driver_application/features/notifications/data/repository/notification_repository.dart';
+import 'package:tara_driver_application/features/notifications/presentation/controller/notification_list_controller.dart';
 import 'package:tara_driver_application/presentation/widgets/simmer_widget.dart';
 
 class NotificationPage extends StatefulWidget {
@@ -18,19 +19,27 @@ class NotificationPage extends StatefulWidget {
 
 class _NotificationPageState extends State<NotificationPage> {
   final ScrollController _scrollController = ScrollController();
-  late NotificationBloc notificationBloc;
+  late final NotificationListController notificationController;
 
   @override
   void initState() {
     super.initState();
-    notificationBloc = NotificationBloc();
-    notificationBloc.add(FetchPaginatedData());
+    notificationController =
+        NotificationListController(NotificationRepository(NotificationDatasource()));
+    notificationController.fetchNext();
     _scrollController.addListener(() {
       if (_scrollController.position.pixels ==
           _scrollController.position.maxScrollExtent) {
-        notificationBloc.add(FetchPaginatedData());
+        notificationController.fetchNext();
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    notificationController.dispose();
+    super.dispose();
   }
 
   @override
@@ -44,27 +53,23 @@ class _NotificationPageState extends State<NotificationPage> {
       ),
       body: Container(
         color: AppColors.light2,
-        child: BlocBuilder<NotificationBloc, NotificationState>(
-          bloc: notificationBloc,
-          builder: (context, state) {
-            if (state is NotificationLoading &&
-                notificationBloc.allItems.isEmpty) {
+        child: Obx(() {
+            final items = notificationController.items;
+            if (notificationController.isLoading.value && items.isEmpty) {
               return const ShimmerNotification();
-            } else if (state is NotificationError) {
-              return Center(child: Text(state.message));
-            } else if (state is NotificationLoaded) {
+            } else if (notificationController.errorMessage.value != null && items.isEmpty) {
+              return Center(child: Text(notificationController.errorMessage.value!.tr()));
+            }
               return RefreshIndicator(
-                onRefresh: () async {
-                  notificationBloc.add(RefreshPaginatedData());
-                },
+                onRefresh: notificationController.reload,
                 child: ListView.builder(
                   padding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
                   controller: _scrollController,
                   physics: const AlwaysScrollableScrollPhysics(),
-                  itemCount: state.items.length + (state.hasReachedMax ? 0 : 1),
+                  itemCount: items.length + (notificationController.hasReachedMax.value ? 0 : 1),
                   itemBuilder: (context, index) {
-                    if (index < state.items.length) {
-                      final item = state.items[index];
+                    if (index < items.length) {
+                      final item = items[index];
                       return MaterialButton(
                         elevation: 0,
                         padding: EdgeInsets.all(12),
@@ -150,19 +155,13 @@ class _NotificationPageState extends State<NotificationPage> {
                       );
                     }
                     return Center(
-                        child: state.items.length < 10
+                        child: items.length < 10
                             ? Container()
                             : CircularProgressIndicator());
                   },
                 ),
               );
-            }
-            if (state is NotificationError) {
-              return Center(child: Text(state.message));
-            }
-            return const SizedBox();
-          },
-        ),
+        }),
       ),
     );
   }
