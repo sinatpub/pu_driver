@@ -1,6 +1,9 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:tara_driver_application/app/root_main.dart';
+import 'package:tara_driver_application/features/home/data/datasource/home_datasource.dart';
+import 'package:tara_driver_application/features/home/data/repository/home_repository.dart';
+import 'package:tara_driver_application/features/home/presentation/controller/home_controller.dart';
 import 'package:tara_driver_application/features/profile/data/datasource/profile_datasource.dart';
 import 'package:tara_driver_application/features/profile/data/repository/profile_repository.dart';
 import 'package:tara_driver_application/features/profile/presentation/controller/profile_controller.dart';
@@ -32,10 +35,14 @@ void main() async {
   // * config easy loading
   configLoading();
 
-  // D-12: permanent feature controller, mirrors the old global ProfileBloc's
-  // app-lifetime scope — proper route-scoped binding deferred to F-06.
+  // D-12/D-04: permanent feature controllers, mirroring the old global
+  // ProfileBloc/HomeBloc's app-lifetime scope — HomeController's isOnline
+  // is read by drawer_screen.dart's SwitchOnlineWidget and set by
+  // home_screen.dart, two different screens, so it can't be screen-owned.
   Get.put(ProfileRepository(ProfileDatasource()));
   Get.put(ProfileController(Get.find()), permanent: true);
+  Get.put(HomeRepository(HomeDatasource()));
+  Get.put(HomeController(Get.find()), permanent: true);
   runApp(
     EasyLocalization(
       supportedLocales: const [Locale('km'), Locale('en')],

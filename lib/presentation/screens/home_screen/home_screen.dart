@@ -16,12 +16,12 @@ import 'package:tara_driver_application/core/utils/pretty_logger.dart';
 import 'package:tara_driver_application/data/models/current_driver_info_model.dart';
 import 'package:tara_driver_application/data/models/register_model.dart';
 import 'package:get/get.dart' hide Trans;
+import 'package:tara_driver_application/features/home/presentation/controller/home_controller.dart';
 import 'package:tara_driver_application/features/profile/presentation/controller/profile_controller.dart';
 import 'package:tara_driver_application/features/version_check/data/datasource/version_check_datasource.dart';
 import 'package:tara_driver_application/features/version_check/data/repository/version_check_repository.dart';
 import 'package:tara_driver_application/features/version_check/presentation/controller/version_check_controller.dart';
 import 'package:tara_driver_application/presentation/blocs/get_current_driver_info_bloc.dart';
-import 'package:tara_driver_application/presentation/screens/home_screen/bloc/home_bloc.dart';
 import 'package:tara_driver_application/presentation/widgets/widge_update.dart';
 import 'package:tara_driver_application/services/location_service.dart';
 import 'package:tara_driver_application/taxi_single_ton/init_socket.dart';
@@ -194,7 +194,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       }
     });
     versionCheckController.check();
-    BlocProvider.of<HomeBloc>(context).add(CheckDriverStatusEvent());
     WidgetsBinding.instance.addPostFrameCallback((_) {
       registerSocket();
     });
@@ -208,7 +207,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   Future<void> initAsync() async {
     await NotificationLocal().requestPermission();
-    BlocProvider.of<HomeBloc>(context).add(CheckDriverStatusEvent());
+    Get.find<HomeController>().checkStatus();
     await _initLocation();
   }
 

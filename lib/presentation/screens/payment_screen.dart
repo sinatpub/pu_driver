@@ -1,11 +1,13 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:tara_driver_application/app/funtion_convert.dart';
 import 'package:tara_driver_application/core/theme/colors.dart';
 import 'package:tara_driver_application/core/theme/text_styles.dart';
-import 'package:tara_driver_application/presentation/blocs/driver_wallet_bloc.dart';
+import 'package:tara_driver_application/features/wallet/data/datasource/wallet_datasource.dart';
+import 'package:tara_driver_application/features/wallet/data/repository/wallet_repository.dart';
+import 'package:tara_driver_application/features/wallet/presentation/controller/wallet_controller.dart';
 import 'package:tara_driver_application/presentation/widgets/simmer_widget.dart';
 
 class PaymentScreen extends StatefulWidget {
@@ -16,15 +18,21 @@ class PaymentScreen extends StatefulWidget {
 }
 
 class _PaymentScreenState extends State<PaymentScreen> {
-  
+
   int bankSelected = 0;
+  late final WalletController walletController;
 
   @override
   void initState() {
-    setState(() {
-      context.read<DriverWalletBloc>().add(GetDriverWallet());
-    });
     super.initState();
+    walletController = WalletController(WalletRepository(WalletDatasource()));
+    walletController.fetch();
+  }
+
+  @override
+  void dispose() {
+    walletController.dispose();
+    super.dispose();
   }
 
   @override
@@ -56,9 +64,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             ),
                           ],
                       ),
-                       child: BlocBuilder<DriverWalletBloc, DriverWalletState>(
-                         builder: (context, state) {
-                          if(state is DriverWalletLoading){
+                       child: Obx(() {
+                          if(walletController.status.value == WalletStatus.loading){
                             return Row(
                               children: [
                                 Expanded(
@@ -71,8 +78,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                               ],
                             );
                           }
-                          else if(state is DriverWalletLoaded){
-                            var dataWallet = state.walletData.data;
+                          else if(walletController.status.value == WalletStatus.loaded){
+                            var dataWallet = walletController.wallet.value!.data;
                             return Row(
                               children: [
                                 Expanded(
@@ -163,8 +170,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                               ],
                             );
                           }
-                         },
-                       ),
+                       }),
                      ),
                     //  const SizedBox(height: 28,),
                     //  Align(
