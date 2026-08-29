@@ -2,6 +2,7 @@ import 'package:tara_driver_application/core/theme/colors.dart';
 import 'package:tara_driver_application/features/home/presentation/controller/home_controller.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_switch/flutter_switch.dart';
 import 'package:get/get.dart' hide Trans;
 
@@ -28,6 +29,10 @@ class SwitchOnlineWidget extends StatelessWidget {
           padding: 3,
           showOnOff: true,
           onToggle: (val) {
+            if (val && !homeController.isApproved) {
+              EasyLoading.showToast("WAITING_APPROVED_FROM_ADMIN".tr());
+              return;
+            }
             homeController.toggle(val);
           },
         ));

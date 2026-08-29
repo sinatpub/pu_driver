@@ -2,6 +2,27 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:tara_driver_application/features/home/data/repository/home_repository.dart';
 
+/// D-03 (docs/12) — the backend's `driver.status` field on
+/// `get-current-drive-info`: 0 = pending, 1 = approved, 2 = rejected
+/// (client-owner confirmed 2026-08-29, not yet in a backend-owned contract
+/// doc — same unconfirmed-but-recorded footing as the booking-status
+/// mapping in `docs/05`). `unknown` is the pre-fetch default and is treated
+/// as not-approved so the gate fails closed instead of open.
+enum DriverApprovalStatus { unknown, pending, approved, rejected }
+
+DriverApprovalStatus driverApprovalStatusFromCode(int? code) {
+  switch (code) {
+    case 1:
+      return DriverApprovalStatus.approved;
+    case 2:
+      return DriverApprovalStatus.rejected;
+    case 0:
+      return DriverApprovalStatus.pending;
+    default:
+      return DriverApprovalStatus.unknown;
+  }
+}
+
 /// D-04 (docs/12) — replaces `HomeBloc`. `GetCurrentLocationEvent`/
 /// `GenerateMarker` and their states were dead (never dispatched, never
 /// consumed) and aren't ported. `isOnline` is shared across screens —
@@ -15,6 +36,18 @@ class HomeController extends GetxController {
   final HomeRepository _repository;
 
   final isOnline = false.obs;
+
+  /// D-03 — reinstates the driver-approval gate. Fed by `drawer_screen.dart`
+  /// from the `get-current-drive-info` response it already fetches on init;
+  /// the server independently enforces this too (Q-3, `docs/13`), so this is
+  /// a client-side UX gate, not the only barrier.
+  final approvalStatus = DriverApprovalStatus.unknown.obs;
+
+  bool get isApproved => approvalStatus.value == DriverApprovalStatus.approved;
+
+  void setApprovalStatus(int? code) {
+    approvalStatus.value = driverApprovalStatusFromCode(code);
+  }
 
   Future<void> checkStatus() async {
     final result = await _repository.getStatus();
@@ -31,6 +64,7 @@ class HomeController extends GetxController {
   /// the wrong state forever under a spinner that never went away. Fixed:
   /// rollback on error, dismiss in `finally`.
   Future<void> toggle(bool turnOn) async {
+    if (turnOn && !isApproved) return;
     final previous = isOnline.value;
     isOnline.value = turnOn;
     EasyLoading.show();

@@ -6,6 +6,7 @@ import 'package:tara_driver_application/app/funtion_convert.dart';
 import 'package:tara_driver_application/core/resources/asset_resource.dart';
 import 'package:tara_driver_application/core/routing/app_routes.dart';
 import 'package:tara_driver_application/core/utils/pretty_logger.dart';
+import 'package:tara_driver_application/features/home/presentation/controller/home_controller.dart';
 import 'package:tara_driver_application/presentation/blocs/get_current_driver_info_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -35,8 +36,6 @@ class DrawerScreen extends StatefulWidget {
 }
 
 class _DrawerScreenState extends State<DrawerScreen> {
-  bool isApproved = true;
-
   bool connection = true;
   StreamSubscription? sub;
   int isActiveIndex = 0;
@@ -408,15 +407,11 @@ class _DrawerScreenState extends State<DrawerScreen> {
           if (state is CurrentDriverLoading) {
             tlog("Current Driver Loading");
           } else if (state is CurrentDriverInfoLoaded) {
-            var dataDriver = state.currentDriverInfoModel.data;
             tlog("Current Driver Loaded");
-            setState(() {
-              isApproved = true;
-            });
+            Get.find<HomeController>().setApprovalStatus(
+              state.currentDriverInfoModel.data?.driver?.status,
+            );
           } else {
-            setState(() {
-              isApproved = false;
-            });
             tlog("Current Driver Fail");
           }
         },
@@ -437,46 +432,42 @@ class _DrawerScreenState extends State<DrawerScreen> {
                                     : isActiveIndex == 5
                                         ? NotificationPage()
                                         : const HomeScreen()),
-            isApproved == false
-                ? Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    top: 0,
-                    child: Container(
-                      color: Colors.white.withValues(alpha: .1),
-                    ))
-                : const SizedBox(),
-            isApproved == false
-                ? Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      height: 250,
-                      color: Colors.white,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 10),
-                          SvgPicture.asset(
-                              "assets/icon/svg/waiting_approve.svg"),
-                          Text(
-                            "WAITING_APPROVED_FROM_ADMIN".tr(),
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 18, color: Colors.red),
-                          ),
-                          // const Text(
-                          //   "Your account is pending admin approval. You’ll be notified once it's ready to use. Thank you for your patience!",
-                          //   textAlign: TextAlign.center,
-                          //   style:
-                          //       TextStyle(fontSize: 12, color: Colors.black87),
-                          // ),
-                        ],
+            Obx(() {
+              if (Get.find<HomeController>().isApproved) return const SizedBox();
+              return Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                top: 0,
+                child: Container(
+                  color: Colors.white.withValues(alpha: .1),
+                ),
+              );
+            }),
+            Obx(() {
+              if (Get.find<HomeController>().isApproved) return const SizedBox();
+              return Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  height: 250,
+                  color: Colors.white,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 10),
+                      SvgPicture.asset("assets/icon/svg/waiting_approve.svg"),
+                      Text(
+                        "WAITING_APPROVED_FROM_ADMIN".tr(),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 18, color: Colors.red),
                       ),
-                    ),
-                  )
-                : const SizedBox(),
+                    ],
+                  ),
+                ),
+              );
+            }),
           ],
         ),
       ),
