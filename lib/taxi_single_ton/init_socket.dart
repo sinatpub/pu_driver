@@ -8,7 +8,9 @@ import 'package:get/get.dart' hide Trans;
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:tara_driver_application/taxi_single_ton/taxi.dart';
 
-// Enum for socket events
+// F-01 (docs/12) — socket event names. `passangerCancelDrive` (typo'd,
+// docs/02 finding #15) never matched the wire event name and was dead;
+// `onPassengerCancelDrive` is the event actually listened for below.
 enum SocketEvent {
   registerDriver,
   newRide,
@@ -18,7 +20,7 @@ enum SocketEvent {
   dropDrive,
   acceptPayment,
   driverCancelDrive,
-  passangerCancelDrive,
+  onPassengerCancelDrive,
 }
 
 // Base socket service
@@ -135,7 +137,7 @@ class DriverSocketService extends BaseSocketService {
 
   void cancelDrive(BuildContext context) {
     _socket?.on(
-      'onPassengerCancelDrive',
+      SocketEvent.onPassengerCancelDrive.name,
       (data) {
         tlog("On cancel: $data");
         try {
@@ -153,7 +155,7 @@ class DriverSocketService extends BaseSocketService {
       required String lat,
       required String lng}) {
     _socket?.emit(
-      'rideArrival',
+      SocketEvent.rideArrival.name,
       {
         "booking_code": bookingCode,
         "passengerId": passengerId,
