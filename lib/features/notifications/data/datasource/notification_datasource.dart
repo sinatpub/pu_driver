@@ -4,7 +4,8 @@ import 'package:tara_driver_application/features/notifications/data/models/notif
 import 'package:tara_driver_application/features/notifications/data/models/notification_detail_model.dart';
 
 class NotificationDatasource {
-  NotificationDatasource({ApiClient? apiClient}) : _apiClient = apiClient ?? ApiClient();
+  NotificationDatasource({ApiClient? apiClient})
+      : _apiClient = apiClient ?? ApiClient();
 
   final ApiClient _apiClient;
 
@@ -21,7 +22,8 @@ class NotificationDatasource {
     );
   }
 
-  Future<Result<DetailNotificationModel>> getAnnouncement({required String id}) {
+  Future<Result<DetailNotificationModel>> getAnnouncement(
+      {required String id}) {
     return _apiClient.request<DetailNotificationModel>(
       path: '/taxi-driver/announcement/$id',
       method: 'GET',

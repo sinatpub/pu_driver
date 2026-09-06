@@ -18,7 +18,14 @@
 /// `processType`, `home_screen.dart`'s `getProcessStepBook`):
 /// idle=0, requestReceived=1, enRouteToPickup=2, waitingAtPickup=3,
 /// inProgress=4, completing=6 (5 is not used by the legacy int either).
-enum TripStage { idle, requestReceived, enRouteToPickup, waitingAtPickup, inProgress, completing }
+enum TripStage {
+  idle,
+  requestReceived,
+  enRouteToPickup,
+  waitingAtPickup,
+  inProgress,
+  completing
+}
 
 extension TripStageProcessStep on TripStage {
   int toProcessStep() => switch (this) {
@@ -66,10 +73,16 @@ class TripStateMachine {
   bool get canCancel => _stage == TripStage.requestReceived;
 
   /// A new ride request lands (socket `newRide` event / FCM notification).
-  TripStage receiveRequest() => _move(from: {TripStage.idle}, to: TripStage.requestReceived, action: 'receive request');
+  TripStage receiveRequest() => _move(
+      from: {TripStage.idle},
+      to: TripStage.requestReceived,
+      action: 'receive request');
 
   /// Driver accepted — call only after `confirm-drive-request` succeeds.
-  TripStage accept() => _move(from: {TripStage.requestReceived}, to: TripStage.enRouteToPickup, action: 'accept');
+  TripStage accept() => _move(
+      from: {TripStage.requestReceived},
+      to: TripStage.enRouteToPickup,
+      action: 'accept');
 
   /// Driver cancelled — only ever offered in the UI while a request is
   /// still pending (matches `ride_request_bottom_pop_widget`'s
@@ -82,15 +95,27 @@ class TripStateMachine {
   }
 
   /// Driver reached the pickup — call only after `drive-arrive` succeeds.
-  TripStage arrive() => _move(from: {TripStage.enRouteToPickup}, to: TripStage.waitingAtPickup, action: 'arrive');
+  TripStage arrive() => _move(
+      from: {TripStage.enRouteToPickup},
+      to: TripStage.waitingAtPickup,
+      action: 'arrive');
 
   /// Trip starts — call only after `start-drive` succeeds.
-  TripStage start() => _move(from: {TripStage.waitingAtPickup}, to: TripStage.inProgress, action: 'start');
+  TripStage start() => _move(
+      from: {TripStage.waitingAtPickup},
+      to: TripStage.inProgress,
+      action: 'start');
 
   /// Driver drops the passenger — call only after `complete-drive` succeeds.
-  TripStage complete() => _move(from: {TripStage.inProgress}, to: TripStage.completing, action: 'complete');
+  TripStage complete() => _move(
+      from: {TripStage.inProgress},
+      to: TripStage.completing,
+      action: 'complete');
 
-  TripStage _move({required Set<TripStage> from, required TripStage to, required String action}) {
+  TripStage _move(
+      {required Set<TripStage> from,
+      required TripStage to,
+      required String action}) {
     if (!from.contains(_stage)) {
       throw InvalidTripTransition(from: _stage, action: action);
     }

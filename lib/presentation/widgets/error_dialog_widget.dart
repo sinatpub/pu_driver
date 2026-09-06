@@ -2,7 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 Future<void> showErrorCustomDialog(
-    BuildContext context, String title, String description,bool comfirmBook) {
+    BuildContext context, String title, String description, bool comfirmBook) {
   return showDialog<void>(
     context: context,
     barrierDismissible: true,
@@ -17,7 +17,6 @@ Future<void> showErrorCustomDialog(
           ),
         ),
         actions: <Widget>[
-          
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               // primary: Colors.red, // Customize your button color
@@ -25,9 +24,9 @@ Future<void> showErrorCustomDialog(
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 24),
             ),
-            child: Text(comfirmBook == true?"OK".tr() : 'Try Again'),
+            child: Text(comfirmBook == true ? "OK".tr() : 'Try Again'),
             onPressed: () {
-              if(comfirmBook == true){
+              if (comfirmBook == true) {
                 Navigator.of(context).pop();
                 // Navigator.of(context).popUntil((route) => route.isFirst);
               }

@@ -2,7 +2,8 @@ import 'package:tara_driver_application/core/network/api_client.dart';
 import 'package:tara_driver_application/core/network/result.dart';
 
 class PaymentDatasource {
-  PaymentDatasource({ApiClient? apiClient}) : _apiClient = apiClient ?? ApiClient();
+  PaymentDatasource({ApiClient? apiClient})
+      : _apiClient = apiClient ?? ApiClient();
 
   final ApiClient _apiClient;
 

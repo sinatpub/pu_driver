@@ -8,13 +8,16 @@ class TripRepository {
 
   final TripDatasource _datasource;
 
-  Future<Result<ConfirmBookingModel>> confirm(int rideId) => _datasource.confirm(rideId);
+  Future<Result<ConfirmBookingModel>> confirm(int rideId) =>
+      _datasource.confirm(rideId);
 
   Future<Result<bool>> cancel(int rideId) => _datasource.cancel(rideId);
 
-  Future<Result<ConfirmBookingModel>> arrive(int rideId) => _datasource.arrive(rideId);
+  Future<Result<ConfirmBookingModel>> arrive(int rideId) =>
+      _datasource.arrive(rideId);
 
-  Future<Result<ConfirmBookingModel>> start(int rideId) => _datasource.start(rideId);
+  Future<Result<ConfirmBookingModel>> start(int rideId) =>
+      _datasource.start(rideId);
 
   Future<Result<CompleteDriverModel>> complete({
     required int rideId,

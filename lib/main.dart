@@ -3,14 +3,8 @@ import 'dart:ui';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:get/get.dart' hide Trans;
 import 'package:tara_driver_application/app/root_main.dart';
-import 'package:tara_driver_application/features/home/data/datasource/home_datasource.dart';
-import 'package:tara_driver_application/features/home/data/repository/home_repository.dart';
-import 'package:tara_driver_application/features/home/presentation/controller/home_controller.dart';
-import 'package:tara_driver_application/features/profile/data/datasource/profile_datasource.dart';
-import 'package:tara_driver_application/features/profile/data/repository/profile_repository.dart';
-import 'package:tara_driver_application/features/profile/presentation/controller/profile_controller.dart';
+import 'package:tara_driver_application/app/service.dart';
 import 'package:tara_driver_application/presentation/widgets/custom_animated_loading.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:tara_driver_application/core/api_service/client/dio_http_client.dart';
@@ -33,7 +27,8 @@ void main() async {
   // F-09 (docs/12): Crashlytics was declared as a dependency but never
   // wired up (docs/05). Disabled in debug builds so local crashes don't
   // pollute production data.
-  await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(!kDebugMode);
+  await FirebaseCrashlytics.instance
+      .setCrashlyticsCollectionEnabled(!kDebugMode);
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
   PlatformDispatcher.instance.onError = (error, stack) {
     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
@@ -50,14 +45,8 @@ void main() async {
   // * config easy loading
   configLoading();
 
-  // D-12/D-04: permanent feature controllers, mirroring the old global
-  // ProfileBloc/HomeBloc's app-lifetime scope — HomeController's isOnline
-  // is read by drawer_screen.dart's SwitchOnlineWidget and set by
-  // home_screen.dart, two different screens, so it can't be screen-owned.
-  Get.put(ProfileRepository(ProfileDatasource()));
-  Get.put(ProfileController(Get.find()), permanent: true);
-  Get.put(HomeRepository(HomeDatasource()));
-  Get.put(HomeController(Get.find()), permanent: true);
+  // `14` §3.5: permanent DI lives in exactly one place.
+  await initialService();
   runApp(
     EasyLocalization(
       supportedLocales: const [Locale('km'), Locale('en')],

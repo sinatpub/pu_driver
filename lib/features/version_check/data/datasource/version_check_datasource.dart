@@ -3,7 +3,8 @@ import 'package:tara_driver_application/core/network/result.dart';
 import 'package:tara_driver_application/features/version_check/data/models/version_app_model.dart';
 
 class VersionCheckDatasource {
-  VersionCheckDatasource({ApiClient? apiClient}) : _apiClient = apiClient ?? ApiClient();
+  VersionCheckDatasource({ApiClient? apiClient})
+      : _apiClient = apiClient ?? ApiClient();
 
   final ApiClient _apiClient;
 

@@ -8,10 +8,10 @@ class AppConstant {
   static const String titleApp = 'TAARRAA';
 
   // Based Url — overridable via `--dart-define=API_BASE_URL=...`
-  // (F-07, docs/12); defaults to prod, so an ordinary build is unaffected.
+  // (F-07, docs/12); default points at the current driver backend.
   static const baseUrlApi = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://api.tara-taxi.com',
+    defaultValue: 'http://217.216.37.228:8082',
   );
 
   // Socket IO Client — overridable via `--dart-define=SOCKET_BASE_URL=...`

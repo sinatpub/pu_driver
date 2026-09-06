@@ -1,4 +1,3 @@
-
 class UpdateDriverLocationModel {
   Data? data;
   bool? status;

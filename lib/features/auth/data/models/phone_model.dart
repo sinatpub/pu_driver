@@ -1,4 +1,3 @@
-
 class PhoneNumberModel {
   Data data;
   bool status;

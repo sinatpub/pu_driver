@@ -6,5 +6,6 @@ class PaymentRepository {
 
   final PaymentDatasource _datasource;
 
-  Future<Result<bool>> acceptPayment(int rideId) => _datasource.acceptPayment(rideId);
+  Future<Result<bool>> acceptPayment(int rideId) =>
+      _datasource.acceptPayment(rideId);
 }

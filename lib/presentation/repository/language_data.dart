@@ -6,6 +6,12 @@ class Lang {
 }
 
 const allLangs = [
-  Lang(image: 'assets/image/country/Flag_of_the_United_Kingdom.svg',title: 'English', sublang: 'en'),
-  Lang(image: 'assets/image/country/Flag_of_Cambodia.svg',title: 'ខ្មែរ',sublang: 'km'),
+  Lang(
+      image: 'assets/image/country/Flag_of_the_United_Kingdom.svg',
+      title: 'English',
+      sublang: 'en'),
+  Lang(
+      image: 'assets/image/country/Flag_of_Cambodia.svg',
+      title: 'ខ្មែរ',
+      sublang: 'km'),
 ];

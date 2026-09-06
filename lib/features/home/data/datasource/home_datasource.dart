@@ -4,7 +4,8 @@ import 'package:tara_driver_application/data/models/current_driver_info_model.da
 import 'package:tara_driver_application/data/models/set_status_model.dart';
 
 class HomeDatasource {
-  HomeDatasource({ApiClient? apiClient}) : _apiClient = apiClient ?? ApiClient();
+  HomeDatasource({ApiClient? apiClient})
+      : _apiClient = apiClient ?? ApiClient();
 
   final ApiClient _apiClient;
 

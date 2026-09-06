@@ -7,5 +7,6 @@ class VersionCheckRepository {
 
   final VersionCheckDatasource _datasource;
 
-  Future<Result<VersionAppModel>> getCurrentVersion() => _datasource.getCurrentVersion();
+  Future<Result<VersionAppModel>> getCurrentVersion() =>
+      _datasource.getCurrentVersion();
 }

@@ -80,14 +80,6 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
 
   @override
   Widget build(BuildContext context) {
-    final OutlineInputBorder textfieldBorder = OutlineInputBorder(
-      borderSide: const BorderSide(
-        color: AppColors.main,
-        width: 0.8,
-      ),
-      borderRadius: BorderRadius.circular(10),
-    );
-
     T? getSelectedValue() => _selectedIndex != null &&
             _selectedIndex! >= 0 &&
             _selectedIndex! < widget.items.length
@@ -184,30 +176,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
         dropdownSearchData: DropdownSearchData(
           searchController: textEditingController,
           searchInnerWidgetHeight: 50,
-          searchInnerWidget: Column(children: [
-            // Container(
-            //   height: 48,
-            //   margin: const EdgeInsets.only(top: 8),
-            //   padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-            //   child: TextFormField(
-            //     expands: true,
-            //     maxLines: null,
-            //     controller: textEditingController,
-            //     decoration: InputDecoration(
-            //       isDense: true,
-            //       contentPadding: const EdgeInsets.symmetric(
-            //         horizontal: 12,
-            //         vertical: 8,
-            //       ),
-            //       hintText: "Search - ស្វែងរក",
-            //       hintStyle: ThemeConstands.font12Regular,
-            //       border: textfieldBorder,
-            //       enabledBorder: textfieldBorder,
-            //       focusedBorder: textfieldBorder,
-            //     ),
-            //   ),
-            // ),
-          ]),
+          searchInnerWidget: Column(children: []),
           searchMatchFn: (item, searchValue) {
             if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
             _debounceTimer = Timer(const Duration(milliseconds: 300), () {

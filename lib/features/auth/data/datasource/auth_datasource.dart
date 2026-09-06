@@ -7,7 +7,8 @@ import 'package:tara_driver_application/data/models/register_model.dart';
 import 'package:tara_driver_application/features/auth/data/models/phone_model.dart';
 
 class AuthDatasource {
-  AuthDatasource({ApiClient? apiClient}) : _apiClient = apiClient ?? ApiClient();
+  AuthDatasource({ApiClient? apiClient})
+      : _apiClient = apiClient ?? ApiClient();
 
   final ApiClient _apiClient;
 
@@ -58,7 +59,8 @@ class AuthDatasource {
       'card_image': await MultipartFile.fromFile(cardImage.path),
       'profile_image': await MultipartFile.fromFile(profileImage.path),
       'vehicle_image': await MultipartFile.fromFile(vehicleImage.path),
-      'driver_license_image': await MultipartFile.fromFile(driverLicenseImage.path),
+      'driver_license_image':
+          await MultipartFile.fromFile(driverLicenseImage.path),
     });
 
     return _apiClient.request<RegisterModel>(

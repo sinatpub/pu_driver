@@ -4,57 +4,59 @@
 
 import 'dart:convert';
 
-VersionAppModel versionAppModelFromJson(String str) => VersionAppModel.fromJson(json.decode(str));
+VersionAppModel versionAppModelFromJson(String str) =>
+    VersionAppModel.fromJson(json.decode(str));
 
-String versionAppModelToJson(VersionAppModel data) => json.encode(data.toJson());
+String versionAppModelToJson(VersionAppModel data) =>
+    json.encode(data.toJson());
 
 class VersionAppModel {
-    Data? data;
-    String? message;
+  Data? data;
+  String? message;
 
-    VersionAppModel({
-        this.data,
-        this.message,
-    });
+  VersionAppModel({
+    this.data,
+    this.message,
+  });
 
-    factory VersionAppModel.fromJson(Map<String, dynamic> json) => VersionAppModel(
-        data: json["data"] == null?null: Data.fromJson(json["data"]),
+  factory VersionAppModel.fromJson(Map<String, dynamic> json) =>
+      VersionAppModel(
+        data: json["data"] == null ? null : Data.fromJson(json["data"]),
         message: json["message"],
-    );
+      );
 
-    Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => {
         "data": data?.toJson(),
         "message": message,
-    };
+      };
 }
 
 class Data {
-    dynamic id;
-    dynamic appType;
-    dynamic releaseDate;
-    dynamic releaseDateIos;
-    dynamic versionAndroid;
-    dynamic versionIos;
-    dynamic playStoreLink;
-    dynamic appStoreLink;
-    dynamic featureRelease;
-    dynamic isActive;
-   
+  dynamic id;
+  dynamic appType;
+  dynamic releaseDate;
+  dynamic releaseDateIos;
+  dynamic versionAndroid;
+  dynamic versionIos;
+  dynamic playStoreLink;
+  dynamic appStoreLink;
+  dynamic featureRelease;
+  dynamic isActive;
 
-    Data({
-        this.id,
-        this.appType,
-        this.releaseDate,
-        this.releaseDateIos,
-        this.versionAndroid,
-        this.versionIos,
-        this.playStoreLink,
-        this.appStoreLink,
-        this.featureRelease,
-        this.isActive,
-    });
+  Data({
+    this.id,
+    this.appType,
+    this.releaseDate,
+    this.releaseDateIos,
+    this.versionAndroid,
+    this.versionIos,
+    this.playStoreLink,
+    this.appStoreLink,
+    this.featureRelease,
+    this.isActive,
+  });
 
-    factory Data.fromJson(Map<String, dynamic> json) => Data(
+  factory Data.fromJson(Map<String, dynamic> json) => Data(
         id: json["id"],
         appType: json["app_type"],
         releaseDate: json["release_date"],
@@ -65,9 +67,9 @@ class Data {
         appStoreLink: json["app_store_link"],
         featureRelease: json["features_release"],
         isActive: json["is_active"],
-    );
+      );
 
-    Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => {
         "id": id,
         "app_type": appType,
         "release_date": releaseDate,
@@ -78,5 +80,5 @@ class Data {
         "app_store_link": appStoreLink,
         "features_release": featureRelease,
         "is_active": isActive,
-    };
+      };
 }

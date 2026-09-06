@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:tara_driver_application/core/routing/route_arguments.dart';
+import 'package:tara_driver_application/routes/route_arguments.dart';
 
 /// D-05 (docs/12) — parses the payload for a new ride request. The driver
 /// socket's `newRide` event and the `service_booking` FCM push carry the
@@ -53,8 +53,10 @@ BookingScreenArgs parseNewRideArgs(Map<String, dynamic> data) {
     imagePassanger: passenger['profile']?.toString() ?? '',
     latPassenger: _doubleOr(location['latitude'], 0.0),
     lngPassenger: _doubleOr(location['longitude'], 0.0),
-    desLatPassenger: destination == null ? null : _doubleOrNull(destination['latitude']),
-    desLngPassenger: destination == null ? null : _doubleOrNull(destination['longitude']),
+    desLatPassenger:
+        destination == null ? null : _doubleOrNull(destination['latitude']),
+    desLngPassenger:
+        destination == null ? null : _doubleOrNull(destination['longitude']),
   );
 }
 
@@ -92,7 +94,8 @@ int? _intOrNull(dynamic value) {
   return null;
 }
 
-double _doubleOr(dynamic value, double fallback) => _doubleOrNull(value) ?? fallback;
+double _doubleOr(dynamic value, double fallback) =>
+    _doubleOrNull(value) ?? fallback;
 
 double? _doubleOrNull(dynamic value) {
   if (value is double) return value;

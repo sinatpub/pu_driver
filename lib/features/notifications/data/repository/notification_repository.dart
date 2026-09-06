@@ -11,6 +11,7 @@ class NotificationRepository {
   Future<Result<NotificationModel>> getAnnouncements({required int page}) =>
       _datasource.getAnnouncements(page: page);
 
-  Future<Result<DetailNotificationModel>> getAnnouncement({required String id}) =>
+  Future<Result<DetailNotificationModel>> getAnnouncement(
+          {required String id}) =>
       _datasource.getAnnouncement(id: id);
 }

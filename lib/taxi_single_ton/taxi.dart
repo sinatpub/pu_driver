@@ -1,12 +1,8 @@
 import 'dart:async';
-import 'dart:math';
 import 'package:permission_handler/permission_handler.dart' as permission;
-import 'package:tara_driver_application/core/storages/get_storages.dart';
-import 'package:tara_driver_application/core/storages/set_storages.dart';
-import 'package:tara_driver_application/core/utils/app_constant.dart';
+import 'package:tara_driver_application/core/storage/set_storages.dart';
 import 'package:tara_driver_application/data/datasources/set_status_api.dart';
 import 'package:tara_driver_application/data/models/register_model.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:location/location.dart';
 import 'package:tara_driver_application/core/helper/local_notification_helper.dart';
@@ -14,7 +10,6 @@ import 'package:tara_driver_application/core/utils/pretty_logger.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart' as geoLocator;
 import 'package:logger/logger.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class Taxi {
   Taxi._internal();
@@ -38,7 +33,6 @@ class Taxi {
   LatLng? currentLocation;
   LatLng? passengerLocation;
 
-  Timer? _locationUpdateTimer;
   bool isDriverActive = true;
   int? driverStatus;
 

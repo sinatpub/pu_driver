@@ -9,7 +9,8 @@ import 'package:tara_driver_application/data/models/confirm_booking_model.dart';
 /// called from `calculate_fee_screen.dart`, outside the trip lifecycle this
 /// feature covers.
 class TripDatasource {
-  TripDatasource({ApiClient? apiClient}) : _apiClient = apiClient ?? ApiClient();
+  TripDatasource({ApiClient? apiClient})
+      : _apiClient = apiClient ?? ApiClient();
 
   final ApiClient _apiClient;
 
@@ -17,7 +18,10 @@ class TripDatasource {
     return _apiClient.request<ConfirmBookingModel>(
       path: '/taxi-driver/confirm-drive-request',
       method: 'POST',
-      headers: const {'Accept': 'application/json', 'Content-Type': 'application/json'},
+      headers: const {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
       body: FormData.fromMap({'ride_id': rideId}),
       decode: (response) => ConfirmBookingModel.fromJson(response.data),
     );
@@ -27,7 +31,10 @@ class TripDatasource {
     return _apiClient.request<bool>(
       path: '/taxi-driver/cancel-drive',
       method: 'POST',
-      headers: const {'Accept': 'application/json', 'Content-Type': 'application/json'},
+      headers: const {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
       body: FormData.fromMap({'ride_id': rideId}),
       decode: (_) => true,
     );
@@ -37,7 +44,10 @@ class TripDatasource {
     return _apiClient.request<ConfirmBookingModel>(
       path: '/taxi-driver/drive-arrive',
       method: 'POST',
-      headers: const {'Accept': 'application/json', 'Content-Type': 'application/json'},
+      headers: const {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
       body: FormData.fromMap({'ride_id': rideId}),
       decode: (response) => ConfirmBookingModel.fromJson(response.data),
     );
@@ -47,7 +57,10 @@ class TripDatasource {
     return _apiClient.request<ConfirmBookingModel>(
       path: '/taxi-driver/start-drive',
       method: 'POST',
-      headers: const {'Accept': 'application/json', 'Content-Type': 'application/json'},
+      headers: const {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
       body: FormData.fromMap({'ride_id': rideId}),
       decode: (response) => ConfirmBookingModel.fromJson(response.data),
     );
@@ -63,7 +76,10 @@ class TripDatasource {
     return _apiClient.request<CompleteDriverModel>(
       path: '/taxi-driver/complete-drive',
       method: 'POST',
-      headers: const {'Accept': 'application/json', 'Content-Type': 'application/json'},
+      headers: const {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
       body: FormData.fromMap({
         'ride_id': rideId,
         'end_latitude': endLatitude,

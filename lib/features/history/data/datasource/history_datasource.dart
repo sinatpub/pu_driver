@@ -3,7 +3,8 @@ import 'package:tara_driver_application/core/network/result.dart';
 import 'package:tara_driver_application/features/history/data/models/history_driver_info_model.dart';
 
 class HistoryDatasource {
-  HistoryDatasource({ApiClient? apiClient}) : _apiClient = apiClient ?? ApiClient();
+  HistoryDatasource({ApiClient? apiClient})
+      : _apiClient = apiClient ?? ApiClient();
 
   final ApiClient _apiClient;
 

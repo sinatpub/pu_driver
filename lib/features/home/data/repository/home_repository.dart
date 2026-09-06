@@ -10,7 +10,8 @@ class HomeRepository {
 
   Future<Result<SetDriverStatusModel>> getStatus() => _datasource.getStatus();
 
-  Future<Result<SetDriverStatusModel>> setStatus(int status) => _datasource.setStatus(status);
+  Future<Result<SetDriverStatusModel>> setStatus(int status) =>
+      _datasource.setStatus(status);
 
   Future<Result<CurrentDriverInfoModel>> getCurrentDriveInfo() =>
       _datasource.getCurrentDriveInfo();

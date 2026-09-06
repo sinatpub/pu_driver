@@ -1,14 +1,15 @@
 import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/core/routing/app_routes.dart';
+import 'package:tara_driver_application/routes/app_routes.dart';
 import 'package:tara_driver_application/core/storage/token_store.dart';
-import 'package:tara_driver_application/core/storages/get_storages.dart';
+import 'package:tara_driver_application/core/storage/get_storages.dart';
 import 'package:tara_driver_application/services/location_service.dart';
 
 class SessionService {
   SessionService._(this._tokenStore);
 
   static SessionService? _instance;
-  static SessionService get instance => _instance ??= SessionService._(TokenStore());
+  static SessionService get instance =>
+      _instance ??= SessionService._(TokenStore());
 
   final TokenStore _tokenStore;
   String? _cachedToken;

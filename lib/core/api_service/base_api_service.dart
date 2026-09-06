@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:tara_driver_application/core/api_service/client/dio_http_client.dart';
 import 'package:tara_driver_application/core/api_service/client/http_exception.dart';
+import 'package:tara_driver_application/core/utils/app_constant.dart';
 import 'package:tara_driver_application/core/utils/errror_message.dart';
 import 'package:tara_driver_application/core/utils/pretty_logger.dart';
 import 'package:tara_driver_application/services/session_service.dart';
@@ -65,14 +66,14 @@ class BaseApiService {
       query ??= {};
       if (customDioClient != null) {
         response = await customDioClient.request(
-          path,
+          "${AppConstant.baseUrlApi}$path",
           options: httpOption,
           queryParameters: query,
           data: bodyParse,
         );
       } else {
         response = await dio.request(
-          path,
+          "${AppConstant.baseUrlApi}$path",
           options: httpOption,
           queryParameters: query,
           data: bodyParse,

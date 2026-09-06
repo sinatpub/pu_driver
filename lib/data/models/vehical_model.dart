@@ -13,7 +13,8 @@ class VehicalTypeEntities {
 
   factory VehicalTypeEntities.fromJson(Map<String, dynamic> json) =>
       VehicalTypeEntities(
-        data: List<SingleVehical>.from(json["data"].map((x) => SingleVehical.fromJson(x))),
+        data: List<SingleVehical>.from(
+            json["data"].map((x) => SingleVehical.fromJson(x))),
         color: List<Color>.from(json["color"].map((x) => Color.fromJson(x))),
         message: json["message"],
         status: json["status"],

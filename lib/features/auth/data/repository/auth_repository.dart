@@ -10,9 +10,11 @@ class AuthRepository {
 
   final AuthDatasource _datasource;
 
-  Future<Result<PhoneNumberModel>> loginPhone(String phone) => _datasource.loginPhone(phone);
+  Future<Result<PhoneNumberModel>> loginPhone(String phone) =>
+      _datasource.loginPhone(phone);
 
-  Future<Result<RegisterModel>> verifyOtp({required String phone, required String otpCode}) =>
+  Future<Result<RegisterModel>> verifyOtp(
+          {required String phone, required String otpCode}) =>
       _datasource.verifyOtp(phone: phone, otpCode: otpCode);
 
   Future<Result<RegisterModel>> register({

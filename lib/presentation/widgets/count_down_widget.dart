@@ -1,4 +1,4 @@
-import 'package:tara_driver_application/core/routing/app_routes.dart';
+import 'package:tara_driver_application/routes/app_routes.dart';
 import 'package:tara_driver_application/core/theme/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;
@@ -31,7 +31,8 @@ class _SmoothCircularCountdownState extends State<SmoothCircularCountdown>
     );
     _controller.addListener(() {
       if (_controller.isDismissed && widget.isPop) {
-        Get.offAllNamed(AppRoutes.home); // Pop the screen when countdown finishes
+        Get.offAllNamed(
+            AppRoutes.home); // Pop the screen when countdown finishes
       }
     });
     _controller.reverse(from: 1.0);

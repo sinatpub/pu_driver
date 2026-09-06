@@ -13,11 +13,11 @@ class ChangeLanguage extends StatefulWidget {
 }
 
 class _ChangeLanguageState extends State<ChangeLanguage> {
-
   List<Lang> langs = allLangs;
   updateLanguageLocal(Locale locale, BuildContext context) {
     context.setLocale(locale);
   }
+
   @override
   Widget build(BuildContext context) {
     final translate = context.locale.toString();
@@ -71,7 +71,8 @@ class _ChangeLanguageState extends State<ChangeLanguage> {
                         fit: BoxFit.cover,
                       )),
                     ),
-                    title:Text(lang.title, style: ThemeConstands.font18Regular),
+                    title:
+                        Text(lang.title, style: ThemeConstands.font18Regular),
                     trailing: translate == langs[index].sublang
                         ? const Icon(
                             Icons.check_circle_outline_sharp,
@@ -79,12 +80,11 @@ class _ChangeLanguageState extends State<ChangeLanguage> {
                           )
                         : const Icon(null),
                     onTap: () {
-                        updateLanguageLocal(Locale(langs[index].sublang), context);
-                        Navigator.of(context).pop();
-                        Navigator.of(context).pop();
-                        setState(() {
-                          
-                        });
+                      updateLanguageLocal(
+                          Locale(langs[index].sublang), context);
+                      Navigator.of(context).pop();
+                      Navigator.of(context).pop();
+                      setState(() {});
                     },
                   ),
                 );

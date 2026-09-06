@@ -21,20 +21,22 @@ class TImageWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return image != null
         ? FadeInImage(
-            placeholder:const AssetImage(ImageAssets.placeholder_image),
+            placeholder: const AssetImage(ImageAssets.placeholder_image),
             image: image!,
             fit: fit,
             width: width ?? 30,
             height: height ?? 30,
             imageErrorBuilder: (context, error, stackTrace) {
-              return SvgPicture.asset(ImageAssets.no_image,
+              return SvgPicture.asset(
+                ImageAssets.no_image,
                 width: width,
                 height: height,
                 fit: BoxFit.contain,
               );
             },
           )
-        : SvgPicture.asset(ImageAssets.no_image,
+        : SvgPicture.asset(
+            ImageAssets.no_image,
             width: width ?? 30,
             height: height ?? 30,
             fit: BoxFit.contain,
