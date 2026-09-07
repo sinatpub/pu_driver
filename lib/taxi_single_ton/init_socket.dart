@@ -23,27 +23,31 @@ enum SocketEvent {
   onPassengerCancelDrive,
 }
 
+/// F-03 (docs/12) — the old config (10 attempts, flat 60s delay) gave up for
+/// good after ~10 minutes of no connectivity and never tried again, silently
+/// going deaf mid-trip. Omitting the attempts cap is what makes the client
+/// default (infinite retries) apply, so its *absence* from this map is
+/// load-bearing, not an oversight; the delay backs off from 2s toward a 30s
+/// ceiling instead of a flat wait.
+///
+/// Extracted so the reconnection policy can be asserted without opening a
+/// socket — see `test/taxi_single_ton/socket_event_contract_test.dart`.
+@visibleForTesting
+Map<String, dynamic> buildSocketOptions() => io.OptionBuilder()
+    .setTransports(['websocket'])
+    .enableAutoConnect()
+    .enableReconnection()
+    .setReconnectionDelay(2000)
+    .setReconnectionDelayMax(30000)
+    .build();
+
 // Base socket service
 abstract class BaseSocketService {
   io.Socket? _socket;
 
   void connectToSocket(String url, String id, String role,
       {required BuildContext context}) {
-    _socket = io.io(
-      url,
-      io.OptionBuilder()
-          .setTransports(['websocket'])
-          .enableAutoConnect()
-          .enableReconnection()
-          // F-03 (docs/12) — the old config (10 attempts, flat 60s delay)
-          // gave up for good after ~10 minutes of no connectivity and never
-          // tried again, silently going deaf mid-trip. No attempts cap
-          // means the client default (infinite retries) applies; delay
-          // backs off from 2s toward a 30s ceiling instead of a flat wait.
-          .setReconnectionDelay(2000)
-          .setReconnectionDelayMax(30000)
-          .build(),
-    );
+    _socket = io.io(url, buildSocketOptions());
 
     _socket?.onConnect((_) {
       tlog('$role connected to socket');
@@ -61,12 +65,35 @@ abstract class BaseSocketService {
 
   void register(String id);
 
+  /// Emits [event], letting Socket.IO buffer it when the connection is
+  /// temporarily down.
+  ///
+  /// The old body refused to emit unless `connected` was already true and
+  /// logged "socket is not connected" instead. That **permanently dropped**
+  /// the event: `Socket.emit` on a disconnected-but-live socket appends to
+  /// `sendBuffer` and `emitBuffered()` flushes it on reconnect, so the guard
+  /// was throwing away a packet the client would otherwise have delivered a
+  /// few seconds later. It cost `startDrive`, `acceptPayment`,
+  /// `driverCancelDrive` and `acceptRide` — every trip-state and money event
+  /// the driver sends — on any brief loss of signal, which is routine on a
+  /// phone in a moving car. `arrivedSocket`/`dropDrive` never had the guard
+  /// and were the only two emits that already survived a blip; this brings
+  /// the rest in line with them rather than the other way round.
+  ///
+  /// A null socket is still unrecoverable — there is nothing to buffer into —
+  /// so that case keeps its log line and stays the only real failure.
   void emitEvent(String event, dynamic data) {
-    if (_socket != null && _socket!.connected) {
-      _socket?.emit(event, data);
+    final socket = _socket;
+    if (socket == null) {
+      tlog('Failed to emit event: $event, socket was never created.');
+      return;
+    }
+
+    socket.emit(event, data);
+    if (socket.connected) {
       tlog('Event emitted: $event, data: $data');
     } else {
-      tlog('Failed to emit event: $event, socket is not connected.');
+      tlog('Event buffered until reconnect: $event, data: $data');
     }
   }
 
@@ -83,6 +110,13 @@ class DriverSocketService extends BaseSocketService {
     return _instance;
   }
   DriverSocketService._internal();
+
+  /// The singleton's own constructor is private, so nothing outside this
+  /// library can build an instance to assert against. This exists purely so
+  /// tests can subclass and observe `emitEvent`; production code must keep
+  /// going through the `DriverSocketService()` factory.
+  @visibleForTesting
+  DriverSocketService.forTesting();
 
   @override
   void register(String driverId) {
@@ -154,7 +188,7 @@ class DriverSocketService extends BaseSocketService {
       String? passengerId,
       required String lat,
       required String lng}) {
-    _socket?.emit(
+    emitEvent(
       SocketEvent.rideArrival.name,
       {
         "booking_code": bookingCode,
@@ -162,7 +196,6 @@ class DriverSocketService extends BaseSocketService {
         "location": {"latitude": lat, "longitude": lng},
       },
     );
-    tlog('Start ride with booking code:');
   }
 
   void driverCancelDrive({
@@ -213,7 +246,7 @@ class DriverSocketService extends BaseSocketService {
     double? destinationLat,
     double? destinationLng,
   }) {
-    _socket?.emit(
+    emitEvent(
       SocketEvent.dropDrive.name,
       {
         "booking_code": bookingCode,

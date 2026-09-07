@@ -11,13 +11,16 @@ class AppConstant {
   // (F-07, docs/12); default points at the current driver backend.
   static const baseUrlApi = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://217.216.37.228:8082',
+    defaultValue: 'https://taxi-api.simpledevelopertools.com',
   );
 
-  // Socket IO Client — overridable via `--dart-define=SOCKET_BASE_URL=...`
+  // Socket IO Client — overridable via `--dart-define=SOCKET_BASE_URL=...`.
+  // Same host as the REST API on this backend: the Socket.IO server is
+  // mounted at `/socket.io/` on `baseUrlApi` rather than on a separate
+  // host as the old `socket.tara-taxi.com` deployment was (docs/04 §1.2).
   static const socketBasedUrl = String.fromEnvironment(
     'SOCKET_BASE_URL',
-    defaultValue: 'https://socket.tara-taxi.com',
+    defaultValue: 'https://taxi-api.simpledevelopertools.com',
   );
 
   // Custom Token — supplied via `--dart-define-from-file=dart_defines.json`
