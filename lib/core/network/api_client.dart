@@ -41,7 +41,7 @@ class ApiClient {
       return Result.ok(decode(response));
     } on DioException catch (exception) {
       final apiException = ApiException.fromDioException(exception);
-      if (apiException.type == ApiErrorType.unauthorized) {
+      if (apiException.endsSession) {
         unawaited(_session.handleUnauthorized());
       }
       return Result.err(apiException);

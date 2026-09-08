@@ -2,7 +2,19 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 
-enum ApiErrorType { connection, timeout, badResponse, unauthorized, unknown }
+/// `unauthorized` means the session itself is gone (401) and the user must sign in
+/// again. `forbidden` (403) means the session is valid but the account may not do
+/// this — a role/permission error — and must **not** clear the token: see
+/// `.agent/TODO.md`, where a valid driver token on a non-driver account was being
+/// discarded mid-session.
+enum ApiErrorType {
+  connection,
+  timeout,
+  badResponse,
+  unauthorized,
+  forbidden,
+  unknown
+}
 
 class ApiException implements Exception {
   const ApiException(
@@ -11,6 +23,11 @@ class ApiException implements Exception {
   final ApiErrorType type;
   final String message;
   final int? statusCode;
+
+  /// The one place that decides whether a failure should end the session.
+  /// Only a 401 does: a 403 is "this account may not do this", and clearing a
+  /// still-valid token on it bounces the user to login mid-session.
+  bool get endsSession => type == ApiErrorType.unauthorized;
 
   factory ApiException.fromDioException(DioException exception) {
     if (exception.error is SocketException) {
@@ -30,16 +47,25 @@ class ApiException implements Exception {
       final data = exception.response?.data;
       final serverMessage = (data is Map ? data['message'] as String? : null) ??
           'Unexpected error occurred.';
-      final isAuthError = status == 401 || status == 403;
       return ApiException(
-        type:
-            isAuthError ? ApiErrorType.unauthorized : ApiErrorType.badResponse,
+        type: _typeForStatus(status),
         message: serverMessage,
         statusCode: status,
       );
     }
     return const ApiException(
         type: ApiErrorType.unknown, message: 'Unexpected error occurred.');
+  }
+
+  static ApiErrorType _typeForStatus(int? status) {
+    switch (status) {
+      case 401:
+        return ApiErrorType.unauthorized;
+      case 403:
+        return ApiErrorType.forbidden;
+      default:
+        return ApiErrorType.badResponse;
+    }
   }
 
   factory ApiException.unknown(Object error) => const ApiException(

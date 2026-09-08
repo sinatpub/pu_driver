@@ -117,7 +117,10 @@ DioErrorException _onDioError(DioException exception) {
   } else if (exception.type == DioExceptionType.badResponse) {
     ///Error that range from 400-500
     final status = exception.response?.statusCode;
-    if (status == 401 || status == 403) {
+    // 401 only: a 403 is a role/permission error on a still-valid session, and
+    // clearing the token there logs the user out mid-session. See
+    // `ApiErrorType.forbidden` in `core/network/api_exception.dart`.
+    if (status == 401) {
       SessionService.instance.handleUnauthorized();
     }
     String serverMessage;
