@@ -5,7 +5,7 @@ import 'package:tara_driver_application/data/models/current_driver_info_model.da
 import 'package:tara_driver_application/features/payment/data/repository/payment_repository.dart';
 import 'package:tara_driver_application/presentation/screens/profile/logic.dart';
 import 'package:tara_driver_application/presentation/widgets/error_dialog_widget.dart';
-import 'package:tara_driver_application/taxi_single_ton/init_socket.dart';
+import 'package:tara_driver_application/services/socket_service.dart';
 
 import 'state.dart';
 

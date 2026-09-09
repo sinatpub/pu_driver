@@ -21,7 +21,7 @@ import 'package:tara_driver_application/presentation/widgets/count_down_widget.d
 import 'package:tara_driver_application/presentation/widgets/error_dialog_widget.dart';
 import 'package:tara_driver_application/presentation/widgets/loading_widget.dart';
 import 'package:tara_driver_application/services/location_service.dart';
-import 'package:tara_driver_application/taxi_single_ton/init_socket.dart';
+import 'package:tara_driver_application/services/socket_service.dart';
 import 'package:tara_driver_application/taxi_single_ton/taxi.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';

@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../../../taxi_single_ton/init_socket.dart';
+import 'package:tara_driver_application/services/socket_service.dart';
 
 class ModelBottomSheetNewRequestWidget extends StatefulWidget {
   final int bookingId;
