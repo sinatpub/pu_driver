@@ -4,6 +4,8 @@
 
 import 'dart:convert';
 
+import 'package:tara_driver_application/core/utils/money.dart';
+
 WalletModel walletModelFromJson(String str) =>
     WalletModel.fromJson(json.decode(str));
 
@@ -50,14 +52,29 @@ class Data {
     this.transactions,
   });
 
+  /// N-01: typed views over the `dynamic` money fields. The backend sends
+  /// these sometimes as numbers and sometimes as quoted strings; every caller
+  /// coercing for itself is how a wallet screen ends up showing "12.50" in
+  /// one place and 12.5 in another. Null means "not reported", which is not
+  /// the same as zero.
+  num? get balanceAmount => parseMoney(balance);
+  num? get debtedAmount => parseMoney(debted);
+  num? get commissionFareAmount => parseMoney(commistionFare);
+
   factory Data.fromJson(Map<String, dynamic> json) => Data(
         id: json["id"],
         balance: json["balance"],
         debted: json["debted"],
         commistionFare: json["commission_fare"],
         currency: json["currency"],
-        transactions: List<Transaction>.from(
-            json["transactions"].map((x) => Transaction.fromJson(x))),
+        // N-01: was `json["transactions"].map(...)` with no null check, so a
+        // driver with no transactions yet — every newly approved driver —
+        // hit a NoSuchMethodError on null and could not open their wallet.
+        transactions: json["transactions"] is List
+            ? List<Transaction>.from(
+                (json["transactions"] as List)
+                    .map((x) => Transaction.fromJson(x as Map<String, dynamic>)))
+            : const <Transaction>[],
       );
 
   Map<String, dynamic> toJson() => {
@@ -66,8 +83,9 @@ class Data {
         "debted": debted,
         "commission_fare": commistionFare,
         "currency": currency,
+        // N-01: was a force-unwrap on a nullable list.
         "transactions":
-            List<dynamic>.from(transactions!.map((x) => x.toJson())),
+            List<dynamic>.from((transactions ?? const []).map((x) => x.toJson())),
       };
 }
 
@@ -95,6 +113,9 @@ class Transaction {
     this.createdBy,
     this.createdAt,
   });
+
+  /// N-01: see `Data.balanceAmount`.
+  num? get amountValue => parseMoney(amount);
 
   factory Transaction.fromJson(Map<String, dynamic> json) => Transaction(
         id: json["id"],
