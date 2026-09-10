@@ -199,4 +199,30 @@ void main() {
           seen, containsAllInOrder([LoginStatus.loading, LoginStatus.loaded]));
     });
   });
+
+  group('phone normalisation on the wire (Discovered Tasks, 2026-09-06)', () {
+    test('formatter spaces are stripped', () {
+      // CardNumberInputFormatter rewrites the field as the driver types.
+      expect(LoginLogic.normalisePhone('90 000 0001'), '900000001');
+    });
+
+    test('a already-clean number is unchanged', () {
+      expect(LoginLogic.normalisePhone('900000001'), '900000001');
+    });
+
+    test('any non-digit is stripped, not just spaces', () {
+      expect(LoginLogic.normalisePhone('+855 (90) 000-0001'), '855900000001');
+    });
+
+    test('a leading zero is preserved, never added', () {
+      // Forcing a leading "0" is the passenger app's rule (RULES.md
+      // §Quirks). Adding it here would change what the driver sends.
+      expect(LoginLogic.normalisePhone('0 90 000 0001'), '0900000001');
+      expect(LoginLogic.normalisePhone('90 000 0001'), isNot(startsWith('0')));
+    });
+
+    test('an empty string stays empty', () {
+      expect(LoginLogic.normalisePhone(''), '');
+    });
+  });
 }

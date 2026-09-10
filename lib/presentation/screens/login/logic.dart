@@ -48,7 +48,9 @@ class LoginLogic extends GetxController {
         AppRoutes.otp,
         arguments: OtpPageArgs(
           phoneNumberModel: state.phoneModel.value,
-          phoneNumber: phoneController.text.toString(),
+          // Normalised here too: the OTP screen sends this straight to
+          // `verify-phone-otp`, which had the same formatted-string problem.
+          phoneNumber: normalisePhone(phoneController.text),
           onResend: () => submit(phoneController.text.toString()),
         ),
       );
@@ -80,16 +82,40 @@ class LoginLogic extends GetxController {
     return true;
   }
 
+  /// Strips everything that is not a digit.
+  ///
+  /// `CardNumberInputFormatter` rewrites the field as the driver types, so
+  /// `phoneController.text` is `"90 000 0001"`, not `"900000001"` — and that
+  /// formatted string was going straight onto the wire and into storage
+  /// (captured in the device log 2026-09-06, on both `login-phone` and
+  /// `verify-phone-otp`). The backend happens to normalise it on receipt, so
+  /// this was luck rather than design; nothing guarantees the next endpoint
+  /// or the next backend will.
+  ///
+  /// Deliberately does **not** force a leading `"0"`. That is the passenger
+  /// app's rule (`.agent/RULES.md` §Quirks) and adding it here would change
+  /// what the driver app sends — a contract change, not a bug fix.
+  static String normalisePhone(String value) =>
+      value.replaceAll(RegExp(r'\D'), '');
+
   Future<void> submit(String phoneNumber) async {
+    // Validation deliberately runs on the *unnormalised* string. The
+    // `length < 10` rule counts characters, so `"90 000 0001"` (11 chars)
+    // passes where `"900000001"` (9 digits) would not. Which lengths are
+    // legal is a product decision (`.agent/TODO.md` Discovered Tasks), so
+    // this fix changes what goes on the wire without changing what the app
+    // accepts.
     if (!validate(phoneNumber)) return;
 
+    final normalised = normalisePhone(phoneNumber);
+
     state.status.value = LoginStatus.loading;
-    final result = await _repository.loginPhone(phoneNumber);
+    final result = await _repository.loginPhone(normalised);
     result.when(
       ok: (data) {
         state.phoneModel.value = data;
         state.status.value = LoginStatus.loaded;
-        StorageSet.setPhoneNumber(phoneNumber);
+        StorageSet.setPhoneNumber(normalised);
       },
       err: (_) {
         phoneShake.currentState?.shake();
