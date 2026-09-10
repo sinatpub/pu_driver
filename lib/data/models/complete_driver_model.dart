@@ -3,6 +3,7 @@
 //     final completeDriver = completeDriverFromJson(jsonString);
 
 import 'dart:convert';
+import 'package:tara_driver_application/core/utils/json_list.dart';
 
 CompleteDriverModel CompleteDriverModelFromJson(String str) =>
     CompleteDriverModel.fromJson(json.decode(str));
@@ -275,8 +276,8 @@ class Vehicle {
         enginePower: json["engine_power"],
         maxPassenger: json["max_passenger"],
         status: json["status"],
-        vehicleImage: List<VehicleImage>.from(
-            json["vehicle_image"].map((x) => VehicleImage.fromJson(x))),
+        vehicleImage: parseJsonList<VehicleImage>(
+            json["vehicle_image"], (x) => VehicleImage.fromJson(x)),
       );
 
   Map<String, dynamic> toJson() => {

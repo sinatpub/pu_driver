@@ -1,3 +1,5 @@
+import 'package:tara_driver_application/core/utils/json_list.dart';
+
 class VehicalTypeEntities {
   List<SingleVehical> data;
   List<Color> color;
@@ -13,9 +15,10 @@ class VehicalTypeEntities {
 
   factory VehicalTypeEntities.fromJson(Map<String, dynamic> json) =>
       VehicalTypeEntities(
-        data: List<SingleVehical>.from(
-            json["data"].map((x) => SingleVehical.fromJson(x))),
-        color: List<Color>.from(json["color"].map((x) => Color.fromJson(x))),
+        data: parseJsonList<SingleVehical>(
+            json["data"], (x) => SingleVehical.fromJson(x)),
+        color: parseJsonList<Color>(
+            json["color"], (x) => Color.fromJson(x)),
         message: json["message"],
         status: json["status"],
       );

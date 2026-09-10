@@ -3,6 +3,7 @@
 //     final detailNotificationModel = detailNotificationModelFromJson(jsonString);
 
 import 'dart:convert';
+import 'package:tara_driver_application/core/utils/json_list.dart';
 
 DetailNotificationModel detailNotificationModelFromJson(String str) =>
     DetailNotificationModel.fromJson(json.decode(str));
@@ -70,8 +71,8 @@ class DataDetailNotification {
         createdBy: json["created_by"],
         createdAt: json["created_at"],
         updatedAt: json["updated_at"],
-        files: List<FileElement>.from(
-            json["files"].map((x) => FileElement.fromJson(x))),
+        files: parseJsonList<FileElement>(
+            json["files"], (x) => FileElement.fromJson(x)),
       );
 
   Map<String, dynamic> toJson() => {

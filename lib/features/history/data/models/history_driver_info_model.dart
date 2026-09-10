@@ -3,6 +3,7 @@
 //     final historyDriveInfoModel = historyDriveInfoModelFromJson(jsonString);
 
 import 'dart:convert';
+import 'package:tara_driver_application/core/utils/json_list.dart';
 
 HistoryDriveInfoModel historyDriveInfoModelFromJson(String str) =>
     HistoryDriveInfoModel.fromJson(json.decode(str));
@@ -29,8 +30,8 @@ class HistoryDriveInfoModel {
 
   factory HistoryDriveInfoModel.fromJson(Map<String, dynamic> json) =>
       HistoryDriveInfoModel(
-        data: List<DataHistory>.from(
-            json["data"].map((x) => DataHistory.fromJson(x))),
+        data: parseJsonList<DataHistory>(
+            json["data"], (x) => DataHistory.fromJson(x)),
         currentPage: json["current_page"],
         perPage: json["per_page"],
         total: json["total"],
@@ -288,8 +289,8 @@ class Vehicle {
         enginePower: json["engine_power"],
         maxPassenger: json["max_passenger"],
         status: json["status"],
-        vehicleImage: List<VehicleImage>.from(
-            json["vehicle_image"].map((x) => VehicleImage.fromJson(x))),
+        vehicleImage: parseJsonList<VehicleImage>(
+            json["vehicle_image"], (x) => VehicleImage.fromJson(x)),
       );
 
   Map<String, dynamic> toJson() => {

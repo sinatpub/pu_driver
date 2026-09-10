@@ -3,6 +3,7 @@
 //     final notificationMode = notificationModeFromJson(jsonString);
 
 import 'dart:convert';
+import 'package:tara_driver_application/core/utils/json_list.dart';
 
 NotificationModel notificationModeFromJson(String str) =>
     NotificationModel.fromJson(json.decode(str));
@@ -30,8 +31,8 @@ class NotificationModel {
   factory NotificationModel.fromJson(Map<String, dynamic> json) =>
       NotificationModel(
         status: json["status"],
-        data: List<DataNotification>.from(
-            json["data"].map((x) => DataNotification.fromJson(x))),
+        data: parseJsonList<DataNotification>(
+            json["data"], (x) => DataNotification.fromJson(x)),
         currentPage: json["current_page"],
         lastPage: json["last_page"],
         perPage: json["per_page"],
@@ -87,8 +88,8 @@ class DataNotification {
         createdBy: json["created_by"],
         createdAt: json["created_at"],
         updatedAt: json["updated_at"],
-        files: List<FileElement>.from(
-            json["files"].map((x) => FileElement.fromJson(x))),
+        files: parseJsonList<FileElement>(
+            json["files"], (x) => FileElement.fromJson(x)),
       );
 
   Map<String, dynamic> toJson() => {
