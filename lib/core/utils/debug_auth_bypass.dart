@@ -1,3 +1,4 @@
+import 'package:tara_driver_application/core/config/app_config.dart';
 import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tara_driver_application/core/network/api_client.dart';
@@ -29,9 +30,9 @@ class DebugAuthBypass {
   static const userCacheKey = 'debug_bypass_user';
 
   static const _enabledByDefine =
-      bool.fromEnvironment('DEBUG_OTP_BYPASS', defaultValue: false);
-  static const _phone = String.fromEnvironment('DEBUG_LOGIN_PHONE');
-  static const _password = String.fromEnvironment('DEBUG_LOGIN_PASSWORD');
+      AppConfig.debugOtpBypass;
+  static const _phone = AppConfig.debugLoginPhone;
+  static const _password = AppConfig.debugLoginPassword;
 
   static bool get isEnabled => kDebugMode && _enabledByDefine;
 
