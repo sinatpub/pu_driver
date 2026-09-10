@@ -309,6 +309,38 @@ class DrawerScreen extends StatelessWidget {
             bottom: false,
             child: Obx(() => _bodyFor(logic.state.activeTab.value)),
           ),
+          // `DrawerState.connection` was write-only: DrawerLogic maintained
+          // it from InternetConnection().onStatusChange and its own doc
+          // comment said it "drives the offline banner", but no banner
+          // existed. For a driver app that matters — losing connectivity
+          // means silently receiving no ride requests, with nothing on
+          // screen to say so.
+          //
+          // Renders nothing at all while connected, so it cannot disturb any
+          // existing layout in the normal case.
+          Obx(() {
+            if (logic.state.connection.value) return const SizedBox.shrink();
+            return Positioned(
+              left: 0,
+              right: 0,
+              top: 0,
+              child: SafeArea(
+                bottom: false,
+                child: Container(
+                  width: double.infinity,
+                  color: AppColors.error,
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  child: Text(
+                    "NO_INTERNET_CONNECTION".tr(),
+                    textAlign: TextAlign.center,
+                    style: ThemeConstands.font14Regular
+                        .copyWith(color: Colors.white),
+                  ),
+                ),
+              ),
+            );
+          }),
           Obx(() {
             if (Get.find<AppLogic>().isApproved) return const SizedBox();
             return Positioned(
