@@ -54,7 +54,22 @@ String formatDateTime(String input) {
   return outputFormat.format(dateTime);
 }
 
-String formatToTwoDecimalPlaces(String input) {
+/// Formats an amount in riel: thousands-separated, **no decimal places**.
+///
+/// Riel is used in whole units in practice, which is why the pattern is
+/// `#,##0` and not `#,##0.00`. Every call site in this app pairs the result
+/// with `៛` or a `(khr)` label.
+///
+/// Renamed from `formatRielAmount`, which claimed the opposite of
+/// what it did. That name was not merely untidy — the wallet screen, the one
+/// screen whose currency is dynamic, used it for USD balances on the strength
+/// of the name, so `$125.50` rendered as `126` and `$0.99` as `1` (N-01,
+/// fixed 2026-09-10 with the currency-aware `formatWalletAmount`).
+///
+/// **Do not use this for a currency with a fractional unit.** An unparseable
+/// input still yields `0`, which is the original behaviour and is preserved
+/// deliberately — changing it would alter what nine screens display.
+String formatRielAmount(String input) {
   double value = double.tryParse(input) ?? 0.0;
   String formatted = NumberFormat("#,##0").format(value);
   return formatted;

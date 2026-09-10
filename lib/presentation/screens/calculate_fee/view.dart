@@ -258,7 +258,7 @@ class CalculateFeeScreen extends StatelessWidget {
                             width: 8,
                           ),
                           Text(
-                            "៛${formatToTwoDecimalPlaces(amount)}",
+                            "៛${formatRielAmount(amount)}",
                             style: ThemeConstands.font14SemiBold
                                 .copyWith(color: AppColors.dark1),
                           ),
@@ -384,7 +384,7 @@ class CalculateFeeScreen extends StatelessWidget {
                   )),
                   Expanded(
                       child: Text(
-                    "៛${formatToTwoDecimalPlaces(amount)}",
+                    "៛${formatRielAmount(amount)}",
                     style: ThemeConstands.font18SemiBold
                         .copyWith(color: AppColors.light4),
                     textAlign: TextAlign.end,

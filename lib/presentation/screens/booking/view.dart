@@ -669,10 +669,10 @@ class _BookingScreenState extends State<BookingScreen> {
                       cost: (args.desLatPassenger == null ||
                               args.desLatPassenger == 0.0)
                           ? totalDistanceCount <= 1000
-                              ? formatToTwoDecimalPlaces(
+                              ? formatRielAmount(
                                   priceUnder1Km.toString())
-                              : formatToTwoDecimalPlaces(totalFee)
-                          : formatToTwoDecimalPlaces(totalFee),
+                              : formatRielAmount(totalFee)
+                          : formatRielAmount(totalFee),
                       duration: formatDuration(remaining),
                     )
                   : Container(

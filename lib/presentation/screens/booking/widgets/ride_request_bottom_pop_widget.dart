@@ -295,7 +295,7 @@ class _ModelBottomSheetNewRequestWidgetState
                                               )),
                                               Expanded(
                                                   child: Text(
-                                                "៛${formatToTwoDecimalPlaces(widget.totalFee.toString())}",
+                                                "៛${formatRielAmount(widget.totalFee.toString())}",
                                                 style: ThemeConstands
                                                     .font16Regular
                                                     .copyWith(

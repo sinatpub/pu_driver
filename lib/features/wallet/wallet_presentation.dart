@@ -23,8 +23,10 @@ String currencySymbol(String? currency) => currency == "KHR" ? "៛" : "\$";
 /// Whether a currency is conventionally written without a fractional part.
 ///
 /// Riel is used in whole units in practice, which is why the app's shared
-/// `formatToTwoDecimalPlaces` renders zero decimals despite its name — it was
-/// written for riel, and eight of its nine call sites hardcode `៛`.
+/// `formatRielAmount` renders zero decimals. It was called
+/// `formatToTwoDecimalPlaces` until 2026-09-10, and this screen using it for
+/// USD on the strength of that name is what produced the rounding defect
+/// below.
 bool isWholeUnitCurrency(String? currency) => currency == "KHR";
 
 /// Formats a wallet amount for display.

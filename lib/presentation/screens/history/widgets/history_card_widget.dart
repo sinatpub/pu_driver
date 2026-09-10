@@ -166,7 +166,7 @@ class HistoryCardWidget extends StatelessWidget {
                   width: 20, color: AppColors.red),
               const SizedBox(width: 8),
               Text(
-                "៛${formatToTwoDecimalPlaces(item.payment!.amount.toString())}",
+                "៛${formatRielAmount(item.payment!.amount.toString())}",
                 style: ThemeConstands.font14SemiBold
                     .copyWith(color: AppColors.dark1),
               ),
@@ -202,7 +202,7 @@ class HistoryCardWidget extends StatelessWidget {
         Get.toNamed(
           AppRoutes.mapHistoryDetail,
           arguments: MapHistoryDetailArgs(
-            cost: formatToTwoDecimalPlaces(item.payment!.amount.toString()),
+            cost: formatRielAmount(item.payment!.amount.toString()),
             duration: convertTimeString(item.payment!.duration.toString()),
             distand: formatDistanceWithUnits(
                 item.payment!.distance.toString(), context),
