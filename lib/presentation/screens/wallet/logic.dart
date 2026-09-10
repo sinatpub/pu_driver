@@ -1,6 +1,9 @@
 import 'package:get/get.dart' hide Trans;
 import 'package:tara_driver_application/features/wallet/data/repository/wallet_repository.dart';
 
+import 'package:tara_driver_application/features/wallet/data/models/wallet_model.dart';
+import 'package:tara_driver_application/features/wallet/wallet_presentation.dart';
+
 import 'state.dart';
 
 /// D-11 (`12`) — replaces `DriverWalletBloc`. Read-only today.
@@ -26,4 +29,19 @@ class WalletLogic extends GetxController {
   }
 
   void selectBank(int index) => state.bankSelected.value = index;
+
+  /// N-01: null clears the filter and shows everything.
+  void selectTypeFilter(String? typeName) =>
+      state.typeFilter.value = typeName;
+
+  /// The rows the list should render: filtered, then newest first.
+  List<Transaction> get visibleTransactions => sortedTransactions(
+        filterTransactionsByType(
+          state.wallet.value?.data?.transactions,
+          state.typeFilter.value,
+        ),
+      );
+
+  List<String> get availableTypeFilters =>
+      transactionTypeNames(state.wallet.value?.data?.transactions);
 }

@@ -92,5 +92,7 @@
     "CAN_NOT_CONFIRM_BOOKING": "Can not confirm booking. Please try again.",
     "IN_PROCESS_BOOKING": "In Process Booking",
     "PLEASE_TRY_AGAIN_SOMETHING_WENT_WRONG": "Please try again. Something went wrong",
-    "NO_INTERNET_CONNECTION": "No internet connection"
+    "NO_INTERNET_CONNECTION": "No internet connection",
+    "NO_TRANSACTIONS_YET": "No transactions yet",
+    "ALL": "All"
 }

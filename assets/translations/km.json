@@ -91,5 +91,7 @@
     "CAN_NOT_CONFIRM_BOOKING": "មិនអាចបញ្ជាក់ការហៅបានទេ។ សូមព្យាយាមម្ដងទៀត។",
     "IN_PROCESS_BOOKING": "ការហៅកំពុងដំណើរការ",
     "PLEASE_TRY_AGAIN_SOMETHING_WENT_WRONG": "សូមព្យាយាមម្ដងទៀត។ មានបញ្ហាអ្វីមួយកើតឡើង",
-    "NO_INTERNET_CONNECTION": "គ្មានការតភ្ជាប់អ៊ីនធឺណិត"
+    "NO_INTERNET_CONNECTION": "គ្មានការតភ្ជាប់អ៊ីនធឺណិត",
+    "NO_TRANSACTIONS_YET": "មិនទាន់មានប្រតិបត្តិការ",
+    "ALL": "ទាំងអស់"
 }

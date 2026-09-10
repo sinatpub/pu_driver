@@ -2,10 +2,12 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/app/funtion_convert.dart';
 import 'package:tara_driver_application/core/theme/colors.dart';
 import 'package:tara_driver_application/core/theme/text_styles.dart';
 import 'package:tara_driver_application/presentation/widgets/simmer_widget.dart';
+
+import 'package:tara_driver_application/features/wallet/data/models/wallet_model.dart';
+import 'package:tara_driver_application/features/wallet/wallet_presentation.dart';
 
 import 'logic.dart';
 import 'state.dart';
@@ -68,14 +70,15 @@ class _WalletPageState extends State<WalletPage> {
                         ],
                       ),
                       child: Obx(() {
-                        if (logic.state.status.value == WalletStatus.loaded) {
-                          final dataWallet = logic.state.wallet.value!.data;
+                        final dataWallet = logic.state.wallet.value?.data;
+                        if (logic.state.status.value == WalletStatus.loaded &&
+                            dataWallet != null) {
                           return Row(
                             children: [
                               Expanded(
                                 child: _balanceCard(
                                   label: "COMMISSION_FARE".tr(),
-                                  amount: dataWallet!.commistionFare,
+                                  amount: dataWallet.commistionFare,
                                   currency: dataWallet.currency,
                                   color: AppColors.main,
                                 ),
@@ -103,6 +106,20 @@ class _WalletPageState extends State<WalletPage> {
                         );
                       }),
                     ),
+                    // N-01: the backend returns `transactions` inside the
+                    // wallet payload and nothing rendered them. The list, its
+                    // filter row and its empty state are below; the ordering
+                    // and filtering rules live in wallet_presentation.dart.
+                    const SizedBox(height: 24),
+                    Obx(() {
+                      if (logic.state.status.value == WalletStatus.error) {
+                        return _errorState();
+                      }
+                      if (logic.state.status.value != WalletStatus.loaded) {
+                        return const SizedBox.shrink();
+                      }
+                      return _transactionsSection();
+                    }),
                     // Top-up UI — N-01 (`12`). Left commented exactly as it
                     // was found; `_cardBank` and `state.bankSelected` exist
                     // only to serve it.
@@ -138,6 +155,157 @@ class _WalletPageState extends State<WalletPage> {
     );
   }
 
+
+  /// N-01: a failed fetch used to render the same shimmer as loading, so a
+  /// driver whose wallet could not load watched it load forever with no way
+  /// to retry.
+  Widget _errorState() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+      alignment: Alignment.center,
+      child: Column(
+        children: [
+          Text(
+            "PLEASE_TRY_AGAIN_SOMETHING_WENT_WRONG".tr(),
+            textAlign: TextAlign.center,
+            style: ThemeConstands.font14Regular
+                .copyWith(color: AppColors.dark3),
+          ),
+          const SizedBox(height: 12),
+          TextButton(
+            onPressed: logic.fetch,
+            child: Text(
+              "PLEASE_TRY_AGAIN".tr(),
+              style: ThemeConstands.font14SemiBold
+                  .copyWith(color: AppColors.main),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _transactionsSection() {
+    final filters = logic.availableTypeFilters;
+    final rows = logic.visibleTransactions;
+    final currency = logic.state.wallet.value?.data?.currency?.toString();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "HISTORY".tr(),
+          style:
+              ThemeConstands.font18SemiBold.copyWith(color: AppColors.dark1),
+        ),
+        if (filters.length > 1) ...[
+          const SizedBox(height: 12),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _filterChip(label: "ALL".tr(), value: null),
+                for (final name in filters)
+                  _filterChip(label: name, value: name),
+              ],
+            ),
+          ),
+        ],
+        const SizedBox(height: 12),
+        if (rows.isEmpty)
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 32),
+            alignment: Alignment.center,
+            child: Text(
+              "NO_TRANSACTIONS_YET".tr(),
+              style: ThemeConstands.font14Regular
+                  .copyWith(color: AppColors.dark3),
+            ),
+          )
+        else
+          for (final t in rows) _transactionRow(t, currency),
+      ],
+    );
+  }
+
+  Widget _filterChip({required String label, required String? value}) {
+    final selected = logic.state.typeFilter.value == value;
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: GestureDetector(
+        onTap: () => logic.selectTypeFilter(value),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+          decoration: BoxDecoration(
+            color: selected ? AppColors.main : AppColors.light4,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+                color: selected ? AppColors.main : AppColors.light1),
+          ),
+          child: Text(
+            label,
+            style: ThemeConstands.font14Regular.copyWith(
+                color: selected ? AppColors.light4 : AppColors.dark2),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _transactionRow(Transaction t, String? currency) {
+    final date = formatTransactionDate(t.createdAt);
+    final txnCurrency = t.currency?.toString() ?? currency;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.light4,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.light1),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  t.typeName?.toString() ?? "—",
+                  style: ThemeConstands.font14SemiBold
+                      .copyWith(color: AppColors.dark1),
+                ),
+                if (date != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    date,
+                    style: ThemeConstands.font12Regular
+                        .copyWith(color: AppColors.dark3),
+                  ),
+                ],
+                if (t.statusName != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    t.statusName.toString(),
+                    style: ThemeConstands.font12Regular
+                        .copyWith(color: AppColors.dark3),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            formatWalletAmountWithSymbol(t.amount, txnCurrency),
+            style: ThemeConstands.font14SemiBold
+                .copyWith(color: AppColors.dark1),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Both balance tiles were duplicated line-for-line in `payment_screen.dart`
   /// apart from label, value and colour.
   Widget _balanceCard({
@@ -146,7 +314,6 @@ class _WalletPageState extends State<WalletPage> {
     required String? currency,
     required Color color,
   }) {
-    final symbol = currency == "KHR" ? "៛" : "\$";
     return Container(
       height: 130,
       decoration: BoxDecoration(
@@ -184,7 +351,9 @@ class _WalletPageState extends State<WalletPage> {
               ],
             ),
             Text(
-              "${formatToTwoDecimalPlaces(amount.toString().replaceAll(",", ""))} $symbol",
+              // N-01: was routed through the riel formatter regardless of
+              // currency, so a USD balance of 125.50 rendered as "126".
+              formatWalletAmountWithSymbol(amount, currency),
               style: ThemeConstands.font22SemiBold
                   .copyWith(color: AppColors.light4),
               textAlign: TextAlign.left,
