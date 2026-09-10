@@ -1,5 +1,10 @@
+import 'dart:ui';
+
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:tara_driver_application/app/root_main.dart';
+import 'package:tara_driver_application/app/service.dart';
 import 'package:tara_driver_application/presentation/widgets/custom_animated_loading.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:tara_driver_application/core/api_service/client/dio_http_client.dart';
@@ -15,8 +20,20 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 void main() async {
   BaseHttpClient.init();
   WidgetsFlutterBinding.ensureInitialized();
-  // init firebase notification
+  // init firebase notification — also initializes Firebase itself, which
+  // Crashlytics below depends on
   await NotificationLogic().setupInteractedMessage();
+
+  // F-09 (docs/12): Crashlytics was declared as a dependency but never
+  // wired up (docs/05). Disabled in debug builds so local crashes don't
+  // pollute production data.
+  await FirebaseCrashlytics.instance
+      .setCrashlyticsCollectionEnabled(!kDebugMode);
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+  PlatformDispatcher.instance.onError = (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    return true;
+  };
 
   // init local notification
   await NotificationLocal().initLocationNotification();
@@ -27,6 +44,9 @@ void main() async {
   TaxiLocation.shared.onInit();
   // * config easy loading
   configLoading();
+
+  // `14` §3.5: permanent DI lives in exactly one place.
+  await initialService();
   runApp(
     EasyLocalization(
       supportedLocales: const [Locale('km'), Locale('en')],

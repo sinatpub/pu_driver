@@ -26,7 +26,10 @@ import flutter_local_notifications
     //     self.handleBackgroundTask(task as! BGProcessingTask)
     // }
 
-    GMSServices.provideAPIKey("AIzaSyAEZtLQKJGA-Phcfn339c2A5ppu9eh9lAY")
+    // Supplied via Info.plist's GMSApiKey, populated from ios/Secrets.xcconfig at build time.
+    if let mapsApiKey = Bundle.main.object(forInfoDictionaryKey: "GMSApiKey") as? String, !mapsApiKey.isEmpty {
+      GMSServices.provideAPIKey(mapsApiKey)
+    }
     GeneratedPluginRegistrant.register(with: self)
 
         // Set up the method channel

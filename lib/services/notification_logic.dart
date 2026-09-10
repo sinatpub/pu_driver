@@ -2,11 +2,11 @@ import 'dart:convert';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:tara_driver_application/presentation/screens/booking/booking/booking_screen.dart';
-import 'package:tara_driver_application/presentation/screens/notification/view/notification_detail_screen.dart';
-import 'package:tara_driver_application/services/navigation_service.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:tara_driver_application/routes/app_routes.dart';
+import 'package:tara_driver_application/routes/route_arguments.dart';
+import 'package:tara_driver_application/features/trip/data/new_ride_payload_parser.dart';
 import '../core/utils/app_log.dart';
-import '../taxi_single_ton/taxi.dart';
 
 class NotificationLogic {
   static late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
@@ -199,10 +199,6 @@ class NotificationLogic {
 
 Future<void> routeByNotificationTime(RemoteMessage message, int durationRoute,
     {bool isTerminate = false}) async {
-  final passengerRaw = jsonDecode(message.data['passenger']);
-  final locationRaw = jsonDecode(message.data['location']);
-  final destinationRaw = jsonDecode(message.data['destination']);
-
   /// This is just delays for make sure context is fully completed
   /// Why return; empty because home page is handle for navigation already
   if (isTerminate == true) {
@@ -211,31 +207,25 @@ Future<void> routeByNotificationTime(RemoteMessage message, int durationRoute,
   }
   await Future.delayed(Duration(seconds: durationRoute), () {
     if (message.data['notification_type'] == 'service_booking') {
-      NavigationService().navigateTo(
-        BookingScreen(
-          latStart: 0.0,
-          lngStart: 0.0,
-          startTime: "",
-          refreshApp: false,
-          typeVehicleId: int.parse(message.data["vehicleType"].toString()),
-          pricrVehicle: int.parse(message.data["vehiclePrice"].toString()),
-          namePassanger: passengerRaw["name"],
-          phonePassanger: passengerRaw["phone"],
-          imagePassanger: passengerRaw["profile"],
-          timeOut: int.parse(message.data["timeout"].toString()),
-          processStepBook: 1,
-          bookingCode: int.parse(message.data["booking_code"]),
-          bookingId: int.parse(message.data["booking_id"]),
-          latPassenger: double.parse(locationRaw['latitude'].toString()),
-          lngPassenger: double.parse(locationRaw['longitude'].toString()),
-          desLatPassenger: destinationRaw['latitude'],
-          desLngPassenger: destinationRaw['longitude'],
-          passengerId: int.parse(message.data["passengerId"]),
-        ),
-      );
+      // Previously ran jsonDecode(message.data['passenger'/'location'/
+      // 'destination']) unconditionally at the top of this function, before
+      // checking notification_type — so *every* non-booking notification
+      // (an announcement, say) crashed here too, since those fields don't
+      // exist on that payload shape. parseNewRideArgs (D-05, docs/12) does
+      // its own guarded parsing of both payload shapes, so nothing above
+      // this branch needs to touch those fields at all now.
+      try {
+        final args = parseNewRideArgs(message.data);
+        Get.toNamed(AppRoutes.booking, arguments: args);
+      } catch (e) {
+        xPrettyLog(
+            message:
+                "Failed to open ride request from notification: $e — raw data: ${message.data}");
+      }
     } else {
-      NavigationService().navigateTo(
-        NotificationDetailPage(
+      Get.toNamed(
+        AppRoutes.notificationDetail,
+        arguments: NotificationDetailArgs(
           notificationId: message.data["notification_id"],
           appOpened: false,
         ),

@@ -32,7 +32,7 @@ class DeviceInfoHelper {
         };
       }
     } catch (e) {
-      tlog("Error getting device info: $e",level: LogLevel.error);
+      tlog("Error getting device info: $e", level: LogLevel.error);
     }
 
     return deviceData;

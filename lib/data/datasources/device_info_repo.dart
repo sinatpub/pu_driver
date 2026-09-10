@@ -1,9 +1,7 @@
 import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:tara_driver_application/core/storages/set_storages.dart';
-import 'package:tara_driver_application/core/utils/app_log.dart';
+import 'package:tara_driver_application/core/storage/set_storages.dart';
 import '../../core/api_service/base_api_service.dart';
 import '../../core/api_service/client/telegram.dart';
 

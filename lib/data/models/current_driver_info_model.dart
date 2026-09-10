@@ -11,7 +11,8 @@ class CurrentDriverInfoModel {
 
   factory CurrentDriverInfoModel.fromJson(Map<String, dynamic> json) =>
       CurrentDriverInfoModel(
-        data: json["data"] == null ? null : DataDriverInfo.fromJson(json["data"]),
+        data:
+            json["data"] == null ? null : DataDriverInfo.fromJson(json["data"]),
         status: json["status"],
         message: json["message"],
       );
@@ -84,7 +85,8 @@ class DataDriverInfo {
             ? null
             : Passenger.fromJson(json["passenger"]),
         driver: json["driver"] == null ? null : Driver.fromJson(json["driver"]),
-        payment: json["payment"] == null?null:Payment.fromJson(json["payment"]),
+        payment:
+            json["payment"] == null ? null : Payment.fromJson(json["payment"]),
         createdAt: json["created_at"] == null
             ? null
             : DateTime.parse(json["created_at"]),
@@ -181,7 +183,9 @@ class Driver {
         profileImage: json["profile_image"],
         vehicle:
             json["vehicle"] == null ? null : Vehicle.fromJson(json["vehicle"]),
-        lastLocation:json["last_location"] ==null?null:LastLocation.fromJson(json["last_location"]),
+        lastLocation: json["last_location"] == null
+            ? null
+            : LastLocation.fromJson(json["last_location"]),
       );
 
   Map<String, dynamic> toJson() => {
@@ -277,7 +281,9 @@ class Passenger {
         vehicle:
             json["vehicle"] == null ? null : Vehicle.fromJson(json["vehicle"]),
         roleId: json["role_id"],
-        lastLocation:json["last_location"] ==null?null:LastLocation.fromJson(json["last_location"]),
+        lastLocation: json["last_location"] == null
+            ? null
+            : LastLocation.fromJson(json["last_location"]),
       );
 
   Map<String, dynamic> toJson() => {
@@ -337,7 +343,8 @@ class Vehicle {
   factory Vehicle.fromJson(Map<String, dynamic> json) => Vehicle(
         id: json["id"],
         typeVehicleId: json["type_vehicle_id"],
-        pricrVehicle: json["vehicle_price"] == null?null:json["vehicle_price"],
+        pricrVehicle:
+            json["vehicle_price"] == null ? null : json["vehicle_price"],
         model: json["model"],
         manufacturer: json["manufacturer"],
         yearOfManufacture: json["year_of_manufacture"],
@@ -355,7 +362,7 @@ class Vehicle {
   Map<String, dynamic> toJson() => {
         "id": id,
         "type_vehicle_id": typeVehicleId,
-        "vehicle_price":pricrVehicle?? pricrVehicle,
+        "vehicle_price": pricrVehicle ?? pricrVehicle,
         "model": model,
         "manufacturer": manufacturer,
         "year_of_manufacture": yearOfManufacture,
@@ -415,33 +422,33 @@ class VehicleImage {
 }
 
 class Payment {
-    int? id;
-    int? invoiceId;
-    int? rideId;
-    String? distance;
-    String? duration;
-    String? amount;
-    String? paymentMethod;
-    int? status;
-    String? statusName;
-    String? createdAt;
-    String? updatedAt;
+  int? id;
+  int? invoiceId;
+  int? rideId;
+  String? distance;
+  String? duration;
+  String? amount;
+  String? paymentMethod;
+  int? status;
+  String? statusName;
+  String? createdAt;
+  String? updatedAt;
 
-    Payment({
-        this.id,
-        this.invoiceId,
-        this.rideId,
-        this.distance,
-        this.duration,
-        this.amount,
-        this.paymentMethod,
-        this.status,
-        this.statusName,
-        this.createdAt,
-        this.updatedAt,
-    });
+  Payment({
+    this.id,
+    this.invoiceId,
+    this.rideId,
+    this.distance,
+    this.duration,
+    this.amount,
+    this.paymentMethod,
+    this.status,
+    this.statusName,
+    this.createdAt,
+    this.updatedAt,
+  });
 
-    factory Payment.fromJson(Map<String, dynamic> json) => Payment(
+  factory Payment.fromJson(Map<String, dynamic> json) => Payment(
         id: json["id"],
         invoiceId: json["invoice_id"],
         rideId: json["ride_id"],
@@ -453,9 +460,9 @@ class Payment {
         statusName: json["status_name"],
         createdAt: json["created_at"],
         updatedAt: json["updated_at"],
-    );
+      );
 
-    Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => {
         "id": id,
         "invoice_id": invoiceId,
         "ride_id": rideId,
@@ -467,25 +474,25 @@ class Payment {
         "status_name": statusName,
         "created_at": createdAt,
         "updated_at": updatedAt,
-    };
+      };
 }
 
 class LastLocation {
-    String? latitude;
-    String? longitude;
+  String? latitude;
+  String? longitude;
 
-    LastLocation({
-        this.latitude,
-        this.longitude,
-    });
+  LastLocation({
+    this.latitude,
+    this.longitude,
+  });
 
-    factory LastLocation.fromJson(Map<String, dynamic> json) => LastLocation(
+  factory LastLocation.fromJson(Map<String, dynamic> json) => LastLocation(
         latitude: json["latitude"],
         longitude: json["longitude"],
-    );
+      );
 
-    Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => {
         "latitude": latitude,
         "longitude": longitude,
-    };
+      };
 }

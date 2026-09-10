@@ -65,5 +65,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'taarraa-passenger.firebasestorage.app',
     iosBundleId: 'com.tara.driver.application',
   );
-
 }

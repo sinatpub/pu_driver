@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+/// Holds the root navigator key GetMaterialApp is built with (`app/root_main.dart`),
+/// so non-widget code (services, socket listeners) can reach it. Actual
+/// navigation goes through the named routes in `routes/` (F-06) —
+/// this class no longer wraps push/pop itself.
 class NavigationService {
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -8,29 +12,4 @@ class NavigationService {
   factory NavigationService() => _instance ??= NavigationService._();
 
   NavigationService._();
-
-  Future<dynamic> navigateTo(Widget page) {
-    return navigatorKey.currentState!.push(MaterialPageRoute(builder: (_) => page));
-  }
-
-  bool canPop() {
-    return navigatorKey.currentState?.canPop() ?? false;
-  }
-  void safePop({BuildContext? context}) {
-  if (context != null) {
-    if (Navigator.canPop(context)) {
-      Navigator.pop(context);
-    }
-  } else {
-    if (navigatorKey.currentState?.canPop() == true) {
-      navigatorKey.currentState?.pop();
-    }
-  }
-}
-
-  void goBack() {
-    if (canPop()) {
-      navigatorKey.currentState?.pop();
-    }
-  }
 }

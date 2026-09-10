@@ -22,6 +22,7 @@ class XTextField extends StatelessWidget {
     this.fillColor,
     this.onFieldSubmitted,
     this.textController,
+    this.focusNode,
     this.prefixIcon,
     this.errorMessage,
     this.errorTextStyle,
@@ -50,13 +51,14 @@ class XTextField extends StatelessWidget {
   final suffixIcon;
   final maxLength;
   final inputFormatters;
-  final textController;
+  final TextEditingController? textController;
   final bool hasShadow;
   final Color? borderColor;
   final Color? fillColor;
   final Widget? prefixIcon;
   final String? errorMessage;
   final TextStyle? errorTextStyle;
+  final FocusNode? focusNode;
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +67,7 @@ class XTextField extends StatelessWidget {
       initialValue: initialValue,
       controller: textController,
       enabled: enable,
+      focusNode: focusNode,
       onChanged: enable == false ? null : (value) => onChanged!(value),
       decoration: getTextFieldDecoration(
           borderRadius: BorderRadius.circular(8),
@@ -75,7 +78,7 @@ class XTextField extends StatelessWidget {
           fillColor: fillColor,
           prefixIcon: prefixIcon,
           errorMessage: errorMessage,
-          // hintStyle:     textDisplaySmall(color: AppTheme.gray),
+          // hintStyle: textDisplaySmall(color: AppTheme.gray),
           errorStyle: errorTextStyle),
       // style: textDisplaySmall(),
       textInputAction: textInputAction,

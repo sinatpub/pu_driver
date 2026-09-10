@@ -1,9 +1,4 @@
-import 'package:tara_driver_application/core/utils/app_constant.dart';
-import 'package:tara_driver_application/core/utils/pretty_logger.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 Future<String> getAddressFromLatLng(double latitude, double longitude) async {
   try {
@@ -33,4 +28,3 @@ Future<String> getAddressFromLatLng(double latitude, double longitude) async {
     return "Address not found";
   }
 }
-

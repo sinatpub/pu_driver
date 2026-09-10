@@ -5,13 +5,13 @@ import 'package:tara_driver_application/core/theme/colors.dart';
 import 'package:tara_driver_application/core/theme/text_styles.dart';
 
 class CardUploadAttachment extends StatelessWidget {
-  VoidCallback? onPressed;
-  VoidCallback? onPressedIcon;
-  String? icon;
-  String? title;
-  String? titleKh;
-  File? image;
-  CardUploadAttachment(
+  final VoidCallback? onPressed;
+  final VoidCallback? onPressedIcon;
+  final String? icon;
+  final String? title;
+  final String? titleKh;
+  final File? image;
+  const CardUploadAttachment(
       {super.key,
       required this.onPressedIcon,
       required this.icon,

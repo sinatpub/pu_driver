@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:tara_driver_application/core/utils/app_constant.dart';
 import 'package:tara_driver_application/core/utils/pretty_logger.dart';
-import 'package:tara_driver_application/core/utils/status_util.dart';
+import 'package:tara_driver_application/core/contracts/fcm_type.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../../main.dart';
 

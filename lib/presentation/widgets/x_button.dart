@@ -10,7 +10,7 @@ class XButton extends StatelessWidget {
   final BorderRadius? borderRadius;
   @override
   final ValueKey<String>? key;
-  Color? color;
+  final Color? color;
 
   XButton({
     this.toolTip,

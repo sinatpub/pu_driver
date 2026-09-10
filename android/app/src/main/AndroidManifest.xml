@@ -16,7 +16,7 @@
         android:usesCleartextTraffic="true"
         android:icon="@mipmap/ic_launcher">
         <meta-data android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyAEZtLQKJGA-Phcfn339c2A5ppu9eh9lAY" />
+            android:value="${GOOGLE_MAPS_API_KEY}" />
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver" />
         <activity
             android:name=".MainActivity"
