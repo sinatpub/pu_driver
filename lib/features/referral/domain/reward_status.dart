@@ -63,6 +63,15 @@ enum RewardStatus {
   /// **never red**, because a routine reversal must not look like a system
   /// failure.
   reversed,
+
+  /// The reward was never confirmed: the activity didn't qualify, or the
+  /// reward couldn't be confirmed (copy deck §14). **Both reasons are one
+  /// status**, because the driver-facing UI must never distinguish a rule
+  /// mismatch from suspected fraud by what it calls the reward.
+  ///
+  /// Added 2026-09-11 (N-06). Without it, a rejected reward had nowhere to go
+  /// but "pending forever" or "reversed", and reversal means a refund.
+  notEligible,
 }
 
 /// Which lifecycle model is in force — the U1 answer, once there is one.
@@ -76,12 +85,14 @@ enum RewardLifecycle {
 }
 
 extension RewardLifecycleRules on RewardLifecycle {
-  /// The statuses this model can produce. Reversal is possible under both.
+  /// The statuses this model can produce. Reversal and rejection are
+  /// possible under both.
   Set<RewardStatus> get validStatuses => switch (this) {
         RewardLifecycle.twoState => const {
             RewardStatus.pending,
             RewardStatus.available,
             RewardStatus.reversed,
+            RewardStatus.notEligible,
           },
         RewardLifecycle.fourState => const {
             RewardStatus.pending,
@@ -89,6 +100,7 @@ extension RewardLifecycleRules on RewardLifecycle {
             RewardStatus.transferred,
             RewardStatus.withdrawn,
             RewardStatus.reversed,
+            RewardStatus.notEligible,
           },
       };
 
@@ -98,14 +110,17 @@ extension RewardLifecycleRules on RewardLifecycle {
   ///
   /// Forward-only, with one exception: a reward may be reversed from any
   /// non-terminal status, because the refund that triggers it can land at any
-  /// time. Nothing leaves [RewardStatus.reversed] or
-  /// [RewardStatus.withdrawn] — money that has left cannot un-leave.
+  /// time. Nothing leaves [RewardStatus.reversed], [RewardStatus.withdrawn]
+  /// or [RewardStatus.notEligible]: money that has left cannot un-leave, and
+  /// a rejection is final.
   bool allowsTransition(RewardStatus from, RewardStatus to) {
     if (!permits(from) || !permits(to)) return false;
     if (from == to) return false;
-    if (from == RewardStatus.reversed || from == RewardStatus.withdrawn) {
-      return false;
-    }
+    if (from.isTerminal) return false;
+    // Rejection happens at confirmation, so only a pending reward can be
+    // found not eligible. A reward that already cleared and later proves bad
+    // is reversed instead, which the activity feed explains.
+    if (to == RewardStatus.notEligible) return from == RewardStatus.pending;
     if (to == RewardStatus.reversed) return true;
 
     const order = [
@@ -142,5 +157,15 @@ extension RewardStatusRules on RewardStatus {
 
   /// Whether the status is final.
   bool get isTerminal =>
-      this == RewardStatus.withdrawn || this == RewardStatus.reversed;
+      this == RewardStatus.withdrawn ||
+      this == RewardStatus.reversed ||
+      this == RewardStatus.notEligible;
+
+  /// Whether the reward came to nothing: reversed, or never confirmed.
+  ///
+  /// Anything that sums or announces rewards must skip these. A digest or a
+  /// dashboard that treated a rejected reward as money earned would tell a
+  /// driver they have money they do not.
+  bool get isVoid =>
+      this == RewardStatus.reversed || this == RewardStatus.notEligible;
 }

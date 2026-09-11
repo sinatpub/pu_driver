@@ -90,6 +90,8 @@ void main() {
             reason: 'withdrawn -> $to');
         expect(m.allowsTransition(RewardStatus.reversed, to), isFalse,
             reason: 'reversed -> $to');
+        expect(m.allowsTransition(RewardStatus.notEligible, to), isFalse,
+            reason: 'notEligible -> $to');
       }
     });
 
@@ -132,6 +134,56 @@ void main() {
 
     test('pending is not yet earned', () {
       expect(RewardStatus.pending.countsTowardTotalEarned, isFalse);
+    });
+  });
+
+  group('not eligible (N-06, copy deck §14)', () {
+    test('exists under both lifecycles', () {
+      expect(RewardLifecycle.twoState.permits(RewardStatus.notEligible), isTrue);
+      expect(
+          RewardLifecycle.fourState.permits(RewardStatus.notEligible), isTrue);
+    });
+
+    test('only a pending reward can be found not eligible', () {
+      // Rejection happens at confirmation. A reward that cleared and later
+      // proves bad is reversed instead.
+      for (final m in RewardLifecycle.values) {
+        for (final from in RewardStatus.values) {
+          expect(m.allowsTransition(from, RewardStatus.notEligible),
+              from == RewardStatus.pending,
+              reason: '$m: $from -> notEligible');
+        }
+      }
+    });
+
+    test('is final, and cannot later be reversed', () {
+      expect(RewardStatus.notEligible.isTerminal, isTrue);
+      expect(
+          RewardLifecycle.fourState
+              .allowsTransition(RewardStatus.notEligible, RewardStatus.reversed),
+          isFalse);
+    });
+
+    test('counts toward nothing', () {
+      expect(RewardStatus.notEligible.countsTowardAvailableBalance, isFalse);
+      expect(RewardStatus.notEligible.countsTowardTotalEarned, isFalse);
+    });
+
+    test('void means reversed or not eligible, and nothing else', () {
+      for (final s in RewardStatus.values) {
+        expect(s.isVoid,
+            s == RewardStatus.reversed || s == RewardStatus.notEligible,
+            reason: '$s');
+      }
+    });
+
+    test('reversal is still possible from every non-terminal status', () {
+      const m = RewardLifecycle.fourState;
+      for (final from in RewardStatus.values) {
+        if (from.isTerminal) continue;
+        expect(m.allowsTransition(from, RewardStatus.reversed), isTrue,
+            reason: '$from -> reversed');
+      }
     });
   });
 

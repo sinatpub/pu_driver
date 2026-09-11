@@ -55,6 +55,14 @@ void main() {
       expect(s.totalEarned, 0);
     });
 
+    test('a not-eligible reward counts toward nothing', () {
+      final s = summarize([r(5, RewardStatus.notEligible)]);
+      expect(s.available, 0);
+      expect(s.pending, 0);
+      expect(s.totalEarned, 0);
+      expect(s.fromDrivers, 0);
+    });
+
     test('no rewards is a known zero everywhere', () {
       final s = summarize(const []);
       expect(s.available, 0);
@@ -236,6 +244,13 @@ void main() {
 
     test('only a reversed reward is back to no rewards', () {
       expect(state(signedUp: 1, rewards: [r(1, RewardStatus.reversed)]),
+          ReferralEmptyState.signedUpNoRewardsOne);
+    });
+
+    test('only a not-eligible reward is back to no rewards', () {
+      // Before N-06 this read as "real figures", showing an all-zero
+      // dashboard instead of the unlock-condition copy.
+      expect(state(signedUp: 1, rewards: [r(1, RewardStatus.notEligible)]),
           ReferralEmptyState.signedUpNoRewardsOne);
     });
 

@@ -112,6 +112,16 @@ void main() {
       expect(r.digests.single.rewardCount, 1);
     });
 
+    test('leaves out not-eligible rewards', () {
+      // "You earned $0.50 today" for a reward that was never confirmed would
+      // announce money the driver does not have.
+      final r = buildDailyDigests([
+        reward(0.10),
+        reward(0.50, status: RewardStatus.notEligible),
+      ], day: day);
+      expect(r.digests.single.total, closeTo(0.10, 1e-9));
+    });
+
     test('counts pending and available rewards alike', () {
       final r = buildDailyDigests([
         reward(0.10, status: RewardStatus.pending),

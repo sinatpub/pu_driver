@@ -227,8 +227,9 @@ enum ReferralEmptyState {
 /// "is at peak risk of concluding the system is fake", so the copy must state
 /// the unlock condition. That is why one and many are distinct states.
 ///
-/// Reversed rewards do not count as rewards existing: a driver whose only
-/// reward was reversed has nothing earned and is back in the signed-up state.
+/// Void rewards (reversed or not eligible) do not count as rewards existing:
+/// a driver whose only reward came to nothing has nothing earned and is back
+/// in the signed-up state.
 /// All-pending gets its own state because a zero Available next to a
 /// non-zero Pending is the confusion the strategy's §21 flags.
 ///
@@ -241,7 +242,7 @@ ReferralEmptyState? referralEmptyState({
 }) {
   final live = [
     for (final r in rewards)
-      if (r.status != RewardStatus.reversed) r,
+      if (!r.status.isVoid) r,
   ];
 
   if (live.isEmpty) {

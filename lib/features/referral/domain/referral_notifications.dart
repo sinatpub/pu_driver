@@ -137,8 +137,8 @@ class DailyDigestResult {
 
 /// The digests to send for the local calendar day containing [day].
 ///
-/// - **Reversed rewards are left out.** A digest must not tell a driver they
-///   earned money that has already come back out.
+/// - **Reversed and not-eligible rewards are left out.** A digest must not
+///   tell a driver they earned money that came back out or never arrived.
 /// - Pending rewards count: §10's per-reward copy (`You earned $0.08…`) is
 ///   sent when a reward is generated, and the digest replaces exactly those.
 /// - A passenger's first-trip reward is also in the digest. The milestone
@@ -160,7 +160,7 @@ DailyDigestResult buildDailyDigests(
   var undated = 0;
 
   for (final r in rewards) {
-    if (r.status == RewardStatus.reversed) continue;
+    if (r.status.isVoid) continue;
     final at = r.earnedAt;
     if (at == null) {
       undated++;
