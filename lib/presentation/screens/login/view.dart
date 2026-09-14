@@ -1,294 +1,121 @@
-import 'package:tara_driver_application/core/resources/asset_resource.dart';
-import 'package:tara_driver_application/core/utils/phone_formatter.dart';
-import 'package:tara_driver_application/presentation/repository/language_data.dart';
-import 'package:tara_driver_application/presentation/widgets/loading_widget.dart';
-import 'package:tara_driver_application/presentation/widgets/shake_widget.dart';
-import 'package:tara_driver_application/presentation/widgets/x_text_field.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/core/theme/colors.dart';
-import 'package:tara_driver_application/core/theme/text_styles.dart';
-import 'package:tara_driver_application/presentation/widgets/fbtn_widget.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:tara_driver_application/core/theme/tokens.dart';
+import 'package:tara_driver_application/core/utils/phone_formatter.dart';
+import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
+import 'package:tara_driver_application/presentation/widgets/language_segment.dart';
 
 import 'logic.dart';
 import 'state.dart';
 
-class LoginPage extends StatefulWidget {
+/// UX-redesign S4 (`03 S02`, `DD-24`).
+///
+/// Language control inline at the top right, the existing headline and
+/// description, a `TTextField.phone` with the inline error, and a 56 px Next
+/// pinned above the keyboard. Submitting shows a spinner in the button and
+/// disables the field instead of covering the screen.
+///
+/// **Validation is untouched** — it lives in [LoginLogic.validate]: empty
+/// shakes with `CHECK_YOUR_PHONE_NUMBER_ERROR`; fewer than 10 characters *of
+/// the formatted text* shakes with `CHECK_PHONE_NUMBER_DIGIT_ERROR` (the "8
+/// digits" wording is a known quirk). The formatters are the same three, in
+/// the same order. The keyboard action still only validates — it never
+/// submitted, and still doesn't. No step dots (`DD-24`).
+class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
-}
-
-class _LoginPageState extends State<LoginPage> {
-  final _formKey = GlobalKey<FormState>();
-  // Resolved on each access, never cached: GetX owns this instance's
-  // lifetime, and a `final` field would keep pointing at a disposed one
-  // if the route is left and re-entered (hit on device 2026-09-06 —
-  // "A TextEditingController was used after being disposed").
-  LoginLogic get logic => Get.find<LoginLogic>();
-  List<Lang> langs = allLangs;
-
-  updateLanguageLocal(Locale locale, BuildContext context) {
-    context.setLocale(locale);
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final translate = context.locale.toString();
-    return Scaffold(
-      backgroundColor: AppColors.light4,
-      body: SafeArea(
-        bottom: false,
-        child: Obx(() {
-          final status = logic.state.status.value;
-          bool isLoading = status == LoginStatus.loading;
-          bool isInvalidPhone = logic.state.isInvalidPhone.value;
-          bool isRequired8Digit = logic.state.isRequired8Digit.value;
-          return Stack(
-            children: [
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 18),
-                child: Column(
-                  children: [
-                    Align(
-                      alignment: Alignment.topRight,
-                      child: IconButton(
-                          onPressed: () {
-                            showModalBottomSheet(
-                                shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.only(
-                                      topLeft: Radius.circular(16),
-                                      topRight: Radius.circular(16)),
-                                ),
-                                context: context,
-                                builder: (context) {
-                                  return StatefulBuilder(builder:
-                                      (BuildContext context,
-                                          StateSetter stateSetter) {
-                                    return changeLanguage(translate: translate);
-                                  });
-                                });
-                          },
-                          padding: const EdgeInsets.all(0),
-                          icon: translate == "km"
-                              ? SvgPicture.asset(
-                                  ImageAssets.flag_km,
-                                  width: 30,
-                                )
-                              : Image.asset(
-                                  ImageAssets.flag_en,
-                                  width: 30,
-                                )),
-                    ),
-                    Expanded(
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 17),
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.only(bottom: 25),
-                          child: Column(
-                            children: [
-                              const SizedBox(
-                                height: 68,
-                              ),
-                              Text(
-                                "LOGINTITLE".tr(),
-                                style: ThemeConstands.font20SemiBold,
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(
-                                height: 18,
-                              ),
-                              Text(
-                                "LOGINDES".tr(),
-                                style: ThemeConstands.font16Regular,
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(
-                                height: 48,
-                              ),
-                              Form(
-                                key: _formKey,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "MOBILENUM".tr(),
-                                      style: ThemeConstands.font16Regular,
-                                      textAlign: TextAlign.left,
-                                    ),
-                                    const SizedBox(
-                                      height: 12,
-                                    ),
-                                    ShakeWidget(
-                                      key: logic.phoneShake,
-                                      shakeCount: 3,
-                                      shakeOffset: 10,
-                                      shakeDuration:
-                                          const Duration(milliseconds: 500),
-                                      child: Container(
-                                        width:
-                                            MediaQuery.of(context).size.width,
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 0),
-                                        child: XTextField(
-                                          textController: logic.phoneController,
-                                          hintText:
-                                              "ENTER_YOUR_PHONE_NUMBER".tr(),
-                                          enable: true,
-                                          inputFormatters: [
-                                            FilteringTextInputFormatter
-                                                .digitsOnly,
-                                            LengthLimitingTextInputFormatter(
-                                                12),
-                                            CardNumberInputFormatter(),
-                                          ],
-                                          // prefixIcon: Icon(
-                                          //   CupertinoIcons.phone_fill,
-                                          //   color: Colors.grey.shade600,
-                                          //   size: 24.0,
-                                          // ),
-                                          prefixIcon: Padding(
-                                            padding:
-                                                const EdgeInsets.only(top: 2.0),
-                                            child: Text(
-                                              "+855",
-                                              style:
-                                                  ThemeConstands.font16SemiBold,
-                                            ),
-                                          ),
-                                          hasShadow: false,
-                                          borderColor: AppColors.dark1,
-                                          maxLength: 25,
-                                          onChanged: (value) {},
-                                          onFieldSubmitted: (value) {
-                                            if (!logic.validate(value)) {
-                                              FocusScope.of(context).unfocus();
-                                            }
-                                          },
+    // Resolved in build, never cached in a field: GetX owns this instance's
+    // lifetime (see the note in history/view.dart).
+    final LoginLogic logic = Get.find<LoginLogic>();
+    final TaarraaColors c = context.colors;
 
-                                          // logic.loginPhoneNumber(),
-                                          keyboardType: TextInputType.phone,
-                                          textInputAction: TextInputAction.send,
-                                          errorMessage: isInvalidPhone == true
-                                              ? "CHECK_YOUR_PHONE_NUMBER_ERROR"
-                                                  .tr()
-                                              : isRequired8Digit == true
-                                                  ? "CHECK_PHONE_NUMBER_DIGIT_ERROR"
-                                                      .tr()
-                                                  : null,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(
-                                      height: 18,
-                                    ),
-                                    FBTNWidget(
-                                      onPressed: () async {
-                                        logic
-                                            .submit(logic.phoneController.text);
-                                      },
-                                      color: AppColors.red,
-                                      textColor: AppColors.light4,
-                                      label: "NEXT".tr(),
-                                      enableWidth: true,
-                                    )
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
+    return Scaffold(
+      backgroundColor: c.bgPage,
+      body: SafeArea(
+        child: Obx(() {
+          final bool isLoading =
+              logic.state.status.value == LoginStatus.loading;
+          final String? error = logic.state.isInvalidPhone.value
+              ? 'CHECK_YOUR_PHONE_NUMBER_ERROR'.tr()
+              : logic.state.isRequired8Digit.value
+                  ? 'CHECK_PHONE_NUMBER_DIGIT_ERROR'.tr()
+                  : null;
+
+          return Column(
+            children: <Widget>[
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(
+                    Insets.screen,
+                    Insets.s12,
+                    Insets.screen,
+                    Insets.s24,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      const Align(
+                        alignment: Alignment.centerRight,
+                        child: LanguageSegment(),
+                      ),
+                      const SizedBox(height: 40),
+                      Text(
+                        'LOGINTITLE'.tr(),
+                        style: context.texts.headline.copyWith(
+                          color: c.textPrimary,
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: Insets.s8),
+                      Text(
+                        'LOGINDES'.tr(),
+                        style: context.texts.bodySecondary.copyWith(
+                          color: c.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: Insets.s32),
+                      TTextField.phone(
+                        label: 'MOBILENUM'.tr(),
+                        controller: logic.phoneController,
+                        hint: 'ENTER_YOUR_PHONE_NUMBER'.tr(),
+                        errorText: error,
+                        enabled: !isLoading,
+                        shakeKey: logic.phoneShake,
+                        inputFormatters: <TextInputFormatter>[
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(12),
+                          CardNumberInputFormatter(),
+                        ],
+                        textInputAction: TextInputAction.send,
+                        onSubmitted: (String value) {
+                          if (!logic.validate(value)) {
+                            FocusScope.of(context).unfocus();
+                          }
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              if (isLoading) const LoadingWidget(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  Insets.screen,
+                  Insets.s8,
+                  Insets.screen,
+                  Insets.s16,
+                ),
+                child: TButton(
+                  label: 'NEXT'.tr(),
+                  loading: isLoading,
+                  onPressed: () => logic.submit(logic.phoneController.text),
+                ),
+              ),
             ],
           );
         }),
-      ),
-    );
-  }
-
-  Widget changeLanguage({required String translate}) {
-    return Container(
-      decoration: const BoxDecoration(
-          color: AppColors.light4,
-          borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(16), topRight: Radius.circular(16))),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(top: 12),
-            height: 4,
-            width: 70,
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4), color: AppColors.dark4),
-          ),
-          Container(
-            padding:
-                const EdgeInsets.only(top: 16, left: 28, right: 28, bottom: 16),
-            child: Text("CHOOSE_LANGUADE".tr(),
-                style: ThemeConstands.font18SemiBold.copyWith(
-                  color: AppColors.dark2,
-                )),
-          ),
-          const Divider(),
-          ListView.builder(
-              shrinkWrap: true,
-              padding: const EdgeInsets.all(0),
-              itemCount: langs.length,
-              itemBuilder: (context, index) {
-                var lang = langs[index];
-                return Container(
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                      color: AppColors.light4,
-                      border: Border(
-                          bottom: BorderSide(
-                        color: AppColors.dark2.withOpacity(0.1),
-                        width: 1,
-                      ))),
-                  height: 85,
-                  child: ListTile(
-                    leading: SizedBox(
-                      height: 50,
-                      width: 50,
-                      child: ClipOval(
-                          child: SvgPicture.asset(
-                        lang.image,
-                        fit: BoxFit.cover,
-                      )),
-                    ),
-                    title:
-                        Text(lang.title, style: ThemeConstands.font18Regular),
-                    trailing: translate == langs[index].sublang
-                        ? const Icon(
-                            Icons.check_circle_outline_sharp,
-                            color: AppColors.main,
-                          )
-                        : const Icon(null),
-                    onTap: () {
-                      setState(() {
-                        Navigator.of(context).pop();
-                        updateLanguageLocal(
-                            Locale(langs[index].sublang), context);
-                      });
-                    },
-                  ),
-                );
-              }),
-          const SizedBox(
-            height: 15,
-          )
-        ],
       ),
     );
   }

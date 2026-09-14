@@ -1,6 +1,3 @@
-import 'package:tara_driver_application/core/utils/json_field.dart';
-import 'package:tara_driver_application/core/utils/json_list.dart';
-
 class VehicalTypeEntities {
   List<SingleVehical> data;
   List<Color> color;
@@ -16,12 +13,10 @@ class VehicalTypeEntities {
 
   factory VehicalTypeEntities.fromJson(Map<String, dynamic> json) =>
       VehicalTypeEntities(
-        data: parseJsonList<SingleVehical>(
-            json["data"], (x) => SingleVehical.fromJson(x)),
-        color: parseJsonList<Color>(
-            json["color"], (x) => Color.fromJson(x)),
-        message: stringOrEmpty(json["message"]),
-        status: boolOrDefault(json["status"]),
+        data: List<SingleVehical>.from(json["data"].map((x) => SingleVehical.fromJson(x))),
+        color: List<Color>.from(json["color"].map((x) => Color.fromJson(x))),
+        message: json["message"],
+        status: json["status"],
       );
 
   Map<String, dynamic> toJson() => {
@@ -38,8 +33,8 @@ class SingleVehical {
   int price;
   int minimumFare;
   String? image;
-  DateTime? createdAt;
-  DateTime? updatedAt;
+  DateTime createdAt;
+  DateTime updatedAt;
 
   SingleVehical({
     required this.id,
@@ -52,19 +47,13 @@ class SingleVehical {
   });
 
   factory SingleVehical.fromJson(Map<String, dynamic> json) => SingleVehical(
-        // Display fields degrade — a blank label beats a dead vehicle list.
-        id: intOrDefault(json["id"]),
-        name: stringOrEmpty(json["name"]),
-        // Money fails loudly. `price` is the per-km rate and `minimum_fare`
-        // is the fare floor; both feed estimateFare(), so a silent 0 here is
-        // a wrong fare shown as if it were right.
-        price: requireMoneyInt(json["price"],
-            model: "SingleVehical", field: "price"),
-        minimumFare: requireMoneyInt(json["minimum_fare"],
-            model: "SingleVehical", field: "minimum_fare"),
+        id: json["id"],
+        name: json["name"],
+        price: json["price"],
+        minimumFare: json["minimum_fare"],
         image: json["image"],
-        createdAt: dateOrNull(json["created_at"]),
-        updatedAt: dateOrNull(json["updated_at"]),
+        createdAt: DateTime.parse(json["created_at"]),
+        updatedAt: DateTime.parse(json["updated_at"]),
       );
 
   Map<String, dynamic> toJson() => {
@@ -73,8 +62,8 @@ class SingleVehical {
         "price": price,
         "image": image,
         "minimum_fare": minimumFare,
-        "created_at": createdAt?.toIso8601String(),
-        "updated_at": updatedAt?.toIso8601String(),
+        "created_at": createdAt.toIso8601String(),
+        "updated_at": updatedAt.toIso8601String(),
       };
 }
 

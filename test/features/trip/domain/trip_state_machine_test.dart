@@ -7,11 +7,13 @@ void main() {
       expect(TripStateMachine().stage, TripStage.idle);
     });
 
-    test('can be constructed at any stage, for re-entering an ongoing trip', () {
+    test('can be constructed at any stage, for re-entering an ongoing trip',
+        () {
       // home_screen.dart can open BookingScreen mid-trip (app restart,
       // navigating back from another screen) with processStepBook already
       // at 2/3/4 — the machine has to support starting there directly.
-      expect(TripStateMachine(TripStage.inProgress).stage, TripStage.inProgress);
+      expect(
+          TripStateMachine(TripStage.inProgress).stage, TripStage.inProgress);
     });
 
     test('happy path traverses every stage in order', () {
@@ -52,7 +54,8 @@ void main() {
       test('throws once a ride has been accepted', () {
         final machine = TripStateMachine(TripStage.enRouteToPickup);
         expect(machine.cancel, throwsA(isA<InvalidTripTransition>()));
-        expect(machine.stage, TripStage.enRouteToPickup, reason: 'a rejected transition must not mutate state');
+        expect(machine.stage, TripStage.enRouteToPickup,
+            reason: 'a rejected transition must not mutate state');
       });
     });
 
@@ -63,12 +66,25 @@ void main() {
       // processStepBook = 3))` advanced the old int stage on a timer,
       // whether or not the API call it followed actually succeeded, and
       // with nothing stopping a second, out-of-order call from firing.
-      final actions = <String, ({TripStage validFrom, TripStage Function(TripStateMachine) call})>{
-        'receiveRequest': (validFrom: TripStage.idle, call: (m) => m.receiveRequest()),
-        'accept': (validFrom: TripStage.requestReceived, call: (m) => m.accept()),
-        'arrive': (validFrom: TripStage.enRouteToPickup, call: (m) => m.arrive()),
+      final actions = <String,
+          ({TripStage validFrom, TripStage Function(TripStateMachine) call})>{
+        'receiveRequest': (
+          validFrom: TripStage.idle,
+          call: (m) => m.receiveRequest()
+        ),
+        'accept': (
+          validFrom: TripStage.requestReceived,
+          call: (m) => m.accept()
+        ),
+        'arrive': (
+          validFrom: TripStage.enRouteToPickup,
+          call: (m) => m.arrive()
+        ),
         'start': (validFrom: TripStage.waitingAtPickup, call: (m) => m.start()),
-        'complete': (validFrom: TripStage.inProgress, call: (m) => m.complete()),
+        'complete': (
+          validFrom: TripStage.inProgress,
+          call: (m) => m.complete()
+        ),
       };
 
       for (final entry in actions.entries) {
@@ -76,8 +92,10 @@ void main() {
           if (stage == entry.value.validFrom) continue;
           test('${entry.key}() throws from $stage', () {
             final machine = TripStateMachine(stage);
-            expect(() => entry.value.call(machine), throwsA(isA<InvalidTripTransition>()));
-            expect(machine.stage, stage, reason: 'a rejected transition must not mutate state');
+            expect(() => entry.value.call(machine),
+                throwsA(isA<InvalidTripTransition>()));
+            expect(machine.stage, stage,
+                reason: 'a rejected transition must not mutate state');
           });
         }
       }
@@ -87,13 +105,16 @@ void main() {
       final machine = TripStateMachine(TripStage.inProgress);
       expect(
         () => machine.accept(),
-        throwsA(isA<InvalidTripTransition>().having((e) => e.from, 'from', TripStage.inProgress)),
+        throwsA(isA<InvalidTripTransition>()
+            .having((e) => e.from, 'from', TripStage.inProgress)),
       );
     });
   });
 
   group('TripStageProcessStep', () {
-    test('round-trips through the legacy processStepBook int for every reachable stage', () {
+    test(
+        'round-trips through the legacy processStepBook int for every reachable stage',
+        () {
       const expected = {
         TripStage.idle: 0,
         TripStage.requestReceived: 1,
@@ -110,7 +131,8 @@ void main() {
 
     test('fromProcessStep rejects ints the legacy code never produced', () {
       for (final unknown in [-1, 5, 7, 99]) {
-        expect(() => TripStageProcessStep.fromProcessStep(unknown), throwsArgumentError);
+        expect(() => TripStageProcessStep.fromProcessStep(unknown),
+            throwsArgumentError);
       }
     });
   });

@@ -1,0 +1,25 @@
+{
+  "surface": "S07 header request",
+  "key": "07_header_request",
+  "locale": "km",
+  "width": 320,
+  "textStyles": [
+    "12.0px/400 #a33a00 KantumruyPro #48213",
+    "16.0px/700 #a33a00 KantumruyPro New request"
+  ],
+  "radii": [
+    "14,14,14,14"
+  ],
+  "fills": [
+    "#a33a00",
+    "#fff1e8"
+  ],
+  "borders": [
+    "1px #a33a00"
+  ],
+  "paddings": [
+    "0,0,0,0",
+    "13,11,13,11"
+  ],
+  "controls": []
+}

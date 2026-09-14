@@ -1,0 +1,25 @@
+{
+  "surface": "S07 header waiting",
+  "key": "07_header_waiting",
+  "locale": "km",
+  "width": 320,
+  "textStyles": [
+    "12.0px/400 #1a579e KantumruyPro #48213",
+    "16.0px/700 #1a579e KantumruyPro Waiting at pickup"
+  ],
+  "radii": [
+    "14,14,14,14"
+  ],
+  "fills": [
+    "#1a579e",
+    "#e8f1fd"
+  ],
+  "borders": [
+    "1px #1a579e"
+  ],
+  "paddings": [
+    "0,0,0,0",
+    "13,11,13,11"
+  ],
+  "controls": []
+}

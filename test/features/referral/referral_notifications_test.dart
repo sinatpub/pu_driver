@@ -75,8 +75,7 @@ void main() {
         );
 
     test('sums the day into one digest', () {
-      final r = buildDailyDigests(
-          [reward(0.02), reward(0.08), reward(0.24)],
+      final r = buildDailyDigests([reward(0.02), reward(0.08), reward(0.24)],
           day: day);
       expect(r.digests, hasLength(1));
       final d = r.digests.single;
@@ -154,15 +153,14 @@ void main() {
     });
 
     test('sub-cent rewards still add up to a digest', () {
-      final r = buildDailyDigests(
-          [reward(0.004), reward(0.004), reward(0.004)],
+      final r = buildDailyDigests([reward(0.004), reward(0.004), reward(0.004)],
           day: day);
       expect(r.digests.single.displayTotal, 0.01);
     });
 
     test('reports undated rewards rather than dropping them silently', () {
-      final r =
-          buildDailyDigests([reward(0.10), reward(0.10, undated: true)], day: day);
+      final r = buildDailyDigests([reward(0.10), reward(0.10, undated: true)],
+          day: day);
       expect(r.digests.single.rewardCount, 1);
       expect(r.undatedCount, 1);
     });

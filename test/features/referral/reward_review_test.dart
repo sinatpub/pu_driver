@@ -27,8 +27,7 @@ void main() {
           RewardDisplayState.pending);
     });
 
-    test('being reviewed once that time has passed and it has not cleared',
-        () {
+    test('being reviewed once that time has passed and it has not cleared', () {
       expect(
           display(RewardStatus.pending,
               availableAt: now.subtract(const Duration(hours: 1))),
@@ -60,12 +59,10 @@ void main() {
   group('every status has one pill', () {
     test('the rest map directly', () {
       expect(display(RewardStatus.available), RewardDisplayState.available);
-      expect(
-          display(RewardStatus.transferred), RewardDisplayState.transferred);
+      expect(display(RewardStatus.transferred), RewardDisplayState.transferred);
       expect(display(RewardStatus.withdrawn), RewardDisplayState.withdrawn);
       expect(display(RewardStatus.reversed), RewardDisplayState.reversed);
-      expect(
-          display(RewardStatus.notEligible), RewardDisplayState.notEligible);
+      expect(display(RewardStatus.notEligible), RewardDisplayState.notEligible);
     });
 
     test('there is no "approved"', () {

@@ -1,0 +1,43 @@
+{
+  "surface": "S03 otp",
+  "key": "03_otp",
+  "locale": "en",
+  "width": 320,
+  "textStyles": [
+    "13.0px/700 #cc3700 KantumruyPro 60s [FontFeature('tnum', 1)]",
+    "14.0px/400 #5c6474 KantumruyPro Don't received OTP?",
+    "14.0px/400 inherit unknown Enter the 4-digit code s…",
+    "24.0px/700 #3a3a3c KantumruyPro OTP Verification",
+    "26.0px/700 #3a3a3c KantumruyPro ",
+    "26.0px/700 #3a3a3c KantumruyPro |"
+  ],
+  "radii": [
+    "12,12,12,12",
+    "14,14,14,14",
+    "999,999,999,999"
+  ],
+  "fills": [
+    "#000000",
+    "#fff1ec",
+    "#ffffff"
+  ],
+  "borders": [
+    "1px #8f90a6",
+    "1px #cc3700"
+  ],
+  "paddings": [
+    "0,0,0,0",
+    "1,1,1,1",
+    "12,0,12,0",
+    "12,4,12,4",
+    "13,13,13,13",
+    "8,8,8,24"
+  ],
+  "controls": [
+    {
+      "type": "TIconButton",
+      "w": 48,
+      "h": 48
+    }
+  ]
+}

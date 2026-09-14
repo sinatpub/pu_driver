@@ -30,12 +30,12 @@ class AppConfig {
   // as the old `socket.tara-taxi.com` deployment was (docs/04 §1.2).
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://taxi-api.simpledevelopertools.com',
+    defaultValue: 'https://api.tara-taxi.com',
   );
 
   static const String socketBaseUrl = String.fromEnvironment(
     'SOCKET_BASE_URL',
-    defaultValue: 'https://taxi-api.simpledevelopertools.com',
+    defaultValue: 'https://socket.tara-taxi.com',
   );
 
   // ---- Third-party keys, supplied via dart_defines.json ------------------
@@ -70,8 +70,7 @@ class AppConfig {
       };
 
   /// Names of required keys the build was not given. Empty means configured.
-  static List<String> get missingRequiredKeys =>
-      missingKeysIn(requiredKeys);
+  static List<String> get missingRequiredKeys => missingKeysIn(requiredKeys);
 
   static bool get isConfigured => missingRequiredKeys.isEmpty;
 }

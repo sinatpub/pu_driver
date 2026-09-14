@@ -1,0 +1,25 @@
+{
+  "surface": "S13 announcement detail",
+  "key": "13_announcement_detail",
+  "locale": "km",
+  "width": 320,
+  "textStyles": [
+    "12.0px/400 #5c6474 KantumruyPro 2026-09-01",
+    "14.0px/400 #5c6474 KantumruyPro All Taarraa offices acro…",
+    "17.0px/700 #3a3a3c KantumruyPro Holiday hours"
+  ],
+  "radii": [
+    "16,16,16,16"
+  ],
+  "fills": [
+    "#ffffff"
+  ],
+  "borders": [
+    "1px #e2e2e5"
+  ],
+  "paddings": [
+    "16,16,16,24",
+    "17,17,17,17"
+  ],
+  "controls": []
+}

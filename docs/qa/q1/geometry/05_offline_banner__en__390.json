@@ -1,0 +1,16 @@
+{
+  "surface": "S05 offline banner",
+  "key": "05_offline_banner",
+  "locale": "en",
+  "width": 390,
+  "textStyles": [
+    "12.0px/700 #86650a KantumruyPro No internet — reconnecti…"
+  ],
+  "radii": [],
+  "fills": [],
+  "borders": [],
+  "paddings": [
+    "16,10,16,10"
+  ],
+  "controls": []
+}

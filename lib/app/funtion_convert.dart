@@ -95,15 +95,17 @@ String convertSecondsToHoursMinutes(int seconds) {
 }
 
 String typeVehicle(int typeVehicleId) {
-  return typeVehicleId == 1
-      ? "Rickshaw"
-      : typeVehicleId == 2
-          ? "Classis Car"
-          : typeVehicleId == 3
-              ? "Mini Van"
-              : typeVehicleId == 4
-                  ? "SUV"
-                  : "Alphard VIP";
+  // Same id → name mapping; P2 moved the names to keys (and fixed "Classis").
+  return (typeVehicleId == 1
+          ? "VEHICLE_RICKSHAW"
+          : typeVehicleId == 2
+              ? "VEHICLE_CLASSIC_CAR"
+              : typeVehicleId == 3
+                  ? "VEHICLE_MINI_VAN"
+                  : typeVehicleId == 4
+                      ? "VEHICLE_SUV"
+                      : "VEHICLE_ALPHARD_VIP")
+      .tr();
 }
 
 int calculateDuration(String startTime) {

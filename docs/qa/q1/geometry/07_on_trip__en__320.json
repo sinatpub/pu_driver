@@ -1,0 +1,57 @@
+{
+  "surface": "S07 on trip",
+  "key": "07_on_trip",
+  "locale": "en",
+  "width": 320,
+  "textStyles": [
+    "12.0px/400 #5c6474 KantumruyPro Distance",
+    "12.0px/400 #5c6474 KantumruyPro Duration",
+    "12.0px/400 #5c6474 KantumruyPro Est. fare",
+    "12.0px/400 #86650a KantumruyPro ≈ estimated — final fare…",
+    "12.0px/700 #1c784d KantumruyPro Accept",
+    "12.0px/700 #1c784d KantumruyPro Arrive",
+    "12.0px/700 #1c784d KantumruyPro Start",
+    "12.0px/700 #cc3700 KantumruyPro Drop",
+    "12.0px/700 #ffffff KantumruyPro 4",
+    "16.0px/700 #ffffff KantumruyPro Drop off",
+    "19.0px/700 inherit KantumruyPro 00:12:40 [FontFeature('tnum', 1)]",
+    "19.0px/700 inherit KantumruyPro 3.20 km [FontFeature('tnum', 1)]",
+    "19.0px/700 inherit KantumruyPro ≈ ៛7,600 [FontFeature('tnum', 1)]"
+  ],
+  "radii": [
+    "14,14,14,14",
+    "22,22,0,0",
+    "999,999,999,999"
+  ],
+  "fills": [
+    "#1c784d",
+    "#cc3700",
+    "#e2e2e5",
+    "#e6f7ef",
+    "#ffffff"
+  ],
+  "borders": [
+    "0px #000000",
+    "1px #1c784d",
+    "1px #cc3700",
+    "1px #e2e2e5"
+  ],
+  "paddings": [
+    "0,0,0,0",
+    "0,1,0,0",
+    "0,4,0,4",
+    "1,0,0,0",
+    "1,1,1,1",
+    "12,8,12,8",
+    "16,0,16,0",
+    "20,12,20,16",
+    "6,0,6,0"
+  ],
+  "controls": [
+    {
+      "type": "TButton",
+      "w": 278,
+      "h": 56
+    }
+  ]
+}

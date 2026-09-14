@@ -20,7 +20,8 @@ const _apiError = ApiException(type: ApiErrorType.unknown, message: 'boom');
 /// never touches `BaseHttpClient.dio` (a `late final` static that throws
 /// unless `BaseHttpClient.init()` ran, which nothing in this test does).
 class _FakeTripRepository extends TripRepository {
-  _FakeTripRepository() : super(TripDatasource(apiClient: ApiClient(dio: Dio())));
+  _FakeTripRepository()
+      : super(TripDatasource(apiClient: ApiClient(dio: Dio())));
 
   Result<ConfirmBookingModel>? confirmResult;
   Result<bool>? cancelResult;
@@ -104,21 +105,27 @@ void main() {
       expect(repo.confirmCalls, 1);
     });
 
-    test('ok with null data + RIDE_ALREADY_ACCEPTED: rideAlreadyAccepted error, no advance', () async {
+    test(
+        'ok with null data + RIDE_ALREADY_ACCEPTED: rideAlreadyAccepted error, no advance',
+        () async {
       final controller = _controller(repo, TripStage.requestReceived);
-      repo.confirmResult =
-          Result.ok(ConfirmBookingModel(data: null, message: 'RIDE_ALREADY_ACCEPTED'));
+      repo.confirmResult = Result.ok(
+          ConfirmBookingModel(data: null, message: 'RIDE_ALREADY_ACCEPTED'));
 
       await controller.accept();
 
       expect(controller.state.stage.value, TripStage.requestReceived);
-      expect(controller.state.lastError.value, TripActionError.rideAlreadyAccepted);
+      expect(controller.state.lastError.value,
+          TripActionError.rideAlreadyAccepted);
       expect(controller.state.lastResult.value, isNull);
     });
 
-    test('ok with null data + any other message: confirmFailed error, no advance', () async {
+    test(
+        'ok with null data + any other message: confirmFailed error, no advance',
+        () async {
       final controller = _controller(repo, TripStage.requestReceived);
-      repo.confirmResult = Result.ok(ConfirmBookingModel(data: null, message: 'nope'));
+      repo.confirmResult =
+          Result.ok(ConfirmBookingModel(data: null, message: 'nope'));
 
       await controller.accept();
 
@@ -148,7 +155,9 @@ void main() {
       expect(repo.confirmCalls, 1);
     });
 
-    test('a stage other than requestReceived fails loudly instead of silently drifting', () async {
+    test(
+        'a stage other than requestReceived fails loudly instead of silently drifting',
+        () async {
       final controller = _controller(repo, TripStage.waitingAtPickup);
       repo.confirmResult = Result.ok(ConfirmBookingModel(data: Data(id: 42)));
 
@@ -222,7 +231,9 @@ void main() {
       expect(controller.state.lastError.value, TripActionError.generic);
     });
 
-    test('a stage other than enRouteToPickup fails loudly instead of silently drifting', () async {
+    test(
+        'a stage other than enRouteToPickup fails loudly instead of silently drifting',
+        () async {
       final controller = _controller(repo, TripStage.requestReceived);
       repo.arriveResult = Result.ok(ConfirmBookingModel(data: Data(id: 42)));
 
@@ -264,7 +275,9 @@ void main() {
       expect(controller.state.lastError.value, TripActionError.generic);
     });
 
-    test('a stage other than waitingAtPickup fails loudly instead of silently drifting', () async {
+    test(
+        'a stage other than waitingAtPickup fails loudly instead of silently drifting',
+        () async {
       final controller = _controller(repo, TripStage.enRouteToPickup);
       repo.startResult = Result.ok(ConfirmBookingModel(data: Data(id: 42)));
 
@@ -291,7 +304,8 @@ void main() {
           distance: 3.4,
         );
 
-    test('on success: completing, TripCompleted, error cleared, args forwarded', () async {
+    test('on success: completing, TripCompleted, error cleared, args forwarded',
+        () async {
       final controller = _controller(repo, TripStage.inProgress);
       repo.completeResult = Result.ok(complete_model.CompleteDriverModel(
         data: complete_model.Data(id: 42),
@@ -319,7 +333,8 @@ void main() {
       expect(controller.state.lastError.value, TripActionError.generic);
     });
 
-    test('ok with null data: generic error, no advance, no TripCompleted', () async {
+    test('ok with null data: generic error, no advance, no TripCompleted',
+        () async {
       final controller = _controller(repo, TripStage.inProgress);
       repo.completeResult =
           Result.ok(complete_model.CompleteDriverModel(data: null));
@@ -331,18 +346,21 @@ void main() {
       expect(controller.state.lastResult.value, isNull);
     });
 
-    test('a stage other than inProgress fails loudly instead of silently drifting', () async {
+    test(
+        'a stage other than inProgress fails loudly instead of silently drifting',
+        () async {
       final controller = _controller(repo, TripStage.waitingAtPickup);
-      repo.completeResult =
-          Result.ok(complete_model.CompleteDriverModel(data: complete_model.Data(id: 42)));
+      repo.completeResult = Result.ok(complete_model.CompleteDriverModel(
+          data: complete_model.Data(id: 42)));
 
-      expect(() => callComplete(controller), throwsA(isA<InvalidTripTransition>()));
+      expect(() => callComplete(controller),
+          throwsA(isA<InvalidTripTransition>()));
     });
 
     test('a concurrent call is a no-op while one is in flight', () async {
       final controller = _controller(repo, TripStage.inProgress);
-      repo.completeResult =
-          Result.ok(complete_model.CompleteDriverModel(data: complete_model.Data(id: 42)));
+      repo.completeResult = Result.ok(complete_model.CompleteDriverModel(
+          data: complete_model.Data(id: 42)));
 
       final first = callComplete(controller);
       final second = callComplete(controller);

@@ -1,9 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/core/theme/colors.dart';
-import 'package:tara_driver_application/core/theme/text_styles.dart';
-import 'package:tara_driver_application/presentation/widgets/simmer_widget.dart';
+import 'package:tara_driver_application/core/theme/tokens.dart';
+import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
 
 import 'logic.dart';
 import 'widgets/history_card_widget.dart';
@@ -13,6 +12,10 @@ import 'widgets/history_card_widget.dart';
 /// Stateful only to own the [ScrollController] that drives infinite scroll —
 /// that is widget lifetime, not screen state. Everything else moved to
 /// [HistoryLogic] / `HistoryState`.
+///
+/// UX-redesign S1 (`03 S09`): `TTabs`, skeleton cards while loading, and real
+/// empty and error states for both tabs. The status filter, the paging
+/// trigger, pull-to-refresh and the paging footer are unchanged.
 class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
 
@@ -47,99 +50,122 @@ class _HistoryPageState extends State<HistoryPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: AppColors.light4,
+    final TaarraaColors c = context.colors;
+
+    return ColoredBox(
+      color: c.bgPage,
       child: Column(
-        children: [
-          Obx(() => Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: _tab(
-                      label: "COMPLETED".tr(),
-                      index: 0,
-                      selected: logic.state.indexActive.value == 0,
-                    ),
-                  ),
-                  const SizedBox(width: 22),
-                  Expanded(
-                    child: _tab(
-                      label: "CANCELLED".tr(),
-                      index: 1,
-                      selected: logic.state.indexActive.value == 1,
-                    ),
-                  ),
-                ],
-              )),
-          Expanded(
-            child: Container(
-              color: AppColors.light3,
-              child: Obx(() {
-                final items = logic.items;
-                if (logic.isLoading.value && items.isEmpty) {
-                  return const ShimmerBookStory();
-                }
-                if (logic.errorMessage.value != null && items.isEmpty) {
-                  return Center(child: Text(logic.errorMessage.value!.tr()));
-                }
-                return RefreshIndicator(
-                  onRefresh: logic.reload,
-                  child: ListView.builder(
-                    controller: scrollController,
-                    itemCount:
-                        items.length + (logic.hasReachedMax.value ? 0 : 1),
-                    itemBuilder: (context, index) {
-                      if (index < items.length) {
-                        return HistoryCardWidget(
-                          item: items[index],
-                          showMap: logic.state.indexActive.value != 1,
-                        );
-                      }
-                      return Center(
-                        child: items.length < 10
-                            ? Container()
-                            : const CircularProgressIndicator(),
-                      );
-                    },
-                  ),
-                );
-              }),
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              Insets.tabContent,
+              Insets.s12,
+              Insets.tabContent,
+              Insets.s4,
             ),
+            child: Obx(() => TTabs(
+                  labels: <String>['COMPLETED'.tr(), 'CANCELLED'.tr()],
+                  index: logic.state.indexActive.value,
+                  onChanged: logic.switchTab,
+                )),
           ),
+          Expanded(child: Obx(_body)),
         ],
       ),
     );
   }
 
-  Widget _tab({
-    required String label,
-    required int index,
-    required bool selected,
-  }) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        TextButton(
-          onPressed: () => logic.switchTab(index),
-          child: Text(
-            label,
-            style: ThemeConstands.font16SemiBold.copyWith(
-              color: selected ? AppColors.red : AppColors.dark2,
+  Widget _body() {
+    final items = logic.items;
+    final bool isCompletedTab = logic.state.indexActive.value == 0;
+
+    if (items.isEmpty) {
+      if (logic.isLoading.value) return const _SkeletonList();
+      if (logic.errorMessage.value != null) {
+        return Center(
+          child: SingleChildScrollView(
+            child: TErrorState(
+              title: logic.errorMessage.value!.tr(),
+              actionLabel: 'TRY_AGAIN'.tr(),
+              onAction: logic.reload,
             ),
           ),
-        ),
-        Container(
-          width: 100,
-          height: 4,
-          decoration: BoxDecoration(
-            color: selected ? AppColors.red : Colors.transparent,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(3),
-              topRight: Radius.circular(3),
-            ),
+        );
+      }
+      if (logic.hasReachedMax.value) {
+        return RefreshIndicator(
+          onRefresh: logic.reload,
+          child: LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+              // Scrollable so pull-to-refresh still works on an empty account.
+              return SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: Center(
+                    child: TEmptyState(
+                      icon: DsIcons.calendar,
+                      title: isCompletedTab
+                          ? 'EMPTY_COMPLETED'.tr()
+                          : 'EMPTY_CANCELLED'.tr(),
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
+        );
+      }
+      // Between clearing the list and the first fetch flipping isLoading.
+      return const _SkeletonList();
+    }
+
+    return RefreshIndicator(
+      onRefresh: logic.reload,
+      child: ListView.separated(
+        controller: scrollController,
+        padding: const EdgeInsets.fromLTRB(
+          Insets.tabContent,
+          Insets.s12,
+          Insets.tabContent,
+          Insets.s24,
         ),
-      ],
+        itemCount: items.length + (logic.hasReachedMax.value ? 0 : 1),
+        separatorBuilder: (_, __) => const SizedBox(height: 10),
+        itemBuilder: (BuildContext context, int index) {
+          if (index < items.length) {
+            return HistoryCardWidget(
+              item: items[index],
+              canOpenDetail: isCompletedTab,
+            );
+          }
+          return Center(
+            child: items.length < 10
+                ? const SizedBox.shrink()
+                : const CircularProgressIndicator(),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _SkeletonList extends StatelessWidget {
+  const _SkeletonList();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(
+        Insets.tabContent,
+        Insets.s12,
+        Insets.tabContent,
+        Insets.s24,
+      ),
+      itemCount: 3,
+      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      itemBuilder: (_, __) => const HistoryCardSkeleton(),
     );
   }
 }

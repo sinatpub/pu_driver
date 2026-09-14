@@ -1,0 +1,36 @@
+{
+  "surface": "S05 approval pending",
+  "key": "05_approval_pending",
+  "locale": "en",
+  "width": 320,
+  "textStyles": [
+    "14.0px/400 #5c6474 KantumruyPro Please wait.",
+    "14.0px/700 #6b7588 KantumruyPro Contact support",
+    "18.0px/700 #3a3a3c KantumruyPro Waiting for approval"
+  ],
+  "radii": [
+    "14,14,14,14",
+    "16,16,16,16"
+  ],
+  "fills": [
+    "#86650a",
+    "#e2e2e5",
+    "#ffffff"
+  ],
+  "borders": [
+    "1px #e2e2e5"
+  ],
+  "paddings": [
+    "0,0,0,0",
+    "16,0,16,0",
+    "17,17,17,17",
+    "24,24,24,24"
+  ],
+  "controls": [
+    {
+      "type": "TButton",
+      "w": 238,
+      "h": 48
+    }
+  ]
+}

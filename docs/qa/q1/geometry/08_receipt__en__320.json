@@ -1,0 +1,56 @@
+{
+  "surface": "S08 receipt",
+  "key": "08_receipt",
+  "locale": "en",
+  "width": 320,
+  "textStyles": [
+    "12.0px/400 #5c6474 KantumruyPro Total to collect",
+    "12.0px/700 #5c6474 KantumruyPro Cash",
+    "12.0px/700 #5c6474 KantumruyPro Destination",
+    "12.0px/700 #5c6474 KantumruyPro Pickup",
+    "14.0px/400 #5c6474 KantumruyPro Date & Time",
+    "14.0px/400 #5c6474 KantumruyPro Distance",
+    "14.0px/400 #5c6474 KantumruyPro Duration",
+    "14.0px/700 #3a3a3c KantumruyPro 14:20",
+    "14.0px/700 #3a3a3c KantumruyPro 3.50 km",
+    "14.0px/700 #3a3a3c KantumruyPro Sat/12/Sep/2026 09:30 AM",
+    "16.0px/700 #3a3a3c KantumruyPro Mey Lin",
+    "16.0px/700 #3a3a3c KantumruyPro Sisowath Quay",
+    "16.0px/700 #3a3a3c KantumruyPro St. 271, Phnom Penh",
+    "16.799999999999997px/700 #5c6474 KantumruyPro ML",
+    "30.0px/700 #3a3a3c KantumruyPro ៛7,600 [FontFeature('tnum', 1)]"
+  ],
+  "radii": [
+    "0,0,0,0",
+    "14,14,14,14",
+    "16,16,16,16",
+    "999,999,999,999"
+  ],
+  "fills": [
+    "#000000",
+    "#5c6474",
+    "#e2e2e5",
+    "#ebebf0",
+    "#f2f2f5",
+    "#ff4500",
+    "#ffffff"
+  ],
+  "borders": [
+    "1px #8f90a6",
+    "1px #e2e2e5",
+    "4px #ebebf0",
+    "4px #fff1ec"
+  ],
+  "paddings": [
+    "0,0,0,0",
+    "0,12,0,12",
+    "0,4,0,0",
+    "0,8,0,8",
+    "12,6,12,6",
+    "13,13,13,13",
+    "17,17,17,17",
+    "19,19,19,19",
+    "4,4,4,4"
+  ],
+  "controls": []
+}

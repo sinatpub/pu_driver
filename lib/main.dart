@@ -8,6 +8,7 @@ import 'package:tara_driver_application/app/service.dart';
 import 'package:tara_driver_application/presentation/widgets/custom_animated_loading.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:tara_driver_application/core/api_service/client/dio_http_client.dart';
+import 'package:tara_driver_application/core/theme/tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:tara_driver_application/services/notification_logic.dart';
@@ -57,18 +58,23 @@ void main() async {
   );
 }
 
+/// UX-redesign F1: the overlay used to be yellow on green behind a blue mask,
+/// which belonged to no palette in the app. It now uses the design tokens
+/// (`docs/ux-redesign/02-design-system.md`). Behaviour — duration, dismissal,
+/// interaction and the custom animation — is unchanged.
 void configLoading() {
+  const TaarraaColors colors = TaarraaColors.light;
   EasyLoading.instance
     ..displayDuration = const Duration(milliseconds: 2000)
     ..indicatorType = EasyLoadingIndicatorType.fadingCircle
-    ..loadingStyle = EasyLoadingStyle.dark
+    ..loadingStyle = EasyLoadingStyle.custom
     ..indicatorSize = 45.0
-    ..radius = 10.0
-    ..progressColor = Colors.yellow
-    ..backgroundColor = Colors.green
-    ..indicatorColor = Colors.yellow
-    ..textColor = Colors.yellow
-    ..maskColor = Colors.blue.withValues(alpha: 0.5)
+    ..radius = Radii.md
+    ..progressColor = colors.actionPrimary
+    ..backgroundColor = colors.bgSurface
+    ..indicatorColor = colors.actionPrimary
+    ..textColor = colors.textPrimary
+    ..maskColor = colors.scrim
     ..userInteractions = true
     ..dismissOnTap = true
     ..customAnimation = CustomAnimation();

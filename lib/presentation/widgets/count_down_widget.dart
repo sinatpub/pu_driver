@@ -1,8 +1,25 @@
-import 'package:tara_driver_application/routes/app_routes.dart';
-import 'package:tara_driver_application/core/theme/colors.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;
+import 'package:tara_driver_application/core/theme/tokens.dart';
+import 'package:tara_driver_application/routes/app_routes.dart';
 
+/// How long the driver has to decide on a ride request.
+///
+/// UX-redesign C3 replaced `build` and nothing else. The timer, the expiry
+/// behaviour and the navigation are untouched (`DD-16`):
+///
+/// - the duration still comes from the request payload;
+/// - when the controller reaches the end it still calls
+///   `Get.offAllNamed('/home')`, silently;
+/// - no tick sound — the prototype's is new behaviour, not a restyle.
+///
+/// P1 fixed one defect here: the timer ran 20× fast under the OS reduced-motion
+/// setting (see `initState`).
+///
+/// Known and unchanged: the countdown starts when this widget mounts rather
+/// than when the server issued the request, and it keeps running while an
+/// Accept is in flight (B3).
 class SmoothCircularCountdown extends StatefulWidget {
   final int countDuration;
   final bool isPop;
@@ -25,6 +42,12 @@ class _SmoothCircularCountdownState extends State<SmoothCircularCountdown>
     super.initState();
     _controller = AnimationController(
       vsync: this,
+      // P1: this controller *is* the request timer — its dismissal sends the
+      // driver home. With the default `AnimationBehavior.normal`, Flutter
+      // runs it at 5% of its duration when the OS asks for reduced motion
+      // (`animation_controller.dart`, `disableAnimations` → 0.05), so a 30 s
+      // request expired in 1.5 s on those devices. `preserve` keeps real time.
+      animationBehavior: AnimationBehavior.preserve,
       duration: Duration(
         seconds: widget.countDuration,
       ), // Countdown duration
@@ -44,53 +67,66 @@ class _SmoothCircularCountdownState extends State<SmoothCircularCountdown>
     super.dispose();
   }
 
-  String get timerString {
-    Duration countdown = _controller.duration! * _controller.value;
-    return '${countdown.inSeconds}s';
-  }
+  /// Whole seconds remaining.
+  int get _secondsLeft => (_controller.duration! * _controller.value).inSeconds;
+
+  /// The last ten seconds turn amber. Visual only — nothing about the timer
+  /// changes.
+  bool get _isUrgent => _secondsLeft <= 10;
 
   @override
   Widget build(BuildContext context) {
+    final TaarraaColors c = context.colors;
+
     return Center(
       child: AnimatedBuilder(
         animation: _controller,
-        builder: (context, child) {
-          return Stack(
-            alignment: Alignment.center,
-            children: [
-              Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(90),
-                  color: Colors.white,
+        builder: (BuildContext context, Widget? child) {
+          final Color accent = _isUrgent ? c.warningGraphic : c.brandIdentity;
+
+          return Container(
+            padding: const EdgeInsets.fromLTRB(8, 8, Insets.s16, 8),
+            decoration: BoxDecoration(
+              color: c.bgFloating,
+              borderRadius: BorderRadius.circular(Radii.full),
+              border: Border.all(color: c.borderDivider),
+              boxShadow: Elevations.float,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                SizedBox(
+                  width: 40,
+                  height: 40,
+                  child: CircularProgressIndicator(
+                    value: _controller.value,
+                    strokeWidth: 4,
+                    strokeCap: StrokeCap.round,
+                    backgroundColor: c.bgSunken,
+                    valueColor: AlwaysStoppedAnimation<Color>(accent),
+                  ),
                 ),
-                child: CircularProgressIndicator(
-                  value: _controller.value, // Progress decreases from 1 to 0
-                  strokeWidth: 4,
-                  valueColor:
-                      const AlwaysStoppedAnimation<Color>(AppColors.main),
-                  backgroundColor: Colors.grey[300]!,
+                const SizedBox(width: Insets.s12),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      '$_secondsLeft',
+                      style: context.texts.numericLg.copyWith(
+                        color: _isUrgent ? c.warning : c.textPrimary,
+                      ),
+                    ),
+                    Text(
+                      'TO_DECIDE'.tr(),
+                      style: context.texts.caption.copyWith(
+                        color: c.textSecondary,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              Column(
-                children: [
-                  const Icon(
-                    Icons.timer_outlined,
-                    color: AppColors.main,
-                  ),
-                  Text(
-                    timerString,
-                    style: const TextStyle(
-                        fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  const Text(
-                    "seconds",
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ],
+              ],
+            ),
           );
         },
       ),

@@ -96,7 +96,8 @@ void main() {
       );
     });
 
-    test('a missing minimum fare also refuses — it is the fare floor, a '
+    test(
+        'a missing minimum fare also refuses — it is the fare floor, a '
         'documented business quirk in RULES.md', () {
       expect(
         () => SingleVehical.fromJson(vehicle()..remove('minimum_fare')),
@@ -110,8 +111,7 @@ void main() {
       expect(v.price, 3000);
     });
 
-    test('missing timestamps degrade to null rather than killing the list',
-        () {
+    test('missing timestamps degrade to null rather than killing the list', () {
       final json = vehicle()
         ..remove('created_at')
         ..remove('updated_at');

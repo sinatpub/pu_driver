@@ -1,0 +1,14 @@
+{
+  "surface": "S06 location searching",
+  "key": "06_location_searching",
+  "locale": "en",
+  "width": 320,
+  "textStyles": [
+    "14.0px/400 #5c6474 KantumruyPro Finding your location…"
+  ],
+  "radii": [],
+  "fills": [],
+  "borders": [],
+  "paddings": [],
+  "controls": []
+}

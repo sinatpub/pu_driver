@@ -1,12 +1,15 @@
-/// Static content — no backend, no localization today (the strings are
-/// English-only in the app as shipped). Held here rather than rebuilt inside
+/// Static content — no backend. Held here rather than rebuilt inside
 /// `build()` on every frame, which is what `termcondition_screen.dart` did.
+///
+/// P2: the five terms are locale keys (`TERM_1`…`TERM_5`), same text, same
+/// order. The Khmer file carries the English text until a legal translation
+/// is supplied — a machine or developer draft of legal terms is not shipped.
 class TermConditionState {
-  final List<String> terms = const [
-    "All payments are made directly to the driver and are accepted in cash or with QR code.",
-    "The company and its member drivers cannot be held responsible for any actual or consequential financial or professional loss due to the late or non-arrival of any rickshaw or cab.",
-    "The company cannot be held responsible for losses consequential from missed connections due to adverse weather or any other events.",
-    "The company and its member drivers reserve the right to refuse to carry passengers who are deeply under the influence of alcohol or drugs.",
-    "All bookings accepted by the company will be bound by these terms and conditions.",
+  final List<String> termKeys = const [
+    'TERM_1',
+    'TERM_2',
+    'TERM_3',
+    'TERM_4',
+    'TERM_5',
   ];
 }

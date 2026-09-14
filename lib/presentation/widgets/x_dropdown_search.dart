@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 
-import '../../core/theme/colors.dart' show AppColors;
-import '../../core/theme/text_styles.dart';
+import 'package:tara_driver_application/core/theme/tokens.dart';
+import 'package:tara_driver_application/presentation/widgets/ds/ds_icons.dart';
 
 class DropdownSelection<T> {
   final int? index;
@@ -80,6 +80,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
 
   @override
   Widget build(BuildContext context) {
+    final TaarraaColors c = context.colors;
     T? getSelectedValue() => _selectedIndex != null &&
             _selectedIndex! >= 0 &&
             _selectedIndex! < widget.items.length
@@ -90,8 +91,10 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
       child: DropdownButton2<T>(
         isExpanded: true,
         hint: Text(
-          widget.hintText ?? "Hint Text",
-          style: ThemeConstands.font16Regular.copyWith(color: AppColors.dark2),
+          widget.hintText ?? "",
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: context.texts.body.copyWith(color: c.textSecondary),
         ),
 
         items: widget.items
@@ -101,10 +104,10 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                 value: item,
                 child: Text(
                   widget.itemToString(item),
-                  style: ThemeConstands.font16SemiBold.copyWith(
+                  style: context.texts.bodyStrong.copyWith(
                     color: _selectedIndex == widget.items.indexOf(item)
-                        ? AppColors.main
-                        : null,
+                        ? c.brandText
+                        : c.textPrimary,
                   ),
                 ),
               ),
@@ -136,11 +139,9 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
           height: widget.height,
           width: widget.width,
           decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            border: Border.all(
-                color:
-                    _selectedIndex == null ? AppColors.dark2 : AppColors.main),
-            borderRadius: BorderRadius.circular(10),
+            color: c.bgSurface,
+            border: Border.all(color: c.borderControl, width: 1.5),
+            borderRadius: Radii.controlRadius,
           ),
         ),
         // dropdown decoration
@@ -148,26 +149,24 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
           maxHeight: widget.maxHeight,
           elevation: 1,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            color: Theme.of(context).cardColor,
+            borderRadius: Radii.controlRadius,
+            color: c.bgSurface,
           ),
         ),
 
         // style for item dropdown
         menuItemStyleData: MenuItemStyleData(
-          height: 38,
+          height: Sizes.touchTarget,
           padding: const EdgeInsets.symmetric(horizontal: 18),
           selectedMenuItemBuilder: (context, value) {
             return Container(
-              color: Theme.of(context).primaryColor,
+              color: c.brandTint,
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
               child: _selectedIndex != null
                   ? Text(
                       widget.itemToString(widget.items[_selectedIndex!]),
-                      style: ThemeConstands.font16SemiBold.copyWith(
-                          color: _selectedIndex != null
-                              ? Colors.white
-                              : AppColors.dark1),
+                      style:
+                          context.texts.bodyStrong.copyWith(color: c.brandText),
                     )
                   : null,
             );
@@ -198,17 +197,11 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
 
         iconStyleData: IconStyleData(
           icon: _selectedIndex == null
-              ? const Icon(
-                  Icons.chevron_right,
-                  size: 24,
-                  color: AppColors.dark1,
-                )
+              ? TIcon(DsIcons.chevron, color: c.textSecondary)
               : IconButton(
-                  icon: Icon(
-                    Icons.cancel,
-                    size: 24,
-                    color: AppColors.dark1,
-                  ),
+                  tooltip:
+                      MaterialLocalizations.of(context).deleteButtonTooltip,
+                  icon: TIcon(DsIcons.close, color: c.textSecondary),
                   onPressed: () {
                     setState(() => _selectedIndex = null);
                     widget.onChanged?.call(DropdownSelection(

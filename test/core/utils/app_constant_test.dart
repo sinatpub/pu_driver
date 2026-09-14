@@ -14,7 +14,8 @@ void main() {
   test(
     'baseUrlApi/socketBasedUrl defaults when no --dart-define is passed (F-07)',
     () {
-      expect(AppConstant.baseUrlApi, 'https://taxi-api.simpledevelopertools.com');
+      expect(
+          AppConstant.baseUrlApi, 'https://taxi-api.simpledevelopertools.com');
       expect(
         AppConstant.socketBasedUrl,
         'https://taxi-api.simpledevelopertools.com',

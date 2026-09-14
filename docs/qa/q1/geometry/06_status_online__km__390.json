@@ -1,0 +1,27 @@
+{
+  "surface": "S06 status online",
+  "key": "06_status_online",
+  "locale": "km",
+  "width": 390,
+  "textStyles": [
+    "12.0px/400 #5c6474 KantumruyPro Receiving requests",
+    "12.0px/700 #1c784d KantumruyPro ONLINE",
+    "17.0px/700 #3a3a3c KantumruyPro You're online"
+  ],
+  "radii": [
+    "16,16,16,16",
+    "999,999,999,999"
+  ],
+  "fills": [
+    "#e6f7ef",
+    "#ffffff"
+  ],
+  "borders": [
+    "1px #e2e2e5"
+  ],
+  "paddings": [
+    "11,5,11,5",
+    "17,17,17,17"
+  ],
+  "controls": []
+}

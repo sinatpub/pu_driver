@@ -1,4 +1,5 @@
 import 'package:tara_driver_application/core/config/app_config.dart';
+
 enum ClientMethod { POST, GET, PATCH, DELETE }
 
 class AppConstant {

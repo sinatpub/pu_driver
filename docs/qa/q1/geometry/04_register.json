@@ -1,0 +1,59 @@
+{
+  "surface": "S04 register",
+  "key": "04_register",
+  "locale": "km",
+  "width": 320,
+  "textStyles": [
+    "13.0px/700 #3a3a3c KantumruyPro Driver license",
+    "13.0px/700 #3a3a3c KantumruyPro ID card",
+    "13.0px/700 #3a3a3c KantumruyPro Profile photo",
+    "13.0px/700 #3a3a3c KantumruyPro Vehicle photo",
+    "13.0px/700 #5c6474 KantumruyPro Color",
+    "13.0px/700 #5c6474 KantumruyPro Documents (4 photos)",
+    "13.0px/700 #5c6474 KantumruyPro Full name",
+    "13.0px/700 #5c6474 KantumruyPro Plate",
+    "13.0px/700 #5c6474 KantumruyPro Vehicle type",
+    "14.0px/400 #5c6474 KantumruyPro Vehicle + documents for …",
+    "15.0px/400 #5c6474 KantumruyPro Enter your full name",
+    "15.0px/400 #5c6474 KantumruyPro Select vehicle type",
+    "15.0px/400 #5c6474 KantumruyPro e.g. Yellow",
+    "15.0px/400 #5c6474 KantumruyPro xxx-xxxx",
+    "16.0px/700 #3a3a3c KantumruyPro Tuk-Tuk",
+    "16.0px/700 #6b7588 KantumruyPro Submit for review",
+    "24.0px/700 #3a3a3c KantumruyPro Driver registration"
+  ],
+  "radii": [
+    "12,12,12,12",
+    "14,14,14,14"
+  ],
+  "fills": [
+    "#000000",
+    "#e2e2e5",
+    "#ffffff"
+  ],
+  "borders": [
+    "1px #8f90a6"
+  ],
+  "paddings": [
+    "0,0,0,0",
+    "15,1,15,1",
+    "16,0,16,0",
+    "17,1,17,1",
+    "20,8,20,16",
+    "20,8,20,24",
+    "8,12,8,12",
+    "8,8,8,0"
+  ],
+  "controls": [
+    {
+      "type": "TIconButton",
+      "w": 48,
+      "h": 48
+    },
+    {
+      "type": "TButton",
+      "w": 280,
+      "h": 56
+    }
+  ]
+}

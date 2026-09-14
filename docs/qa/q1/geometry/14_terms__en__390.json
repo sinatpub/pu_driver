@@ -1,0 +1,27 @@
+{
+  "surface": "S14 terms",
+  "key": "14_terms",
+  "locale": "en",
+  "width": 390,
+  "textStyles": [
+    "13.0px/700 #cc3700 KantumruyPro 1 [FontFeature('tnum', 1)]",
+    "13.0px/700 #cc3700 KantumruyPro 2 [FontFeature('tnum', 1)]",
+    "14.0px/400 #3a3a3c KantumruyPro Drivers must keep the ve…",
+    "14.0px/400 #3a3a3c KantumruyPro Passenger drop-off remov…"
+  ],
+  "radii": [
+    "16,16,16,16"
+  ],
+  "fills": [
+    "#fff1ec",
+    "#ffffff"
+  ],
+  "borders": [
+    "1px #e2e2e5"
+  ],
+  "paddings": [
+    "0,0,0,0",
+    "15,15,15,15"
+  ],
+  "controls": []
+}

@@ -1,0 +1,31 @@
+{
+  "surface": "S11 wallet",
+  "key": "11_wallet",
+  "locale": "en",
+  "width": 390,
+  "textStyles": [
+    "12.0px/400 #5c6474 KantumruyPro 2026-09-12 [FontFeature('tnum', 1)]",
+    "13.0px/700 #1c784d KantumruyPro My Wallet",
+    "13.0px/700 #cc3700 KantumruyPro Commission Fare",
+    "14.0px/700 #3a3a3c KantumruyPro 25.00 $ [FontFeature('tnum', 1)]",
+    "14.0px/700 #3a3a3c KantumruyPro Top up",
+    "18.0px/700 #3a3a3c KantumruyPro 25.00 $ [FontFeature('tnum', 1)]",
+    "18.0px/700 #3a3a3c KantumruyPro 7,600 ៛ [FontFeature('tnum', 1)]"
+  ],
+  "radii": [
+    "16,16,16,16"
+  ],
+  "fills": [
+    "#e6f7ef",
+    "#fff1ec",
+    "#ffffff"
+  ],
+  "borders": [
+    "1px #e2e2e5"
+  ],
+  "paddings": [
+    "15,13,15,13",
+    "15,15,15,15"
+  ],
+  "controls": []
+}

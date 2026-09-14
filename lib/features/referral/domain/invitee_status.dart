@@ -75,8 +75,7 @@ extension DriverInviteeStageRules on DriverInviteeStage {
   /// at least once to have reached that stage, so their historical total is
   /// real and must not be shown as zero.
   bool get hasEverEarned =>
-      this == DriverInviteeStage.earning ||
-      this == DriverInviteeStage.inactive;
+      this == DriverInviteeStage.earning || this == DriverInviteeStage.inactive;
 }
 
 extension PassengerInviteeStageRules on PassengerInviteeStage {

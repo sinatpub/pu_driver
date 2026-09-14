@@ -7,6 +7,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:logger/logger.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class TaxiLocation {
   TaxiLocation._internal();
@@ -119,11 +120,11 @@ class TaxiLocation {
         address += place.country != null ? "${place.country}" : '';
         return address.trim().replaceAll(RegExp(r',\s*$'), '');
       } else {
-        return "Address not found";
+        return "ADDRESS_NOT_FOUND".tr();
       }
     } catch (e) {
       Logger().e("Error decoding address: $e");
-      return "Address not found";
+      return "ADDRESS_NOT_FOUND".tr();
     }
   }
 
@@ -169,7 +170,7 @@ class TaxiLocation {
       setMarker!.add(Marker(
         markerId: const MarkerId(AppConstant.driverMarker),
         position: currentLocation,
-        infoWindow: const InfoWindow(title: "Driver Location"),
+        infoWindow: InfoWindow(title: "DRIVER_LOCATION".tr()),
         icon: driverMarker!,
       ));
     }
@@ -193,7 +194,7 @@ class TaxiLocation {
     Marker driverMarkerObject = Marker(
       markerId: const MarkerId(AppConstant.driverMarker),
       position: currentLocation,
-      infoWindow: const InfoWindow(title: "Driver Location"),
+      infoWindow: InfoWindow(title: "DRIVER_LOCATION".tr()),
       icon: driverIcon, // Use the loaded BitmapDescriptor here
     );
 

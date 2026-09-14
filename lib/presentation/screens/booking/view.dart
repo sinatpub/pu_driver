@@ -15,11 +15,11 @@ import 'package:tara_driver_application/data/models/register_model.dart';
 import 'package:tara_driver_application/features/trip/domain/trip_state_machine.dart';
 
 import 'package:tara_driver_application/presentation/controllers/vehicle_controller.dart';
+import 'package:tara_driver_application/core/theme/tokens.dart';
 import 'package:tara_driver_application/presentation/screens/booking/widgets/ride_request_bottom_pop_widget.dart';
-import 'package:tara_driver_application/presentation/screens/booking/widgets/show_distand_and_price_widget.dart';
+import 'package:tara_driver_application/presentation/screens/booking/widgets/trip_header.dart';
 import 'package:tara_driver_application/presentation/widgets/count_down_widget.dart';
 import 'package:tara_driver_application/presentation/widgets/error_dialog_widget.dart';
-import 'package:tara_driver_application/presentation/widgets/loading_widget.dart';
 import 'package:tara_driver_application/services/location_service.dart';
 import 'package:tara_driver_application/services/socket_service.dart';
 import 'package:tara_driver_application/taxi_single_ton/taxi.dart';
@@ -106,6 +106,13 @@ class _BookingScreenState extends State<BookingScreen> {
   double totalDistanceCount = 0.0;
   String totalFee = "";
   int priceUnder1Km = 0;
+
+  /// C4 (`03 § dropping`): the drop-off's spinner starts at the tap rather
+  /// than after the position + reverse-geocode round trip inside
+  /// [getLocation]. View-local and never explicitly reset — a successful drop
+  /// navigates away and a failed one pops the route, so it is always leaving
+  /// the screen.
+  bool _dropPending = false;
   // * Register Socket
   void registerSocket() async {
     RegisterModel? driverData = await StorageGet.getDriverData();
@@ -332,7 +339,7 @@ class _BookingScreenState extends State<BookingScreen> {
         _polylines.add(
           Polyline(
             polylineId: PolylineId("route_$i"),
-            color: Colors.red, // Set polyline color
+            color: TaarraaColors.light.brandIdentity, // Set polyline color
             points: polylineCoordinates, // Use the actual route points
             width: 5, // Set polyline width
           ),
@@ -603,28 +610,83 @@ class _BookingScreenState extends State<BookingScreen> {
     setState(() {});
   }
 
+  /// The stage's name — the same four keys the app bar used before C3.
+  String _stageTitle(TripStage stage) {
+    switch (stage) {
+      case TripStage.requestReceived:
+        return "STAGE_NEW_REQUEST".tr();
+      case TripStage.enRouteToPickup:
+        return "STAGE_GO_TO_PICKUP".tr();
+      case TripStage.waitingAtPickup:
+        return "STAGE_AT_PICKUP".tr();
+      default:
+        return "STAGE_ON_TRIP".tr();
+    }
+  }
+
+  /// Everything floating over the top of the map: the stage header and the
+  /// request countdown. The app bar used to provide the status-bar inset, so
+  /// this claims it with a SafeArea.
+  Widget _topOverlay(BuildContext context, TripStage stage) {
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      child: SafeArea(
+        bottom: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: Insets.s16,
+                vertical: Insets.s8,
+              ),
+              child: TripHeader(
+                stage: stage,
+                title: _stageTitle(stage),
+                bookingCode: args.bookingCode,
+              ),
+            ),
+            if (stage == TripStage.requestReceived)
+              Padding(
+                padding: const EdgeInsets.only(top: Insets.s8),
+                child: SmoothCircularCountdown(
+                  countDuration: args.timeOut,
+                  isPop: true,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Obx(() => Text(
-              tripController.state.stage.value == TripStage.requestReceived
-                  ? "NEW_RIDE_REQUEST".tr()
-                  : tripController.state.stage.value ==
-                          TripStage.enRouteToPickup
-                      ? "GO_TO_PASSENGER".tr()
-                      : tripController.state.stage.value ==
-                              TripStage.waitingAtPickup
-                          ? "PREPAIR_TO_GO".tr()
-                          : "CARRYING_PASSENGER".tr(),
-            )),
-      ),
+      // C3 / DD-10: no app bar. The map runs full-bleed and the stage title
+      // moved into the floating header over it.
       body: PopScope(
         canPop: false,
         child: Obx(() {
           final stage = tripController.state.stage.value;
           bool isLoading = tripController.state.isLoading.value;
+
+          // C4 / DD-14: the meter's values are the exact expressions the old
+          // top-of-map strip used, moved unchanged into the sheet. The strip
+          // itself only prefixes the "≈", so the fare logic cannot drift.
+          final String meterDuration = formatDuration(remaining);
+          final String meterDistance = (args.desLatPassenger == null ||
+                  args.desLatPassenger == 0.0)
+              ? convertMaterToKm(double.parse(totalDistanceCount.toString()))
+              : convertKmToKmM(double.parse(totalDistance.toString()));
+          final String meterFare =
+              (args.desLatPassenger == null || args.desLatPassenger == 0.0)
+                  ? totalDistanceCount <= 1000
+                      ? formatRielAmount(priceUnder1Km.toString())
+                      : formatRielAmount(totalFee)
+                  : formatRielAmount(totalFee);
           return Stack(
             children: [
               GoogleMap(
@@ -658,38 +720,12 @@ class _BookingScreenState extends State<BookingScreen> {
                   });
                 },
               ),
-              stage == TripStage.inProgress
-                  ? ShowDistandWidget(
-                      distand: (args.desLatPassenger == null ||
-                              args.desLatPassenger == 0.0)
-                          ? convertMaterToKm(
-                              double.parse(totalDistanceCount.toString()))
-                          : convertKmToKmM(
-                              double.parse(totalDistance.toString())),
-                      cost: (args.desLatPassenger == null ||
-                              args.desLatPassenger == 0.0)
-                          ? totalDistanceCount <= 1000
-                              ? formatRielAmount(
-                                  priceUnder1Km.toString())
-                              : formatRielAmount(totalFee)
-                          : formatRielAmount(totalFee),
-                      duration: formatDuration(remaining),
-                    )
-                  : Container(
-                      height: 0,
-                    ),
-              stage == TripStage.requestReceived
-                  ? Positioned(
-                      top: 60,
-                      left: 0,
-                      right: 0,
-                      child: SmoothCircularCountdown(
-                        countDuration: args.timeOut,
-                        isPop: true,
-                      ),
-                    )
-                  : const SizedBox(),
+              _topOverlay(context, stage),
               ModelBottomSheetNewRequestWidget(
+                isLoading: isLoading || _dropPending,
+                duration: meterDuration,
+                distance: meterDistance,
+                fare: meterFare,
                 totalFee: totalFee,
                 distandTotal: totalDistance,
                 bookingCode: args.bookingCode,
@@ -698,7 +734,6 @@ class _BookingScreenState extends State<BookingScreen> {
                 namePassanger: args.namePassanger,
                 phonePassanger: args.phonePassanger,
                 profilePassanger: args.imagePassanger,
-                currentLocationName: currentAddressDriver,
                 whereToGoLocationName: destinationPassengerPM,
                 passegerLocationName: currentPassengerPM,
                 processType: stage.toProcessStep(),
@@ -711,11 +746,18 @@ class _BookingScreenState extends State<BookingScreen> {
                   } else if (stage == TripStage.waitingAtPickup) {
                     tripController.start();
                   } else if (stage == TripStage.inProgress) {
+                    // C4: the spinner starts at the tap, not after the
+                    // reverse-geocode round trip inside `getLocation`.
+                    setState(() => _dropPending = true);
                     getLocation(TripStage.completing);
                   }
                 },
               ),
-              if (isLoading) const Positioned(child: LoadingWidget()),
+              // C3 / DD-17: the full-screen LoadingWidget is gone. The tapped
+              // action shows its own spinner and every other trip action is
+              // disabled while `isLoading` — including Cancel, which emits
+              // `driverCancelDrive` before the controller's guard runs and so
+              // must never be tappable mid-accept.
             ],
           );
         }),

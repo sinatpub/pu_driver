@@ -28,7 +28,8 @@ void main() {
       expect(SocketEvent.onPassengerCancelDrive.name, 'onPassengerCancelDrive');
     });
 
-    test('the enum has not grown or shrunk without this test being updated', () {
+    test('the enum has not grown or shrunk without this test being updated',
+        () {
       // Guards the list above from going stale: a new event added to the enum
       // but not to this file would otherwise be silently untested.
       expect(SocketEvent.values, hasLength(9));

@@ -110,6 +110,7 @@ flutter:
     - assets/image/png/
     # - assets/image/png/
     - assets/icon/svg/
+    - assets/icon/ds/
     - assets/icon/png/
     - assets/nav_icon/
     - assets/translations/km.json

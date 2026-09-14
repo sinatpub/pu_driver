@@ -1,0 +1,27 @@
+{
+  "surface": "S06 status offline",
+  "key": "06_status_offline",
+  "locale": "km",
+  "width": 320,
+  "textStyles": [
+    "12.0px/400 #5c6474 KantumruyPro Offline, no requests",
+    "12.0px/700 #5c6474 KantumruyPro OFFLINE",
+    "17.0px/700 #3a3a3c KantumruyPro You are offline"
+  ],
+  "radii": [
+    "16,16,16,16",
+    "999,999,999,999"
+  ],
+  "fills": [
+    "#ffffff"
+  ],
+  "borders": [
+    "1px #8f90a6",
+    "1px #e2e2e5"
+  ],
+  "paddings": [
+    "12,6,12,6",
+    "17,17,17,17"
+  ],
+  "controls": []
+}

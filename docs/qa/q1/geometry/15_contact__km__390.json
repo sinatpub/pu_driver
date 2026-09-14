@@ -1,0 +1,23 @@
+{
+  "surface": "S15 contact",
+  "key": "15_contact",
+  "locale": "km",
+  "width": 390,
+  "textStyles": [
+    "15.0px/700 #3a3a3c KantumruyPro Cellcard: +855 97 000 00…",
+    "15.0px/700 #3a3a3c KantumruyPro Smart: +855 70 427 213"
+  ],
+  "radii": [
+    "16,16,16,16"
+  ],
+  "fills": [
+    "#ffffff"
+  ],
+  "borders": [
+    "1px #e2e2e5"
+  ],
+  "paddings": [
+    "16,16,16,16"
+  ],
+  "controls": []
+}

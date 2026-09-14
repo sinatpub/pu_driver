@@ -1,0 +1,31 @@
+{
+  "surface": "S06 location denied",
+  "key": "06_location_denied",
+  "locale": "en",
+  "width": 320,
+  "textStyles": [
+    "14.0px/400 #5c6474 KantumruyPro Taarraa needs your locat…",
+    "14.0px/700 #3a3a3c KantumruyPro Open settings",
+    "17.0px/700 #3a3a3c KantumruyPro Location permission is o…"
+  ],
+  "radii": [
+    "14,14,14,14"
+  ],
+  "fills": [
+    "#ffffff"
+  ],
+  "borders": [
+    "1px #8f90a6"
+  ],
+  "paddings": [
+    "17,1,17,1",
+    "24,32,24,32"
+  ],
+  "controls": [
+    {
+      "type": "TButton",
+      "w": 272,
+      "h": 48
+    }
+  ]
+}

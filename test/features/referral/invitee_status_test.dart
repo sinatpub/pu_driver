@@ -24,8 +24,8 @@ void main() {
     });
 
     test('signed up but documents not verified', () {
-      expect(driver(verified: false, wallet: false),
-          DriverInviteeStage.signedUp);
+      expect(
+          driver(verified: false, wallet: false), DriverInviteeStage.signedUp);
     });
 
     test('verified but wallet not activated', () {
@@ -51,15 +51,15 @@ void main() {
 
     test('an unknown idle period does not manufacture inactivity', () {
       // Absent data must not be read as "stopped".
-      expect(driver(toppedUp: true, idleDays: null),
-          DriverInviteeStage.earning);
+      expect(
+          driver(toppedUp: true, idleDays: null), DriverInviteeStage.earning);
     });
 
     test('verification cannot be skipped on the way to ready-to-earn', () {
       // A wallet flagged active without verification is a backend
       // inconsistency; the earlier, more honest stage wins.
-      expect(driver(verified: false, wallet: true),
-          DriverInviteeStage.signedUp);
+      expect(
+          driver(verified: false, wallet: true), DriverInviteeStage.signedUp);
     });
   });
 
@@ -75,7 +75,8 @@ void main() {
       // The spec calls this "the single highest-value place for honest copy".
       expect(DriverInviteeStage.signedUp.requiresNotEarningYetNotice, isTrue);
       expect(DriverInviteeStage.verified.requiresNotEarningYetNotice, isTrue);
-      expect(DriverInviteeStage.readyToEarn.requiresNotEarningYetNotice, isTrue);
+      expect(
+          DriverInviteeStage.readyToEarn.requiresNotEarningYetNotice, isTrue);
     });
 
     test('an inactive invitee is not earning, but has earned', () {
@@ -115,7 +116,8 @@ void main() {
     });
 
     test('signed-up passengers also demand the notice', () {
-      expect(PassengerInviteeStage.signedUp.requiresNotEarningYetNotice, isTrue);
+      expect(
+          PassengerInviteeStage.signedUp.requiresNotEarningYetNotice, isTrue);
     });
   });
 }

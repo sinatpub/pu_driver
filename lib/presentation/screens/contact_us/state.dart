@@ -8,7 +8,6 @@ class ContactUsState {
   final String email = "tarataxi24@gmail.com";
   final String address =
       "#74, Street 192, Sangkat Teuk Laok 3, Toul Kork District, Phnom Penh";
-  final String copyright = "© 2025 TAARRAA. All rights reserved.";
-  final String blurb =
-      "Feel free to reach out to us if you have any questions, feedback, or issues.";
+  // The blurb and copyright are copy, not contact data: they live in the
+  // locale files (`CONTACT_BLURB`, `COPYRIGHT`) since P2.
 }

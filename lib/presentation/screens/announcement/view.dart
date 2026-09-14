@@ -1,16 +1,21 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;
+import 'package:tara_driver_application/core/theme/tokens.dart';
+import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
 import 'package:tara_driver_application/routes/app_routes.dart';
 import 'package:tara_driver_application/routes/route_arguments.dart';
-import 'package:tara_driver_application/core/theme/colors.dart';
-import 'package:tara_driver_application/core/theme/text_styles.dart';
-import 'package:tara_driver_application/presentation/widgets/simmer_widget.dart';
 
 import 'logic.dart';
+import 'widgets/news_card.dart';
 
 /// Was `notification/view/notification_screen.dart`. Stateful only to own the
 /// [ScrollController] driving infinite scroll — same reasoning as `history/`.
+///
+/// UX-redesign S3 (`03 S12`, `DD-06`): still the pushed route from the bell,
+/// now with `TAppBar` "Announcements", `NewsCard`s (unread = brand border and
+/// dot, same `status == 0` rule), skeleton cards, and real empty and error
+/// states. Paging, pull-to-refresh and the detail arguments are unchanged.
 class AnnouncementPage extends StatefulWidget {
   const AnnouncementPage({super.key});
 
@@ -25,6 +30,13 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
   // "A TextEditingController was used after being disposed").
   AnnouncementLogic get logic => Get.find<AnnouncementLogic>();
   final ScrollController _scrollController = ScrollController();
+
+  static const EdgeInsets _listPadding = EdgeInsets.fromLTRB(
+    Insets.s16,
+    Insets.s16,
+    Insets.s16,
+    Insets.s24,
+  );
 
   @override
   void initState() {
@@ -46,103 +58,101 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        automaticallyImplyLeading: true,
-        title: Text("CHANNEL".tr()),
-        centerTitle: true,
-      ),
-      body: Container(
-        color: AppColors.light2,
-        child: Obx(() {
-          final items = logic.items;
-          if (logic.isLoading.value && items.isEmpty) {
-            return const ShimmerNotification();
-          }
-          if (logic.errorMessage.value != null && items.isEmpty) {
-            return Center(child: Text(logic.errorMessage.value!.tr()));
-          }
-          return RefreshIndicator(
-            onRefresh: logic.reload,
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-              controller: _scrollController,
-              physics: const AlwaysScrollableScrollPhysics(),
-              itemCount: items.length + (logic.hasReachedMax.value ? 0 : 1),
-              itemBuilder: (context, index) {
-                if (index >= items.length) {
-                  return Center(
-                    child: items.length < 10
-                        ? Container()
-                        : const CircularProgressIndicator(),
-                  );
-                }
-                final item = items[index];
-                return MaterialButton(
-                  elevation: 0,
-                  padding: const EdgeInsets.all(12),
-                  onPressed: () => Get.toNamed(
-                    AppRoutes.notificationDetail,
-                    arguments: NotificationDetailArgs(
-                      notificationId: item.id.toString(),
-                      appOpened: true,
+      backgroundColor: context.colors.bgPage,
+      appBar: TAppBar(title: 'ANNOUNCEMENTS'.tr()),
+      body: Obx(_body),
+    );
+  }
+
+  Widget _body() {
+    final items = logic.items;
+
+    if (items.isEmpty) {
+      if (logic.isLoading.value) return const _SkeletonList();
+      if (logic.errorMessage.value != null) {
+        return Center(
+          child: SingleChildScrollView(
+            child: TErrorState(
+              title: logic.errorMessage.value!.tr(),
+              actionLabel: 'TRY_AGAIN'.tr(),
+              onAction: logic.reload,
+            ),
+          ),
+        );
+      }
+      if (logic.hasReachedMax.value) {
+        return RefreshIndicator(
+          onRefresh: logic.reload,
+          child: LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+              // Scrollable so pull-to-refresh still works with no items.
+              return SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: Center(
+                    child: TEmptyState(
+                      icon: DsIcons.bell,
+                      title: 'EMPTY_ANNOUNCEMENTS'.tr(),
                     ),
                   ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  color: item.status == 0 ? AppColors.light4 : Colors.white,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(Icons.notifications_active,
-                          color: AppColors.success, size: 28),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    item.title.toString(),
-                                    style: ThemeConstands.font16SemiBold,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                Text(
-                                  item.releaseDate.toString(),
-                                  style: ThemeConstands.font14Regular
-                                      .copyWith(color: Colors.grey),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              item.description.toString(),
-                              style: ThemeConstands.font14Regular
-                                  .copyWith(color: Colors.grey),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 6),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
+                ),
+              );
+            },
+          ),
+        );
+      }
+      // Between clearing the list and the first fetch flipping isLoading.
+      return const _SkeletonList();
+    }
+
+    return RefreshIndicator(
+      onRefresh: logic.reload,
+      child: ListView.separated(
+        padding: _listPadding,
+        controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        itemCount: items.length + (logic.hasReachedMax.value ? 0 : 1),
+        separatorBuilder: (_, __) => const SizedBox(height: 10),
+        itemBuilder: (BuildContext context, int index) {
+          if (index >= items.length) {
+            return Center(
+              child: items.length < 10
+                  ? const SizedBox.shrink()
+                  : const CircularProgressIndicator(),
+            );
+          }
+          final item = items[index];
+          return NewsCard(
+            title: item.title.toString(),
+            body: item.description.toString(),
+            date: item.releaseDate.toString(),
+            unread: item.status == 0,
+            onTap: () => Get.toNamed(
+              AppRoutes.notificationDetail,
+              arguments: NotificationDetailArgs(
+                notificationId: item.id.toString(),
+                appOpened: true,
+              ),
             ),
           );
-        }),
+        },
       ),
+    );
+  }
+}
+
+class _SkeletonList extends StatelessWidget {
+  const _SkeletonList();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: _AnnouncementPageState._listPadding,
+      itemCount: 4,
+      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      itemBuilder: (_, __) => const NewsCardSkeleton(),
     );
   }
 }

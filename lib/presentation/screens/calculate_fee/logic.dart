@@ -1,4 +1,5 @@
 import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:tara_driver_application/routes/app_routes.dart';
 import 'package:tara_driver_application/data/models/complete_driver_model.dart';
 import 'package:tara_driver_application/data/models/current_driver_info_model.dart';
@@ -76,8 +77,12 @@ class CalculateFeeLogic extends GetxController {
       Get.find<ProfileLogic>().fetchProfile();
       Get.offAllNamed(AppRoutes.home);
     } else if (status == PaymentStatus.error) {
-      showErrorCustomDialog(Get.context!, "Please Try Again!",
-          "Please try again. Something went wrong.", false);
+      showErrorCustomDialog(
+        Get.context!,
+        'PLEASE_TRY_AGAIN'.tr(),
+        'PLEASE_TRY_AGAIN_SOMETHING_WENT_WRONG'.tr(),
+        false,
+      );
     }
   }
 

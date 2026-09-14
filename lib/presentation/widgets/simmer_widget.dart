@@ -1,278 +1,42 @@
-import 'package:tara_driver_application/core/theme/colors.dart';
 import 'package:flutter/material.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:tara_driver_application/core/theme/tokens.dart';
+import 'package:tara_driver_application/presentation/widgets/ds/t_states.dart';
 
+/// Loading skeleton for the drawer profile.
+///
+/// UX-redesign F3 moved these onto [TSkeleton] and the design tokens. S5
+/// removed the wallet, history and announcement variants once those screens
+/// grew skeletons shaped like their own cards (`WalletSkeleton`,
+/// `HistoryCardSkeleton`, `NewsCardSkeleton`).
+
+/// Drawer header while the profile loads.
 class ShimmerProfile extends StatelessWidget {
   const ShimmerProfile({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      margin: const EdgeInsets.symmetric(
+        horizontal: Insets.s16,
+        vertical: Insets.s12,
+      ),
       child: Row(
-        children: [
-          SizedBox(
-            height: 80,
-            width: 80,
-            child: Shimmer.fromColors(
-              baseColor: Colors.grey.shade300,
-              highlightColor: Colors.grey.shade200,
-              child: Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12.0),
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          SizedBox(
-            height: 80,
+        children: <Widget>[
+          const TSkeleton.box(width: 80, height: 80, radius: Radii.md),
+          const SizedBox(width: Insets.s16),
+          Expanded(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  height: 35,
-                  width: 150,
-                  child: Shimmer.fromColors(
-                    baseColor: Colors.grey.shade300,
-                    highlightColor: Colors.grey.shade200,
-                    child: Container(
-                      height: 10,
-                      width: 150,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8.0),
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(
-                  height: 12,
-                ),
-                SizedBox(
-                  height: 20,
-                  width: 100,
-                  child: Shimmer.fromColors(
-                    baseColor: AppColors.light3,
-                    highlightColor: AppColors.light1,
-                    child: Container(
-                      height: 10,
-                      width: 100,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(6.0),
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
+              children: <Widget>[
+                const TSkeleton.line(width: 150),
+                const SizedBox(height: Insets.s12),
+                const TSkeleton.line(width: 100),
               ],
             ),
           ),
         ],
       ),
     );
-  }
-}
-
-class ShimmerWalletCard extends StatelessWidget {
-  const ShimmerWalletCard({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 130,
-      child: Shimmer.fromColors(
-        baseColor: Colors.grey.shade300,
-        highlightColor: Colors.grey.shade200,
-        child: Container(
-          height: 130,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12.0),
-            color: Colors.white,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class ShimmerBookStory extends StatelessWidget {
-  const ShimmerBookStory({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-        itemCount: 4,
-        itemBuilder: (context, index) {
-          return Container(
-            padding: const EdgeInsets.all(18),
-            margin: const EdgeInsets.only(left: 18, right: 18, top: 18),
-            decoration: BoxDecoration(
-              color: AppColors.light4,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  blurRadius: 15,
-                  blurStyle: BlurStyle.normal,
-                  color: Colors.grey.withOpacity(0.2),
-                  offset: const Offset(5, 6),
-                  spreadRadius: 1,
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                SizedBox(
-                  height: 140,
-                  child: Shimmer.fromColors(
-                    baseColor: AppColors.light3,
-                    highlightColor: AppColors.light1,
-                    child: Container(
-                      height: 100,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(6.0),
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(
-                  height: 18,
-                ),
-                const Divider(
-                  color: AppColors.light1,
-                  thickness: 1,
-                  height: 1,
-                ),
-                const SizedBox(
-                  height: 18,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SizedBox(
-                      height: 30,
-                      width: 150,
-                      child: Shimmer.fromColors(
-                        baseColor: AppColors.light3,
-                        highlightColor: AppColors.light1,
-                        child: Container(
-                          height: 100,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(6.0),
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: 30,
-                      width: 150,
-                      child: Shimmer.fromColors(
-                        baseColor: AppColors.light3,
-                        highlightColor: AppColors.light1,
-                        child: Container(
-                          height: 100,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(6.0),
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(
-                  height: 18,
-                ),
-                const Divider(
-                  color: AppColors.light1,
-                  thickness: 1,
-                  height: 1,
-                ),
-                const SizedBox(
-                  height: 18,
-                ),
-                SizedBox(
-                  height: 30,
-                  child: Shimmer.fromColors(
-                    baseColor: AppColors.light3,
-                    highlightColor: AppColors.light1,
-                    child: Container(
-                      height: 100,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(6.0),
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(
-                  height: 18,
-                ),
-                SizedBox(
-                  height: 30,
-                  child: Shimmer.fromColors(
-                    baseColor: AppColors.light3,
-                    highlightColor: AppColors.light1,
-                    child: Container(
-                      height: 100,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(6.0),
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        });
-  }
-}
-
-class ShimmerNotification extends StatelessWidget {
-  const ShimmerNotification({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-        itemCount: 7,
-        itemBuilder: (context, index) {
-          return Container(
-            margin: const EdgeInsets.only(left: 18, right: 18, top: 18),
-            decoration: BoxDecoration(
-              color: AppColors.light4,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  blurRadius: 15,
-                  blurStyle: BlurStyle.normal,
-                  color: Colors.grey.withOpacity(0.2),
-                  offset: const Offset(5, 6),
-                  spreadRadius: 1,
-                ),
-              ],
-            ),
-            child: SizedBox(
-              height: 80,
-              child: Shimmer.fromColors(
-                baseColor: AppColors.light3,
-                highlightColor: AppColors.light1,
-                child: Container(
-                  height: 80,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(6.0),
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-          );
-        });
   }
 }

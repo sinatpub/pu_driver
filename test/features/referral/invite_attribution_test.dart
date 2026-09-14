@@ -53,12 +53,15 @@ void main() {
 
     test('case is not folded, because the format is unspecified', () {
       expect(normalizeInviteCode('sok123'), 'sok123');
-      expect(check('sok123', ownCode: 'SOK123'),
-          InviteCodeCheck.needsServerCheck);
+      expect(
+          check('sok123', ownCode: 'SOK123'), InviteCodeCheck.needsServerCheck);
     });
 
     test('your own code is refused', () {
-      expect(check('SOK123', ownCode: 'SOK123', isSigningUp: false,
+      expect(
+          check('SOK123',
+              ownCode: 'SOK123',
+              isSigningUp: false,
               late: LateAttribution.allowedAfterSignup),
           InviteCodeCheck.ownCode);
     });
@@ -176,17 +179,21 @@ void main() {
     final attributions = {d2: 1, d3: 2, p5: 1};
 
     test('you earn from people you invited yourself', () {
-      expect(earnsFrom(driverId: 1, activityOwner: d2, attributions: attributions),
+      expect(
+          earnsFrom(driverId: 1, activityOwner: d2, attributions: attributions),
           isTrue);
-      expect(earnsFrom(driverId: 1, activityOwner: p5, attributions: attributions),
+      expect(
+          earnsFrom(driverId: 1, activityOwner: p5, attributions: attributions),
           isTrue);
     });
 
     test('not from the people they invite', () {
       // 1 invited 2, 2 invited 3: 3's activity earns 1 nothing.
-      expect(earnsFrom(driverId: 1, activityOwner: d3, attributions: attributions),
+      expect(
+          earnsFrom(driverId: 1, activityOwner: d3, attributions: attributions),
           isFalse);
-      expect(earnsFrom(driverId: 2, activityOwner: d3, attributions: attributions),
+      expect(
+          earnsFrom(driverId: 2, activityOwner: d3, attributions: attributions),
           isTrue);
     });
 

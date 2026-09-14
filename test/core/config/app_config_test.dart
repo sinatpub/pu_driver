@@ -67,7 +67,8 @@ void main() {
           AppConfig.requiredKeys.containsKey('GOOGLE_PLACES_API_KEY'), isFalse);
     });
 
-    test('the Telegram token is deliberately not required — error reporting '
+    test(
+        'the Telegram token is deliberately not required — error reporting '
         'degrades quietly rather than breaking the app', () {
       expect(AppConfig.requiredKeys.containsKey('TELEGRAM_BOT_TOKEN'), isFalse);
     });

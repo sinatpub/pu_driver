@@ -71,9 +71,8 @@ class Data {
         // driver with no transactions yet — every newly approved driver —
         // hit a NoSuchMethodError on null and could not open their wallet.
         transactions: json["transactions"] is List
-            ? List<Transaction>.from(
-                (json["transactions"] as List)
-                    .map((x) => Transaction.fromJson(x as Map<String, dynamic>)))
+            ? List<Transaction>.from((json["transactions"] as List)
+                .map((x) => Transaction.fromJson(x as Map<String, dynamic>)))
             : const <Transaction>[],
       );
 
@@ -84,8 +83,8 @@ class Data {
         "commission_fare": commistionFare,
         "currency": currency,
         // N-01: was a force-unwrap on a nullable list.
-        "transactions":
-            List<dynamic>.from((transactions ?? const []).map((x) => x.toJson())),
+        "transactions": List<dynamic>.from(
+            (transactions ?? const []).map((x) => x.toJson())),
       };
 }
 

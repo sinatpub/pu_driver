@@ -54,7 +54,10 @@ class AlertWidget {
     try {
       showPocessBookingLoadingDialog(
           context: context,
-          title: "IN_PROCESS_BOOKING".tr(),
+          // C2 / DD-32: "In Process Booking" described the server's state, not
+          // the driver's. The dialog appears for two seconds while the app
+          // returns them to a trip already under way.
+          title: "RESUMING_TRIP".tr(),
           onYes: () async {
             EasyLoading.show();
             Navigator.of(context).pop();

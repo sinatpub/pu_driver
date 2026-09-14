@@ -1,0 +1,40 @@
+{
+  "surface": "S05 shell app bar",
+  "key": "05_shell_app_bar",
+  "locale": "km",
+  "width": 320,
+  "textStyles": [
+    "12.0px/700 #1c784d KantumruyPro ONLINE",
+    "12.0px/700 #cc3700 KantumruyPro DRIVER · តារា",
+    "17.0px/700 #3a3a3c KantumruyPro TAARRAA"
+  ],
+  "radii": [
+    "12,12,12,12",
+    "999,999,999,999"
+  ],
+  "fills": [
+    "#000000",
+    "#10cf7c",
+    "#e6f7ef"
+  ],
+  "borders": [
+    "1px #1c784d"
+  ],
+  "paddings": [
+    "0,0,0,0",
+    "13,1,13,1",
+    "8,0,0,0"
+  ],
+  "controls": [
+    {
+      "type": "TIconButton",
+      "w": 56,
+      "h": 64
+    },
+    {
+      "type": "TIconButton",
+      "w": 48,
+      "h": 48
+    }
+  ]
+}

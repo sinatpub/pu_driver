@@ -23,7 +23,8 @@ void main() {
       expect(exception.statusCode, 401);
     });
 
-    test('403 is forbidden, not unauthorized — a role error is not a dead session',
+    test(
+        '403 is forbidden, not unauthorized — a role error is not a dead session',
         () {
       final exception = ApiException.fromDioException(_badResponse(403));
       expect(exception.type, ApiErrorType.forbidden);

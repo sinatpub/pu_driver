@@ -31,6 +31,7 @@ const String kHistoryTripCurrency = 'KHR';
 /// deliberately not used: a row can be updated long after the trip.
 TripRecord tripRecordFromHistory(DataHistory row) => TripRecord(
       status: row.status,
-      completedAt: dateOrNull(row.endTime) ?? dateOrNull(row.payment?.createdAt),
+      completedAt:
+          dateOrNull(row.endTime) ?? dateOrNull(row.payment?.createdAt),
       amountCharged: parseMoney(row.payment?.amount),
     );

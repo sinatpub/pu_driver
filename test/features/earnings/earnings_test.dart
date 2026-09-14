@@ -91,7 +91,9 @@ void main() {
       final s = summarize([
         completed(now, 10000),
         TripRecord(
-            status: BookingStatus.cancel, completedAt: now, amountCharged: 5000),
+            status: BookingStatus.cancel,
+            completedAt: now,
+            amountCharged: 5000),
         TripRecord(
             status: BookingStatus.startRide,
             completedAt: now,
@@ -190,8 +192,8 @@ void main() {
 
     test('net of commission: unknown, because no payload carries it', () {
       final trip = completed(now, 10000);
-      expect(tripEarning(trip, TripEarningBasis.netOfPlatformCommission),
-          isNull);
+      expect(
+          tripEarning(trip, TripEarningBasis.netOfPlatformCommission), isNull);
     });
 
     test('net of commission: trips are counted, money is not guessed', () {
@@ -349,7 +351,8 @@ void main() {
 
     test('never falls back to updated_at', () {
       // A row can be updated long after the trip.
-      final r = tripRecordFromHistory(row({'updated_at': '2026-09-11 11:00:00'}));
+      final r =
+          tripRecordFromHistory(row({'updated_at': '2026-09-11 11:00:00'}));
       expect(r.completedAt, isNull);
     });
 

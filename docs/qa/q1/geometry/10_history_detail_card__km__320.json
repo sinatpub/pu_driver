@@ -1,0 +1,32 @@
+{
+  "surface": "S10 history detail card",
+  "key": "10_history_detail_card",
+  "locale": "km",
+  "width": 320,
+  "textStyles": [
+    "12.0px/700 #1c784d KantumruyPro Completed",
+    "14.0px/400 #5c6474 KantumruyPro Distance",
+    "14.0px/400 #5c6474 KantumruyPro Duration",
+    "14.0px/400 #5c6474 KantumruyPro Total price",
+    "14.0px/700 #3a3a3c KantumruyPro 14 mins",
+    "14.0px/700 #3a3a3c KantumruyPro 3.5 km",
+    "14.0px/700 #3a3a3c KantumruyPro ៛7,600"
+  ],
+  "radii": [
+    "16,16,16,16",
+    "999,999,999,999"
+  ],
+  "fills": [
+    "#e6f7ef",
+    "#ffffff"
+  ],
+  "borders": [
+    "1px #e2e2e5"
+  ],
+  "paddings": [
+    "0,8,0,8",
+    "11,5,11,5",
+    "17,17,17,17"
+  ],
+  "controls": []
+}

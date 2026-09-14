@@ -63,8 +63,12 @@ void main() {
 
     test('the four-state path runs in order', () {
       const m = RewardLifecycle.fourState;
-      expect(m.allowsTransition(RewardStatus.available, RewardStatus.transferred), isTrue);
-      expect(m.allowsTransition(RewardStatus.transferred, RewardStatus.withdrawn), isTrue);
+      expect(
+          m.allowsTransition(RewardStatus.available, RewardStatus.transferred),
+          isTrue);
+      expect(
+          m.allowsTransition(RewardStatus.transferred, RewardStatus.withdrawn),
+          isTrue);
     });
 
     test('the two-state model refuses the transfer step entirely', () {
@@ -78,9 +82,13 @@ void main() {
     test('a reward can be reversed from any non-terminal status', () {
       // The refund that triggers reversal can land at any time.
       const m = RewardLifecycle.fourState;
-      expect(m.allowsTransition(RewardStatus.pending, RewardStatus.reversed), isTrue);
-      expect(m.allowsTransition(RewardStatus.available, RewardStatus.reversed), isTrue);
-      expect(m.allowsTransition(RewardStatus.transferred, RewardStatus.reversed), isTrue);
+      expect(m.allowsTransition(RewardStatus.pending, RewardStatus.reversed),
+          isTrue);
+      expect(m.allowsTransition(RewardStatus.available, RewardStatus.reversed),
+          isTrue);
+      expect(
+          m.allowsTransition(RewardStatus.transferred, RewardStatus.reversed),
+          isTrue);
     });
 
     test('money that has left cannot un-leave', () {
@@ -103,8 +111,11 @@ void main() {
 
     test('transitions never run backwards', () {
       const m = RewardLifecycle.fourState;
-      expect(m.allowsTransition(RewardStatus.available, RewardStatus.pending), isFalse);
-      expect(m.allowsTransition(RewardStatus.transferred, RewardStatus.available), isFalse);
+      expect(m.allowsTransition(RewardStatus.available, RewardStatus.pending),
+          isFalse);
+      expect(
+          m.allowsTransition(RewardStatus.transferred, RewardStatus.available),
+          isFalse);
     });
   });
 
@@ -139,7 +150,8 @@ void main() {
 
   group('not eligible (N-06, copy deck §14)', () {
     test('exists under both lifecycles', () {
-      expect(RewardLifecycle.twoState.permits(RewardStatus.notEligible), isTrue);
+      expect(
+          RewardLifecycle.twoState.permits(RewardStatus.notEligible), isTrue);
       expect(
           RewardLifecycle.fourState.permits(RewardStatus.notEligible), isTrue);
     });
@@ -159,8 +171,8 @@ void main() {
     test('is final, and cannot later be reversed', () {
       expect(RewardStatus.notEligible.isTerminal, isTrue);
       expect(
-          RewardLifecycle.fourState
-              .allowsTransition(RewardStatus.notEligible, RewardStatus.reversed),
+          RewardLifecycle.fourState.allowsTransition(
+              RewardStatus.notEligible, RewardStatus.reversed),
           isFalse);
     });
 

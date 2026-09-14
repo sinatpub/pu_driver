@@ -1,0 +1,57 @@
+{
+  "surface": "S09 history tabs",
+  "key": "09_history_tabs",
+  "locale": "en",
+  "width": 320,
+  "textStyles": [
+    "12.0px/400 #5c6474 KantumruyPro 14 m 0 s [FontFeature('tnum', 1)]",
+    "12.0px/400 #5c6474 KantumruyPro 3.50 km [FontFeature('tnum', 1)]",
+    "12.0px/400 #5c6474 KantumruyPro Mey Lin",
+    "12.0px/400 #5c6474 KantumruyPro Mey Lin · Sat/12/Sep/202…",
+    "12.0px/400 #5c6474 KantumruyPro Unknown [FontFeature('tnum', 1)]",
+    "12.0px/700 #1c784d KantumruyPro Completed",
+    "12.0px/700 #5c6474 KantumruyPro Cash",
+    "12.0px/700 #d32f2f KantumruyPro Cancel",
+    "13.0px/400 #3a3a3c KantumruyPro Sisowath Quay",
+    "13.0px/400 #3a3a3c KantumruyPro St. 271, Phnom Penh",
+    "13.0px/400 #3a3a3c KantumruyPro Unknown",
+    "13.0px/700 #3a3a3c KantumruyPro Completed",
+    "13.0px/700 #5c6474 KantumruyPro Cancelled",
+    "15.399999999999999px/700 #5c6474 KantumruyPro ML",
+    "16.0px/700 #3a3a3c KantumruyPro #7712 [FontFeature('tnum', 1)]",
+    "16.0px/700 #3a3a3c KantumruyPro ៛7,600"
+  ],
+  "radii": [
+    "10,10,10,10",
+    "12,12,12,12",
+    "14,14,14,14",
+    "16,16,16,16",
+    "999,999,999,999"
+  ],
+  "fills": [
+    "#000000",
+    "#5c6474",
+    "#e6f7ef",
+    "#ebebf0",
+    "#f2f2f5",
+    "#ff4500",
+    "#ffffff"
+  ],
+  "borders": [
+    "1px #8f90a6",
+    "1px #d32f2f",
+    "1px #e2e2e5"
+  ],
+  "paddings": [
+    "0,0,0,0",
+    "0,2,0,2",
+    "0,6,0,0",
+    "11,5,11,5",
+    "12,6,12,6",
+    "13,9,13,9",
+    "14,10,14,10",
+    "15,15,15,15",
+    "5,5,5,5"
+  ],
+  "controls": []
+}

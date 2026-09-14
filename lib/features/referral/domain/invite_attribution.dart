@@ -177,7 +177,8 @@ AttributionRefusal? refuseAttribution({
   if (isDriver && invitee.id == inviterDriverId) {
     return AttributionRefusal.selfReferral;
   }
-  if (attributions.containsKey(invitee)) return AttributionRefusal.alreadyLinked;
+  if (attributions.containsKey(invitee))
+    return AttributionRefusal.alreadyLinked;
 
   // Passengers invite nobody, so only a driver invitee can close a loop.
   if (isDriver) {

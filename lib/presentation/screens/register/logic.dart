@@ -12,6 +12,7 @@ import 'package:tara_driver_application/presentation/widgets/error_dialog_widget
 import 'package:tara_driver_application/taxi_single_ton/taxi.dart';
 
 import 'state.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 /// Which attachment a pick is for. Was three bare `int` comparisons
 /// (`0`/`1`/`2`/else) repeated in two near-identical picker methods.
@@ -49,8 +50,8 @@ class RegisterLogic extends GetxController {
 
   void _onStatusChanged(RegisterStatus status) {
     if (status == RegisterStatus.fail) {
-      showErrorCustomDialog(Get.context!, "Something went wrong!",
-          "All of the fields are require", false);
+      showErrorCustomDialog(Get.context!, "PLEASE_TRY_AGAIN".tr(),
+          "REGISTER_FIELDS_REQUIRED".tr(), false);
     } else if (status == RegisterStatus.loaded) {
       Taxi.shared.checkDriverAvailability();
       Get.offAllNamed(AppRoutes.home);

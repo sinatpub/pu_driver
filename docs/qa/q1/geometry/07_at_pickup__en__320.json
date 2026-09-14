@@ -1,0 +1,67 @@
+{
+  "surface": "S07 at pickup",
+  "key": "07_at_pickup",
+  "locale": "en",
+  "width": 320,
+  "textStyles": [
+    "12.0px/400 #5c6474 KantumruyPro 3.50 KM",
+    "12.0px/400 #5c6474 KantumruyPro Phone Number 090000001",
+    "12.0px/700 #1c784d KantumruyPro Accept",
+    "12.0px/700 #1c784d KantumruyPro Arrive",
+    "12.0px/700 #5c6474 KantumruyPro 4",
+    "12.0px/700 #5c6474 KantumruyPro Destination",
+    "12.0px/700 #5c6474 KantumruyPro Drop",
+    "12.0px/700 #cc3700 KantumruyPro Start",
+    "12.0px/700 #ffffff KantumruyPro 3",
+    "14.0px/400 #5c6474 KantumruyPro Est. fare",
+    "14.0px/700 #3a3a3c KantumruyPro ≈ ៛7,600",
+    "16.0px/700 #3a3a3c KantumruyPro Sok Dara",
+    "16.0px/700 #ffffff KantumruyPro Start ride",
+    "16.799999999999997px/700 #5c6474 KantumruyPro SD",
+    "18.0px/700 #3a3a3c KantumruyPro Independence Monument"
+  ],
+  "radii": [
+    "12,12,12,12",
+    "14,14,14,14",
+    "22,22,0,0",
+    "999,999,999,999"
+  ],
+  "fills": [
+    "#1c784d",
+    "#5c6474",
+    "#cc3700",
+    "#e2e2e5",
+    "#e6f7ef",
+    "#ebebf0",
+    "#f2f2f5",
+    "#ffffff"
+  ],
+  "borders": [
+    "1px #1c784d",
+    "1px #cc3700",
+    "1px #e2e2e5",
+    "4px #ebebf0"
+  ],
+  "paddings": [
+    "0,0,0,0",
+    "0,4,0,0",
+    "0,8,0,8",
+    "1,1,1,1",
+    "13,13,13,13",
+    "16,0,16,0",
+    "20,12,20,16",
+    "4,4,4,4"
+  ],
+  "controls": [
+    {
+      "type": "TIconButton",
+      "w": 48,
+      "h": 48
+    },
+    {
+      "type": "TButton",
+      "w": 278,
+      "h": 56
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 /// `unauthorized` means the session itself is gone (401) and the user must sign in
 /// again. `forbidden` (403) means the session is valid but the account may not do
@@ -31,30 +32,31 @@ class ApiException implements Exception {
 
   factory ApiException.fromDioException(DioException exception) {
     if (exception.error is SocketException) {
-      return const ApiException(
+      return ApiException(
         type: ApiErrorType.connection,
-        message: 'Connection error. Please check your internet connection.',
+        message: 'NO_INTERNET_CONNECTION'.tr(),
       );
     }
     if (exception.type == DioExceptionType.connectionTimeout) {
-      return const ApiException(
+      return ApiException(
         type: ApiErrorType.timeout,
-        message: 'Connection timed out. Please try again later.',
+        message: 'CONNECTION_TIMED_OUT'.tr(),
       );
     }
     if (exception.type == DioExceptionType.badResponse) {
       final status = exception.response?.statusCode;
       final data = exception.response?.data;
       final serverMessage = (data is Map ? data['message'] as String? : null) ??
-          'Unexpected error occurred.';
+          'PLEASE_TRY_AGAIN_SOMETHING_WENT_WRONG'.tr();
       return ApiException(
         type: _typeForStatus(status),
         message: serverMessage,
         statusCode: status,
       );
     }
-    return const ApiException(
-        type: ApiErrorType.unknown, message: 'Unexpected error occurred.');
+    return ApiException(
+        type: ApiErrorType.unknown,
+        message: 'PLEASE_TRY_AGAIN_SOMETHING_WENT_WRONG'.tr());
   }
 
   static ApiErrorType _typeForStatus(int? status) {
@@ -68,9 +70,9 @@ class ApiException implements Exception {
     }
   }
 
-  factory ApiException.unknown(Object error) => const ApiException(
+  factory ApiException.unknown(Object error) => ApiException(
       type: ApiErrorType.unknown,
-      message: 'Something went wrong. Please try again.');
+      message: 'PLEASE_TRY_AGAIN_SOMETHING_WENT_WRONG'.tr());
 
   @override
   String toString() => message;

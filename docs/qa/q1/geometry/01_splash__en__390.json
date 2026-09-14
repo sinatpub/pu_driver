@@ -1,0 +1,23 @@
+{
+  "surface": "S01 splash",
+  "key": "01_splash",
+  "locale": "en",
+  "width": 390,
+  "textStyles": [
+    "17.0px/700 #cc3700 KantumruyPro តារា តាក់សុី",
+    "30.0px/700 #3a3a3c KantumruyPro TARA DRIVER [FontFeature('tnum', 1)]"
+  ],
+  "radii": [
+    "28,28,28,28"
+  ],
+  "fills": [
+    "#ffffff"
+  ],
+  "borders": [
+    "1px #e2e2e5"
+  ],
+  "paddings": [
+    "13,13,13,13"
+  ],
+  "controls": []
+}

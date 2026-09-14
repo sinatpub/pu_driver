@@ -11,6 +11,7 @@ import 'package:tara_driver_application/features/auth/data/repository/auth_repos
 import 'package:tara_driver_application/presentation/widgets/error_dialog_widget.dart';
 
 import 'state.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 /// D-02 (`12`). Moved out of `features/auth/presentation/controller/` per
 /// `14` §3.6, absorbing the countdown timer and navigation worker that lived
@@ -79,8 +80,10 @@ class OtpLogic extends GetxController {
       pinController.clear();
       showErrorCustomDialog(
         Get.context!,
-        "Please Try Again",
-        state.errorMessage.value ?? "Please make sure enter correct OTP",
+        "PLEASE_TRY_AGAIN".tr(),
+        // The server's own message when it sent one (it is English, from the
+        // backend); otherwise ours.
+        state.errorMessage.value ?? "OTP_INCORRECT".tr(),
         false,
       );
     }

@@ -1,0 +1,45 @@
+{
+  "surface": "S02 login",
+  "key": "02_login",
+  "locale": "en",
+  "width": 390,
+  "textStyles": [
+    "13.0px/700 #3a3a3c KantumruyPro English",
+    "13.0px/700 #5c6474 KantumruyPro Phone Number",
+    "13.0px/700 #5c6474 KantumruyPro ខ្មែរ",
+    "14.0px/400 #5c6474 KantumruyPro Enter your phone number …",
+    "15.0px/400 #5c6474 KantumruyPro Enter your phone number",
+    "16.0px/700 #3a3a3c KantumruyPro +855",
+    "16.0px/700 #ffffff KantumruyPro Next",
+    "24.0px/700 #3a3a3c KantumruyPro Login into your account"
+  ],
+  "radii": [
+    "14,14,14,14",
+    "999,999,999,999"
+  ],
+  "fills": [
+    "#000000",
+    "#ebebf0",
+    "#ffffff"
+  ],
+  "borders": [
+    "1px #8f90a6",
+    "1px #e2e2e5"
+  ],
+  "paddings": [
+    "0,0,0,0",
+    "14,10,14,10",
+    "15,1,15,1",
+    "16,0,16,0",
+    "20,12,20,24",
+    "20,8,20,16",
+    "4,4,4,4"
+  ],
+  "controls": [
+    {
+      "type": "TButton",
+      "w": 350,
+      "h": 56
+    }
+  ]
+}

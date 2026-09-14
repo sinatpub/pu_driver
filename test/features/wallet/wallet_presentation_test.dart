@@ -117,7 +117,8 @@ void main() {
 
     test('blank and missing names are not offered as filters', () {
       expect(
-        transactionTypeNames([txn(type: null), txn(type: '  '), txn(type: 'Top up')]),
+        transactionTypeNames(
+            [txn(type: null), txn(type: '  '), txn(type: 'Top up')]),
         ['Top up'],
       );
     });

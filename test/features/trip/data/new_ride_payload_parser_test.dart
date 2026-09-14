@@ -21,7 +21,8 @@ Map<String, dynamic> _socketShapedPayload({
     'vehicleType': vehicleType,
     'vehiclePrice': vehiclePrice,
     'timeout': timeout,
-    'passenger': passenger ?? {'name': 'Sinat', 'phone': '012345678', 'profile': 'https://x/p.png'},
+    'passenger': passenger ??
+        {'name': 'Sinat', 'phone': '012345678', 'profile': 'https://x/p.png'},
     'location': location ?? {'latitude': 11.55, 'longitude': 104.9},
     'destination': destination ?? {'latitude': 11.6, 'longitude': 104.95},
   };
@@ -52,7 +53,8 @@ void main() {
       expect(args.startTime, '');
     });
 
-    test('parses a fully-populated FCM-shaped payload (JSON-encoded strings)', () {
+    test('parses a fully-populated FCM-shaped payload (JSON-encoded strings)',
+        () {
       final data = {
         'booking_id': '501',
         'booking_code': '9001',
@@ -60,7 +62,11 @@ void main() {
         'vehicleType': '2',
         'vehiclePrice': '1200',
         'timeout': '45',
-        'passenger': jsonEncode({'name': 'Sinat', 'phone': '012345678', 'profile': 'https://x/p.png'}),
+        'passenger': jsonEncode({
+          'name': 'Sinat',
+          'phone': '012345678',
+          'profile': 'https://x/p.png'
+        }),
         'location': jsonEncode({'latitude': 11.55, 'longitude': 104.9}),
         'destination': jsonEncode({'latitude': 11.6, 'longitude': 104.95}),
       };
@@ -75,23 +81,30 @@ void main() {
       expect(args.desLatPassenger, 11.6);
     });
 
-    group('booking identifiers are required — a missing or unparseable one fails the parse', () {
+    group(
+        'booking identifiers are required — a missing or unparseable one fails the parse',
+        () {
       for (final field in ['booking_id', 'booking_code', 'passengerId']) {
         test('throws when "$field" is missing', () {
           final data = _socketShapedPayload();
           data.remove(field);
-          expect(() => parseNewRideArgs(data), throwsA(isA<NewRideParseException>()));
+          expect(() => parseNewRideArgs(data),
+              throwsA(isA<NewRideParseException>()));
         });
 
         test('throws when "$field" is not a number', () {
           final data = _socketShapedPayload();
           data[field] = 'not-a-number';
-          expect(() => parseNewRideArgs(data), throwsA(isA<NewRideParseException>()));
+          expect(() => parseNewRideArgs(data),
+              throwsA(isA<NewRideParseException>()));
         });
       }
 
-      test('accepts identifiers sent as numeric strings, like the socket sometimes does', () {
-        final data = _socketShapedPayload(bookingId: '501', bookingCode: '9001', passengerId: '42');
+      test(
+          'accepts identifiers sent as numeric strings, like the socket sometimes does',
+          () {
+        final data = _socketShapedPayload(
+            bookingId: '501', bookingCode: '9001', passengerId: '42');
         final args = parseNewRideArgs(data);
         expect(args.bookingId, 501);
         expect(args.bookingCode, 9001);
@@ -99,7 +112,9 @@ void main() {
       });
     });
 
-    group('everything else degrades to a safe default instead of dropping the whole request', () {
+    group(
+        'everything else degrades to a safe default instead of dropping the whole request',
+        () {
       test('missing vehicleType/vehiclePrice default to 0', () {
         final data = _socketShapedPayload()
           ..remove('vehicleType')
@@ -109,7 +124,9 @@ void main() {
         expect(args.pricrVehicle, 0);
       });
 
-      test('missing timeout defaults to 30, matching home_screen.dart\'s own fallback', () {
+      test(
+          'missing timeout defaults to 30, matching home_screen.dart\'s own fallback',
+          () {
         final data = _socketShapedPayload()..remove('timeout');
         expect(parseNewRideArgs(data).timeOut, 30);
       });
@@ -129,14 +146,17 @@ void main() {
         expect(args.lngPassenger, 0.0);
       });
 
-      test('missing destination map leaves desLat/desLngPassenger null, not 0', () {
+      test('missing destination map leaves desLat/desLngPassenger null, not 0',
+          () {
         final data = _socketShapedPayload()..remove('destination');
         final args = parseNewRideArgs(data);
         expect(args.desLatPassenger, isNull);
         expect(args.desLngPassenger, isNull);
       });
 
-      test('an unparseable (non-JSON) FCM passenger string is treated as missing, not a crash', () {
+      test(
+          'an unparseable (non-JSON) FCM passenger string is treated as missing, not a crash',
+          () {
         final data = _socketShapedPayload();
         data['passenger'] = 'not valid json {{{';
         final args = parseNewRideArgs(data);

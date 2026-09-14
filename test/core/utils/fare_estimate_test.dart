@@ -39,7 +39,9 @@ void main() {
       expect(fee, 8000.0);
     });
 
-    test('the meters-accumulated and km-computed paths agree on the same distance', () {
+    test(
+        'the meters-accumulated and km-computed paths agree on the same distance',
+        () {
       const totalDistanceCountMeters = 4200.0; // GPS dead-reckoning path
       const totalDistanceKm = 4.2; // Google Directions path
 

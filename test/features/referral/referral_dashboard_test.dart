@@ -270,8 +270,8 @@ void main() {
             r(1, RewardStatus.available),
           ]),
           isNull);
-      expect(state(signedUp: 1, rewards: [r(1, RewardStatus.withdrawn)]),
-          isNull);
+      expect(
+          state(signedUp: 1, rewards: [r(1, RewardStatus.withdrawn)]), isNull);
     });
   });
 }

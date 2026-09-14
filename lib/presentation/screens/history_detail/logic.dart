@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -8,6 +7,7 @@ import 'package:tara_driver_application/core/utils/app_constant.dart';
 import 'package:tara_driver_application/core/utils/load_custom_marker.dart';
 
 import 'state.dart';
+import 'package:tara_driver_application/core/theme/tokens.dart';
 
 /// Was `_MapHistoryDetailScreenState`. Marker loading and Directions-API
 /// polyline fetching are I/O, so they move off the widget (`14` §3.3); the
@@ -90,7 +90,7 @@ class HistoryDetailLogic extends GetxController {
       state.polylines.add(
         Polyline(
           polylineId: const PolylineId("route_0"),
-          color: Colors.red,
+          color: TaarraaColors.light.brandIdentity,
           points: result.points
               .map((p) => LatLng(p.latitude, p.longitude))
               .toList(),

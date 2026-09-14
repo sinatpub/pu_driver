@@ -26,7 +26,8 @@ void main() {
       expect(formatRielAmount('-4000'), '-4,000');
     });
 
-    test('unparseable input yields 0 — original behaviour, preserved '
+    test(
+        'unparseable input yields 0 — original behaviour, preserved '
         'deliberately because nine screens display this', () {
       expect(formatRielAmount(''), '0');
       expect(formatRielAmount('not a number'), '0');

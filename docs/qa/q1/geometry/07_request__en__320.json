@@ -1,0 +1,74 @@
+{
+  "surface": "S07 request",
+  "key": "07_request",
+  "locale": "en",
+  "width": 320,
+  "textStyles": [
+    "12.0px/400 #5c6474 KantumruyPro Phone Number 090000001",
+    "12.0px/700 #5c6474 KantumruyPro 2",
+    "12.0px/700 #5c6474 KantumruyPro 3",
+    "12.0px/700 #5c6474 KantumruyPro 4",
+    "12.0px/700 #5c6474 KantumruyPro Arrive",
+    "12.0px/700 #5c6474 KantumruyPro Destination",
+    "12.0px/700 #5c6474 KantumruyPro Drop",
+    "12.0px/700 #5c6474 KantumruyPro Pickup",
+    "12.0px/700 #5c6474 KantumruyPro Start",
+    "12.0px/700 #cc3700 KantumruyPro Accept",
+    "12.0px/700 #ffffff KantumruyPro 1",
+    "14.0px/700 #d32f2f KantumruyPro Cancel request",
+    "16.0px/700 #3a3a3c KantumruyPro Independence Monument",
+    "16.0px/700 #3a3a3c KantumruyPro Sok Dara",
+    "16.0px/700 #3a3a3c KantumruyPro St. 271, Phnom Penh",
+    "16.0px/700 #ffffff KantumruyPro Accept",
+    "16.799999999999997px/700 #5c6474 KantumruyPro SD"
+  ],
+  "radii": [
+    "12,12,12,12",
+    "14,14,14,14",
+    "22,22,0,0",
+    "999,999,999,999"
+  ],
+  "fills": [
+    "#5c6474",
+    "#cc3700",
+    "#e2e2e5",
+    "#ebebf0",
+    "#f2f2f5",
+    "#ff4500",
+    "#ffffff"
+  ],
+  "borders": [
+    "1px #1c784d",
+    "1px #cc3700",
+    "1px #e2e2e5",
+    "4px #ebebf0",
+    "4px #fff1ec"
+  ],
+  "paddings": [
+    "0,0,0,0",
+    "0,4,0,0",
+    "0,8,0,8",
+    "1,1,1,1",
+    "13,13,13,13",
+    "16,0,16,0",
+    "20,12,20,16",
+    "4,4,4,4"
+  ],
+  "controls": [
+    {
+      "type": "TIconButton",
+      "w": 48,
+      "h": 48
+    },
+    {
+      "type": "TButton",
+      "w": 278,
+      "h": 56
+    },
+    {
+      "type": "TButton",
+      "w": 278,
+      "h": 48
+    }
+  ]
+}

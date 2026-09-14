@@ -1,0 +1,33 @@
+{
+  "surface": "S06 force update",
+  "key": "06_force_update",
+  "locale": "en",
+  "width": 320,
+  "textStyles": [
+    "14.0px/400 #5c6474 KantumruyPro We recommend you to upda…",
+    "16.0px/700 #ffffff KantumruyPro Update now",
+    "18.0px/700 #3a3a3c KantumruyPro Update required"
+  ],
+  "radii": [
+    "14,14,14,14",
+    "16,16,16,16"
+  ],
+  "fills": [
+    "#ffffff"
+  ],
+  "borders": [
+    "1px #e2e2e5"
+  ],
+  "paddings": [
+    "16,0,16,0",
+    "24,0,24,0",
+    "25,25,25,25"
+  ],
+  "controls": [
+    {
+      "type": "TButton",
+      "w": 222,
+      "h": 56
+    }
+  ]
+}

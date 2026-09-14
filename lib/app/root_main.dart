@@ -8,6 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:keyboard_dismisser/keyboard_dismisser.dart';
+import 'package:flutter/foundation.dart';
+import 'package:tara_driver_application/presentation/widgets/ds/t_motion.dart';
+import 'package:tara_driver_application/routes/transitions.dart';
 
 class Root extends StatelessWidget {
   const Root({super.key});
@@ -17,6 +20,10 @@ class Root extends StatelessWidget {
     return KeyboardDismisser(
       gestures: const [GestureType.onTap, GestureType.onPanUpdateDownDirection],
       child: GetMaterialApp(
+        // P1 (`02 §15`): fade + rise on Android, platform slide on iOS; both
+        // at 250 ms. `/home` keeps `Transition.noTransition` (app_pages).
+        customTransition: appRouteTransition(defaultTargetPlatform),
+        transitionDuration: Motion.screen,
         builder: (BuildContext context, Widget? child) {
           // `EasyLoading.init()` RETURNS the TransitionBuilder that installs
           // the overlay — it has to wrap `child`, not be called and thrown
@@ -50,7 +57,10 @@ class Root extends StatelessWidget {
         navigatorKey: NavigationService().navigatorKey,
         locale: context.locale,
         title: AppConstant.titleApp,
-        theme: AppTheme.lightTheme,
+        // The Khmer line heights are taller (`02 §2`), so the theme is built
+        // from the active locale and rebuilds when the driver switches
+        // language.
+        theme: AppTheme.light(khmer: context.locale.languageCode == 'km'),
         initialRoute: AppRoutes.splash,
         getPages: AppPages.pages,
       ),

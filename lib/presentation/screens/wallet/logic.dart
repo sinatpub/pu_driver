@@ -31,8 +31,7 @@ class WalletLogic extends GetxController {
   void selectBank(int index) => state.bankSelected.value = index;
 
   /// N-01: null clears the filter and shows everything.
-  void selectTypeFilter(String? typeName) =>
-      state.typeFilter.value = typeName;
+  void selectTypeFilter(String? typeName) => state.typeFilter.value = typeName;
 
   /// The rows the list should render: filtered, then newest first.
   List<Transaction> get visibleTransactions => sortedTransactions(

@@ -55,7 +55,9 @@ class ShakeWidgetState extends AnimationControllerState<ShakeWidget> {
     }
   }
 
+  /// P1: no shake under reduced motion — the caller's error text carries it.
   void shake() {
+    if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) return;
     animationController.forward();
   }
 

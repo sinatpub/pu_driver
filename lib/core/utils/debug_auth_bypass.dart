@@ -29,8 +29,7 @@ class DebugAuthBypass {
   /// Where the cached login user lands, for anything that wants to inspect it.
   static const userCacheKey = 'debug_bypass_user';
 
-  static const _enabledByDefine =
-      AppConfig.debugOtpBypass;
+  static const _enabledByDefine = AppConfig.debugOtpBypass;
   static const _phone = AppConfig.debugLoginPhone;
   static const _password = AppConfig.debugLoginPassword;
 

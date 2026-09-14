@@ -1,4 +1,5 @@
 import 'package:geocoding/geocoding.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 Future<String> getAddressFromLatLng(double latitude, double longitude) async {
   try {
@@ -21,10 +22,10 @@ Future<String> getAddressFromLatLng(double latitude, double longitude) async {
       address += place.country != null ? "${place.country}" : '';
       return address.trim().replaceAll(RegExp(r',\s*$'), '');
     } else {
-      return "Address not found";
+      return "ADDRESS_NOT_FOUND".tr();
     }
   } catch (e) {
     print("Error: $e");
-    return "Address not found";
+    return "ADDRESS_NOT_FOUND".tr();
   }
 }

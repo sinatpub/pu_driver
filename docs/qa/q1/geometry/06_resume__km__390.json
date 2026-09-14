@@ -1,0 +1,21 @@
+{
+  "surface": "S06 resume",
+  "key": "06_resume",
+  "locale": "km",
+  "width": 390,
+  "textStyles": [
+    "18.0px/700 #3a3a3c KantumruyPro Resuming your trip…"
+  ],
+  "radii": [
+    "20,20,20,20"
+  ],
+  "fills": [
+    "#ffffff"
+  ],
+  "borders": [],
+  "paddings": [
+    "22,22,22,22",
+    "24,0,24,0"
+  ],
+  "controls": []
+}
