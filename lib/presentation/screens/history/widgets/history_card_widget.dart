@@ -4,7 +4,7 @@ import 'package:get/get.dart' hide Trans;
 import 'package:tara_driver_application/app/funtion_convert.dart';
 import 'package:tara_driver_application/core/contracts/booking_status.dart';
 import 'package:tara_driver_application/core/theme/tokens.dart';
-import 'package:tara_driver_application/features/history/data/models/history_driver_info_model.dart';
+import 'package:tara_driver_application/presentation/screens/history/data/models/history_driver_info_model.dart';
 import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
 import 'package:tara_driver_application/routes/app_routes.dart';
 import 'package:tara_driver_application/routes/route_arguments.dart';

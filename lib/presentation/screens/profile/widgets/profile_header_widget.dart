@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:tara_driver_application/app/funtion_convert.dart';
 import 'package:tara_driver_application/core/theme/tokens.dart';
-import 'package:tara_driver_application/features/profile/data/models/profile_model.dart';
+import 'package:tara_driver_application/presentation/screens/profile/data/models/profile_model.dart';
 import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
 import 'package:tara_driver_application/presentation/widgets/simmer_widget.dart';
 

@@ -12,7 +12,7 @@ import 'package:tara_driver_application/core/utils/load_custom_marker.dart';
 import 'package:tara_driver_application/core/utils/pretty_logger.dart';
 import 'package:tara_driver_application/data/models/complete_driver_model.dart';
 import 'package:tara_driver_application/data/models/register_model.dart';
-import 'package:tara_driver_application/features/trip/domain/trip_state_machine.dart';
+import 'package:tara_driver_application/presentation/screens/booking/domain/trip_state_machine.dart';
 
 import 'package:tara_driver_application/presentation/controllers/vehicle_controller.dart';
 import 'package:tara_driver_application/core/theme/tokens.dart';

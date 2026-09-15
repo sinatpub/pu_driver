@@ -1,6 +1,6 @@
 import 'package:tara_driver_application/data/models/complete_driver_model.dart';
 import 'package:tara_driver_application/data/models/current_driver_info_model.dart';
-import 'package:tara_driver_application/features/auth/data/models/phone_model.dart';
+import 'package:tara_driver_application/presentation/screens/login/data/models/phone_model.dart';
 
 /// Typed `Get.arguments` payloads (F-06, docs/12) — every screen that takes
 /// constructor parameters gets one of these instead of an untyped map, so a

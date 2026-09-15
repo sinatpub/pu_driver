@@ -1,6 +1,6 @@
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/features/home/data/repository/home_repository.dart';
+import 'package:tara_driver_application/presentation/screens/home/data/repository/home_repository.dart';
 
 import 'state.dart';
 

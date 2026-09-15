@@ -1,7 +1,7 @@
 import 'package:get/get.dart' hide Trans;
 import 'package:tara_driver_application/data/models/complete_driver_model.dart';
 import 'package:tara_driver_application/data/models/confirm_booking_model.dart';
-import 'package:tara_driver_application/features/trip/domain/trip_state_machine.dart';
+import 'package:tara_driver_application/presentation/screens/booking/domain/trip_state_machine.dart';
 
 /// One successful trip-lifecycle action, for the screen's `ever()` listener
 /// to react to (socket triggers, navigation) — the same shape as the

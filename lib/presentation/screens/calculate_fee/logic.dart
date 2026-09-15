@@ -3,7 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:tara_driver_application/routes/app_routes.dart';
 import 'package:tara_driver_application/data/models/complete_driver_model.dart';
 import 'package:tara_driver_application/data/models/current_driver_info_model.dart';
-import 'package:tara_driver_application/features/payment/data/repository/payment_repository.dart';
+import 'package:tara_driver_application/presentation/screens/calculate_fee/data/repository/payment_repository.dart';
 import 'package:tara_driver_application/presentation/screens/profile/logic.dart';
 import 'package:tara_driver_application/presentation/widgets/error_dialog_widget.dart';
 import 'package:tara_driver_application/services/socket_service.dart';

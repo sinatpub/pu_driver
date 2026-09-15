@@ -7,7 +7,7 @@ import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
 ///
 /// Both are presentational and **format nothing**: amounts arrive already
 /// formatted by `formatWalletAmountWithSymbol`, so USD/riel rules stay in
-/// `features/wallet/wallet_presentation.dart`, where they are tested.
+/// `presentation/screens/wallet/wallet_presentation.dart`, where they are tested.
 
 const List<FontFeature> _tabular = <FontFeature>[FontFeature.tabularFigures()];
 

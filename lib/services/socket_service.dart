@@ -1,7 +1,7 @@
 import 'package:tara_driver_application/app/alert_widget.dart';
 import 'package:tara_driver_application/routes/app_routes.dart';
 import 'package:tara_driver_application/core/utils/pretty_logger.dart';
-import 'package:tara_driver_application/features/trip/data/new_ride_payload_parser.dart';
+import 'package:tara_driver_application/presentation/screens/booking/data/new_ride_payload_parser.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;

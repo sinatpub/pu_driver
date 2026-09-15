@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tara_driver_application/core/theme/app_theme.dart';
 import 'package:tara_driver_application/core/theme/tokens.dart';
-import 'package:tara_driver_application/features/wallet/wallet_presentation.dart';
+import 'package:tara_driver_application/presentation/screens/wallet/wallet_presentation.dart';
 import 'package:tara_driver_application/presentation/screens/wallet/widgets/wallet_widgets.dart';
 import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
 
@@ -12,7 +12,7 @@ import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
 /// `wallet/view.dart` is not pumped: it reaches for a GetX controller and a
 /// repository. Loaded / empty / error states, every filter chip and a USD
 /// balance are verified on a device (roadmap S2 Verification). The money
-/// rules themselves are covered by `test/features/wallet/`.
+/// rules themselves are covered by `test/presentation/screens/wallet/`.
 Widget _host(Widget child) {
   return MaterialApp(
     theme: AppTheme.light(khmer: false),

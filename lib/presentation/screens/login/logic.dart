@@ -4,7 +4,7 @@ import 'package:get/get.dart' hide Trans;
 import 'package:tara_driver_application/routes/app_routes.dart';
 import 'package:tara_driver_application/routes/route_arguments.dart';
 import 'package:tara_driver_application/core/storage/set_storages.dart';
-import 'package:tara_driver_application/features/auth/data/repository/auth_repository.dart';
+import 'package:tara_driver_application/presentation/screens/login/data/repository/auth_repository.dart';
 import 'package:tara_driver_application/presentation/widgets/error_dialog_widget.dart';
 import 'package:tara_driver_application/presentation/widgets/shake_widget.dart';
 

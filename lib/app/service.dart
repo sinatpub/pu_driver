@@ -1,6 +1,6 @@
 import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/features/home/data/datasource/home_datasource.dart';
-import 'package:tara_driver_application/features/home/data/repository/home_repository.dart';
+import 'package:tara_driver_application/presentation/screens/home/data/datasource/home_datasource.dart';
+import 'package:tara_driver_application/presentation/screens/home/data/repository/home_repository.dart';
 
 import 'logic.dart';
 

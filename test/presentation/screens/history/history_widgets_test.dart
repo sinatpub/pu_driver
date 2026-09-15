@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tara_driver_application/features/history/data/models/history_driver_info_model.dart';
+import 'package:tara_driver_application/presentation/screens/history/data/models/history_driver_info_model.dart';
 import 'package:tara_driver_application/presentation/screens/history/widgets/history_card_widget.dart';
 import 'package:tara_driver_application/presentation/screens/history_detail/view.dart';
 import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';

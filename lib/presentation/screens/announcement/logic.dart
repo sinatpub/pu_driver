@@ -1,6 +1,6 @@
 import 'package:tara_driver_application/core/pagination/paginated_controller.dart';
-import 'package:tara_driver_application/features/notifications/data/models/notifcation_model.dart';
-import 'package:tara_driver_application/features/notifications/data/repository/notification_repository.dart';
+import 'package:tara_driver_application/presentation/screens/announcement/data/models/notifcation_model.dart';
+import 'package:tara_driver_application/presentation/screens/announcement/data/repository/notification_repository.dart';
 
 import 'state.dart';
 

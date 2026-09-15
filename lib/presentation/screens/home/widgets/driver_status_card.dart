@@ -10,8 +10,7 @@ import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
 /// The prototype floats an earnings card here ("Today · 6 trips · ៛45,200").
 /// **That card is not built** (`DD-07`): there is no earnings endpoint, and
 /// what a trip earns a driver is an open business question — the earnings
-/// domain deliberately refuses to guess it
-/// (`features/earnings/domain/earnings.dart`). Showing a number here would
+/// domain deliberately refuses to guess it. Showing a number here would
 /// mean inventing one.
 ///
 /// So the card states the one thing the app does know, and which the map

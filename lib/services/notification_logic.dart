@@ -5,7 +5,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:tara_driver_application/routes/app_routes.dart';
 import 'package:tara_driver_application/routes/route_arguments.dart';
-import 'package:tara_driver_application/features/trip/data/new_ride_payload_parser.dart';
+import 'package:tara_driver_application/presentation/screens/booking/data/new_ride_payload_parser.dart';
 import '../core/utils/app_log.dart';
 
 class NotificationLogic {

@@ -18,7 +18,7 @@ import 'package:tara_driver_application/data/datasources/device_info_repo.dart';
 import 'package:tara_driver_application/data/models/current_driver_info_model.dart';
 import 'package:tara_driver_application/data/models/register_model.dart';
 import 'package:tara_driver_application/app/logic.dart';
-import 'package:tara_driver_application/features/version_check/data/repository/version_check_repository.dart';
+import 'package:tara_driver_application/presentation/screens/home/data/repository/version_check_repository.dart';
 import 'package:tara_driver_application/services/location_service.dart';
 import 'package:tara_driver_application/services/socket_service.dart';
 

@@ -1,5 +1,5 @@
 import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/features/profile/data/repository/profile_repository.dart';
+import 'package:tara_driver_application/presentation/screens/profile/data/repository/profile_repository.dart';
 
 import 'state.dart';
 

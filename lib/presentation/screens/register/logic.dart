@@ -7,7 +7,7 @@ import 'package:tara_driver_application/core/helper/get_device_info.dart';
 import 'package:tara_driver_application/routes/app_routes.dart';
 import 'package:tara_driver_application/core/storage/get_storages.dart';
 import 'package:tara_driver_application/core/storage/set_storages.dart';
-import 'package:tara_driver_application/features/auth/data/repository/auth_repository.dart';
+import 'package:tara_driver_application/presentation/screens/login/data/repository/auth_repository.dart';
 import 'package:tara_driver_application/presentation/widgets/error_dialog_widget.dart';
 import 'package:tara_driver_application/taxi_single_ton/taxi.dart';
 

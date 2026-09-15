@@ -1,5 +1,5 @@
 import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/features/wallet/data/models/wallet_model.dart';
+import 'package:tara_driver_application/presentation/screens/wallet/data/models/wallet_model.dart';
 
 enum WalletStatus { initial, loading, loaded, error }
 

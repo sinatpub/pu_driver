@@ -1,7 +1,7 @@
 import 'package:get/get.dart' hide Trans;
 import 'package:tara_driver_application/data/datasources/get_vehical_remote_data_source.dart';
-import 'package:tara_driver_application/features/auth/data/datasource/auth_datasource.dart';
-import 'package:tara_driver_application/features/auth/data/repository/auth_repository.dart';
+import 'package:tara_driver_application/presentation/screens/login/data/datasource/auth_datasource.dart';
+import 'package:tara_driver_application/presentation/screens/login/data/repository/auth_repository.dart';
 import 'package:tara_driver_application/presentation/controllers/vehicle_controller.dart';
 
 import 'logic.dart';

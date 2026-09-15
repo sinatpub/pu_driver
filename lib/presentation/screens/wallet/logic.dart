@@ -1,8 +1,8 @@
 import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/features/wallet/data/repository/wallet_repository.dart';
+import 'package:tara_driver_application/presentation/screens/wallet/data/repository/wallet_repository.dart';
 
-import 'package:tara_driver_application/features/wallet/data/models/wallet_model.dart';
-import 'package:tara_driver_application/features/wallet/wallet_presentation.dart';
+import 'package:tara_driver_application/presentation/screens/wallet/data/models/wallet_model.dart';
+import 'package:tara_driver_application/presentation/screens/wallet/wallet_presentation.dart';
 
 import 'state.dart';
 

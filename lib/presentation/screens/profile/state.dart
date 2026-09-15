@@ -1,5 +1,5 @@
 import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/features/profile/data/models/profile_model.dart';
+import 'package:tara_driver_application/presentation/screens/profile/data/models/profile_model.dart';
 
 enum ProfileStatus { initial, loading, loaded, error }
 

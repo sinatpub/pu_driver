@@ -1,6 +1,6 @@
 import 'package:tara_driver_application/core/pagination/paginated_controller.dart';
-import 'package:tara_driver_application/features/history/data/models/history_driver_info_model.dart';
-import 'package:tara_driver_application/features/history/data/repository/history_repository.dart';
+import 'package:tara_driver_application/presentation/screens/history/data/models/history_driver_info_model.dart';
+import 'package:tara_driver_application/presentation/screens/history/data/repository/history_repository.dart';
 
 import 'state.dart';
 

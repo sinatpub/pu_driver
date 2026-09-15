@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tara_driver_application/core/theme/tokens.dart';
-import 'package:tara_driver_application/features/trip/domain/trip_state_machine.dart';
+import 'package:tara_driver_application/presentation/screens/booking/domain/trip_state_machine.dart';
 import 'package:tara_driver_application/presentation/widgets/ds/t_motion.dart';
 
 /// UX-redesign C3 — the stage banner floating over the trip map.

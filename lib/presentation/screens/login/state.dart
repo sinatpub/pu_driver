@@ -1,5 +1,5 @@
 import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/features/auth/data/models/phone_model.dart';
+import 'package:tara_driver_application/presentation/screens/login/data/models/phone_model.dart';
 
 enum LoginStatus { initial, loading, loaded, fail }
 
