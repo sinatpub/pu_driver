@@ -1,8 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="prd | main" type="FlutterRunConfigurationType" factoryName="Flutter">
-    <option name="additionalArgs" value="--no-enable-impeller" />
-    <option name="buildFlavor" value="prd" />
-    <option name="filePath" value="$PROJECT_DIR$/lib/main_prd.dart" />
+    <option name="additionalArgs" value="--no-enable-impeller --dart-define-from-file=dart_defines.json" />
+    <option name="filePath" value="$PROJECT_DIR$/lib/main.dart" />
     <method v="2" />
   </configuration>
 </component>

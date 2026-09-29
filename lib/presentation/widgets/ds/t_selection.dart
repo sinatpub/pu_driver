@@ -24,8 +24,12 @@ class TSegmented extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final TaarraaColors c = context.colors;
+    // The track has no padding of its own: each segment carries its share of
+    // the 4 px inset, so the pill sits 4 px from the track on every side (and
+    // 4 px from its neighbour), while the tappable area still spans the full
+    // 48 px height.
+    const double gap = 4;
     return Container(
-      padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
         color: c.bgRaised,
         borderRadius: BorderRadius.circular(Radii.full),
@@ -40,6 +44,13 @@ class TSegmented extends StatelessWidget {
               isSelected: i == selected,
               onTap: () => onChanged(i),
               radius: Radii.full,
+              sizeToLabels: options,
+              inset: EdgeInsets.fromLTRB(
+                i == 0 ? gap : gap / 2,
+                gap,
+                i == options.length - 1 ? gap : gap / 2,
+                gap,
+              ),
             ),
         ],
       ),
@@ -150,12 +161,24 @@ class _SelectableSegment extends StatelessWidget {
     required this.isSelected,
     required this.onTap,
     required this.radius,
+    this.sizeToLabels,
+    this.inset,
   });
 
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
   final double radius;
+
+  /// When set, the segment is as wide as the widest of these labels, so every
+  /// segment in a hug-width control has the same width — "English" and
+  /// "ខ្មែរ" would otherwise get pills of very different sizes. Controls that
+  /// already split the width evenly ([TTabs]) leave this null.
+  final List<String>? sizeToLabels;
+
+  /// When set, the pill fills the segment minus this inset instead of hugging
+  /// its label, so the space around it is even on all four sides.
+  final EdgeInsets? inset;
 
   @override
   Widget build(BuildContext context) {
@@ -169,29 +192,63 @@ class _SelectableSegment extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: Sizes.touchTarget),
-          child: Center(
-            child: AnimatedContainer(
-              duration: Motion.colorChange,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 10,
-              ),
-              decoration: BoxDecoration(
-                color: isSelected ? c.bgSurface : Colors.transparent,
-                borderRadius: BorderRadius.circular(radius),
-                boxShadow: isSelected ? Elevations.selected : Elevations.flat,
-              ),
-              child: Text(
-                label,
-                textAlign: TextAlign.center,
-                style: context.texts.label.copyWith(
-                  color: isSelected ? c.textPrimary : c.textSecondary,
+          child: Padding(
+            padding: inset ?? EdgeInsets.zero,
+            child: Center(
+              child: AnimatedContainer(
+                duration: Motion.colorChange,
+                height:
+                    inset == null ? null : Sizes.touchTarget - inset!.vertical,
+                alignment: inset == null ? null : Alignment.center,
+                padding: EdgeInsets.symmetric(
+                  horizontal: inset == null ? 14 : 16,
+                  vertical: inset == null ? 10 : 0,
+                ),
+                decoration: BoxDecoration(
+                  color: isSelected ? c.bgSurface : Colors.transparent,
+                  borderRadius: BorderRadius.circular(radius),
+                  boxShadow: isSelected ? Elevations.selected : Elevations.flat,
+                ),
+                child: _sized(
+                  context,
+                  Text(
+                    label,
+                    textAlign: TextAlign.center,
+                    style: context.texts.label.copyWith(
+                      color: isSelected ? c.textPrimary : c.textSecondary,
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  /// Gives [text] the width of the widest of [sizeToLabels], measured with
+  /// the same style and text scale, so every segment is equally wide.
+  Widget _sized(BuildContext context, Widget text) {
+    final List<String>? labels = sizeToLabels;
+    if (labels == null) return text;
+    final TextStyle style = context.texts.label;
+    final TextScaler scaler = MediaQuery.textScalerOf(context);
+    final TextDirection direction = Directionality.of(context);
+    double widest = 0;
+    for (final String l in labels) {
+      final TextPainter painter = TextPainter(
+        text: TextSpan(text: l, style: style),
+        textDirection: direction,
+        textScaler: scaler,
+        maxLines: 1,
+      )..layout();
+      if (painter.width > widest) widest = painter.width;
+      painter.dispose();
+    }
+    return ConstrainedBox(
+      constraints: BoxConstraints(minWidth: widest.ceilToDouble()),
+      child: text,
     );
   }
 }

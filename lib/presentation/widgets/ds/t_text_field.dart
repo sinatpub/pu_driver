@@ -78,6 +78,7 @@ class TTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     final TaarraaColors c = context.colors;
     final bool hasError = errorText != null && errorText!.isNotEmpty;
+    final bool isPhone = this is _TPhoneField;
 
     final Widget field = Container(
       constraints: const BoxConstraints(minHeight: Sizes.input),
@@ -111,7 +112,9 @@ class TTextField extends StatelessWidget {
               onChanged: onChanged,
               onSubmitted: onSubmitted,
               cursorColor: c.borderFocus,
-              style: context.texts.body.copyWith(color: c.textPrimary),
+              style: isPhone
+                  ? _phoneInputStyle(context)
+                  : context.texts.body.copyWith(color: c.textPrimary),
               decoration: InputDecoration(
                 isDense: true,
                 // P3: the input fills the 56 px field. With zero padding the
@@ -139,7 +142,9 @@ class TTextField extends StatelessWidget {
         if (label != null) ...<Widget>[
           Text(
             label!,
-            style: context.texts.label.copyWith(color: c.textSecondary),
+            style: context.texts.label
+                .withWeight(FontWeights.semiBold)
+                .copyWith(color: c.textSecondary),
           ),
           const SizedBox(height: Insets.s8),
         ],
@@ -157,10 +162,9 @@ class TTextField extends StatelessWidget {
               Expanded(
                 child: Text(
                   errorText!,
-                  style: context.texts.label.copyWith(
-                    color: c.danger,
-                    fontWeight: FontWeights.regular,
-                  ),
+                  style: context.texts.label
+                      .withWeight(FontWeights.regular)
+                      .copyWith(color: c.danger),
                 ),
               ),
             ],
@@ -196,10 +200,13 @@ class _PhonePrefix extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      '+855',
-      style:
-          context.texts.bodyStrong.copyWith(color: context.colors.textPrimary),
-    );
+    return Text('+855', style: _phoneInputStyle(context));
   }
 }
+
+/// The phone number is the one thing on login and registration, so it is set
+/// larger than body text; `+855` uses the same style so the two read as one
+/// number.
+TextStyle _phoneInputStyle(BuildContext context) => context.texts.title
+    .withWeight(FontWeights.semiBold)
+    .copyWith(color: context.colors.textPrimary);

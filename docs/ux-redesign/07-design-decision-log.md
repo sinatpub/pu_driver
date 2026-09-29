@@ -260,6 +260,8 @@ Blocking on connectivity is new behaviour. Removing EasyLoading means changing t
 
 ## Decision DD-10: Trip screen layout
 
+**Partly superseded by DD-35 (2026-09-29):** at the request stage there is no floating header and no stepper.
+
 ### Context
 The trip screen's layout.
 
@@ -385,6 +387,8 @@ Fixes the misleading label at zero logic cost.
 
 ## Decision DD-15: Request-stage content is limited to real data
 
+**Superseded by DD-35 (2026-09-29).** The request stage now shows the time and distance to the pickup, and the trip distance and an estimated fare, all from Directions routes.
+
 ### Context
 The prototype's request stage shows data the app doesn't have.
 
@@ -408,6 +412,8 @@ Passenger rating, "0.4 km away", distance and est. fare at request.
 `03 S07` request stage.
 
 ## Decision DD-16: Countdown is re-skinned only
+
+**Partly superseded by DD-35 (2026-09-29):** the countdown is now drawn inside Accept instead of floating over the map. The timer, the expiry navigation and the no-sound rule are unchanged.
 
 ### Context
 The request countdown.
@@ -860,3 +866,36 @@ The per-route wrapper only existed to hide a light/dark split mid-migration. Wit
 
 ### Impact
 `06` steps 1 and 13; one screen per change (RULES).
+
+## Decision DD-35: The request stage shows the route to the pickup
+
+**Supersedes DD-15, and DD-16 and DD-10 for the request stage only. Settled by the user on 2026-09-29.**
+
+### Context
+On a new request the map showed only the streets around the pickup, and the pickup pin sat under the sheet. The driver could not see where they were, how far the pickup was, or what the trip was worth, which is what they decide on. The user asked for a route from the driver's position to the pickup.
+
+### Existing Behavior
+- The camera centred on the pickup at zoom 19 and re-centred on every GPS tick. The map had no padding, so the centre was under the sheet.
+- No driver marker at the request stage (`syncMarker`).
+- The sheet showed the four-step stepper, the passenger with phone number and call button, and the two addresses. No distance or fare (DD-15).
+- The countdown floated over the map under the stage header (DD-16).
+
+### HTML Design
+"New request · 0.4 km away", distance and est. fare, Accept, a Cancel text link.
+
+### Decision
+- **Route:** on arrival, one Directions request from the driver's position to the pickup. It draws the polyline and gives "4 min" and "1.2 km to pickup". The camera fits the driver, the pickup and the route once, inside the map's padding (status bar above, measured sheet height below), and does not follow GPS ticks at this stage.
+- **Reuse on accept:** the pickup stage reuses that route when the driver is still within 50 m of where it was fetched. Only requests that are declined or expire cost an extra Directions request.
+- **Trip figures:** when the request has a destination, a second Directions request (pickup to destination) gives the trip distance. The fare is `estimateFare` over that distance, prefixed "≈" (DD-14), and shown only once the vehicle's per-km price and minimum fare are known.
+- **Sheet:** the stage name, the ETA and distance to the pickup, the passenger's avatar and name, the trip figures, then the two addresses split into place and area. No stepper, no phone number and no call button until the ride is accepted.
+- **Countdown:** drawn inside Accept. The elapsed share darkens from the right and the seconds left sit in a pill. Same `SmoothCircularCountdown` timer; expiry still goes home, still silently.
+- **Header:** not shown at the request stage. The sheet names the stage.
+- **Decline:** the text action below Accept reads "Decline" (new key `DECLINE`). The confirm dialog and the emit-then-cancel order (DD-11) are unchanged.
+- **Markers:** pickup and destination pins are drawn in code (brand circle, dark square), for the trip screen only. The driver keeps the vehicle image and now shows at the request stage too.
+- **No figures without data:** no GPS fix or no route means no ETA, no polyline and the pickup pin alone.
+
+### Reason
+A driver decides on distance to the pickup and the trip's value. Showing real route figures replaces the guesswork DD-15 avoided by showing nothing.
+
+### Impact
+`booking/view.dart`, `ride_request_bottom_pop_widget.dart`, `trip_action_bar.dart`, `count_down_widget.dart` (`builder`), `route_service.dart` (`RouteSummary`), `mock_route_provider.dart`, `load_custom_marker.dart` (`loadTripPin`). New keys: `DECLINE`, `TRIP`, `TO_PICKUP`, `UNIT_MIN`, `UNIT_SECONDS_SHORT`. Directions usage: up to two requests per request received, instead of zero.

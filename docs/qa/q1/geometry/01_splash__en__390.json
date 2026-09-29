@@ -4,20 +4,21 @@
   "locale": "en",
   "width": 390,
   "textStyles": [
-    "17.0px/700 #cc3700 KantumruyPro តារា តាក់សុី",
-    "30.0px/700 #3a3a3c KantumruyPro TARA DRIVER [FontFeature('tnum', 1)]"
+    "13.0px/700 #cc3700 KantumruyPro Driver · អ្នកបើកបរ",
+    "17.0px/700 #5c6474 KantumruyPro ពូ តាក់ស៊ី",
+    "30.0px/700 #3a3a3c KantumruyPro PU TAXI [FontFeature('tnum', 1)]"
   ],
   "radii": [
-    "28,28,28,28"
+    "28,28,28,28",
+    "999,999,999,999"
   ],
   "fills": [
-    "#ffffff"
+    "#fff1ec"
   ],
-  "borders": [
-    "1px #e2e2e5"
-  ],
+  "borders": [],
   "paddings": [
-    "13,13,13,13"
+    "0,0,0,0",
+    "12,4,12,4"
   ],
   "controls": []
 }

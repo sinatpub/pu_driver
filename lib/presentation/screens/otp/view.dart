@@ -61,9 +61,9 @@ class OtpPage extends StatelessWidget {
                       const SizedBox(height: Insets.s16),
                       Text(
                         'OTP_VERIFICATION'.tr(),
-                        style: context.texts.headline.copyWith(
-                          color: c.textPrimary,
-                        ),
+                        style: context.texts.headline
+                            .withWeight(FontWeights.semiBold)
+                            .copyWith(color: c.textPrimary),
                       ),
                       const SizedBox(height: Insets.s8),
                       OtpSentTo(phoneNumber: logic.phoneNumber),
@@ -110,7 +110,7 @@ class OtpPage extends StatelessWidget {
   }
 }
 
-/// "Enter the 4-digit code sent to" + the number in bold.
+/// "Enter the 4-digit code sent to" + the number in semi-bold.
 class OtpSentTo extends StatelessWidget {
   const OtpSentTo({super.key, required this.phoneNumber});
 
@@ -130,7 +130,9 @@ class OtpSentTo extends StatelessWidget {
             const TextSpan(text: '\n'),
             TextSpan(
               text: '+855 $phoneNumber',
-              style: context.texts.bodyStrong.copyWith(color: c.textPrimary),
+              style: context.texts.bodyStrong
+                  .withWeight(FontWeights.semiBold)
+                  .copyWith(color: c.textPrimary),
             ),
           ],
         ],

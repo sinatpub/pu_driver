@@ -1,10 +1,9 @@
 import 'dart:async';
 
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:tara_driver_application/core/utils/app_constant.dart';
 import 'package:tara_driver_application/core/utils/load_custom_marker.dart';
+import 'package:tara_driver_application/services/route_service.dart';
 
 import 'state.dart';
 import 'package:tara_driver_application/core/theme/tokens.dart';
@@ -35,7 +34,6 @@ class HistoryDetailLogic extends GetxController {
   final double lngEnd;
 
   final HistoryDetailState state = HistoryDetailState();
-  final PolylinePoints _polylinePoints = PolylinePoints();
 
   Timer? _startupTimer;
 
@@ -78,22 +76,13 @@ class HistoryDetailLogic extends GetxController {
   }
 
   Future<void> drawPolylines() async {
-    final result = await _polylinePoints.getRouteBetweenCoordinates(
-      googleApiKey: AppConstant.googleKeyApi,
-      request: PolylineRequest(
-        origin: PointLatLng(start.latitude, start.longitude),
-        destination: PointLatLng(end.latitude, end.longitude),
-        mode: TravelMode.driving,
-      ),
-    );
-    if (result.status == 'OK' && result.points.isNotEmpty) {
+    final points = await RouteService.instance.route(start, end);
+    if (points.isNotEmpty) {
       state.polylines.add(
         Polyline(
           polylineId: const PolylineId("route_0"),
           color: TaarraaColors.light.brandIdentity,
-          points: result.points
-              .map((p) => LatLng(p.latitude, p.longitude))
-              .toList(),
+          points: points,
           width: 5,
         ),
       );

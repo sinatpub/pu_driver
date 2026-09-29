@@ -1,0 +1,21 @@
+{
+  "trip.perTick.rebuilds": 60,
+  "trip.perTick.cameraAnimates": 60,
+  "trip.perTick.reverseGeocodes": 60,
+  "trip.perTick.distanceBranches": 59,
+  "trip.perTick.ticks": 60,
+  "trip.note.rebuildHotPath": "every setState rebuilds the whole Stack (map + overlay) once — GPS listener, 1 s meter timer, camera-move callback; GPU cost and the 16 ms gate are device-measured",
+  "trip.timer.overlayRebuildsPer5Seconds": 5,
+  "trip.lifecycle.stages": "enRouteToPickup -> waitingAtPickup -> inProgress -> completing",
+  "trip.locationService.streamsForTwoStarts": 1,
+  "trip.locationService.receivesPositions": "device-carried",
+  "trip.locationService.adoptionsAfterStop": 1,
+  "trip.locationService.cancelsOnStop": 2,
+  "home.markers.entityCountAfter120Ticks": 120,
+  "home.markers.distinctIds": 1,
+  "home.markers.currentLocationFires": 120,
+  "home.markers.cameraAnimatesPerTick": 120,
+  "home.markers.markerFires": 120,
+  "home.note.markerChurn": "each tick: one distinct Marker (same MarkerId, new position/rotation) added to the RxSet — unbounded growth while idling — plus one loadCustomMarkerTukTuk asset decode per tick (device-carried)",
+  "home.markers.growthWithNoTicks": 0
+}

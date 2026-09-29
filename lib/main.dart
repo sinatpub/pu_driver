@@ -14,6 +14,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:tara_driver_application/services/notification_logic.dart';
 import 'package:tara_driver_application/taxi_single_ton/taxi_location.dart';
 import 'core/helper/local_notification_helper.dart';
+import 'mock/mock_mode.dart';
 
 @pragma('vm:entry-point')
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -21,6 +22,9 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 void main() async {
   BaseHttpClient.init();
   WidgetsFlutterBinding.ensureInitialized();
+  // QA mock backend — a no-op unless built with USE_MOCK_DATA=true in a
+  // non-release build. Must run before anything makes a request.
+  await MockMode.init();
   // init firebase notification — also initializes Firebase itself, which
   // Crashlytics below depends on
   await NotificationLogic().setupInteractedMessage();
@@ -52,7 +56,7 @@ void main() async {
     EasyLocalization(
       supportedLocales: const [Locale('km'), Locale('en')],
       path: 'assets/translations',
-      startLocale: const Locale('en'),
+      startLocale: const Locale('km'),
       child: const Root(),
     ),
   );

@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:tara_driver_application/app/funtion_convert.dart';
 import 'package:tara_driver_application/core/theme/tokens.dart';
 import 'package:tara_driver_application/presentation/screens/booking/widgets/passenger_row.dart';
@@ -31,8 +32,12 @@ import '../../../widgets/ds/t_motion.dart';
 /// - Cancel still opens the same confirm dialog, and its `onYes` still emits
 ///   `driverCancelDrive` **before** calling [onCancel] — that order is what
 ///   the passenger app sees;
-/// - the request stage still shows no fare, distance or rating, because the
-///   payload carries none (`DD-15`).
+/// - the request stage (`DD-35`, superseding `DD-15`) leads with the time
+///   and distance to the pickup, from a Directions route the screen fetches
+///   on arrival; then the trip distance and an "≈" fare when there is a
+///   destination; then the two addresses. No stepper, phone number or call
+///   button until the ride is accepted. The decision timer sits inside
+///   Accept, and the text action below it reads "Decline".
 class ModelBottomSheetNewRequestWidget extends StatefulWidget {
   final int bookingId;
   final int bookingCode;
@@ -59,6 +64,27 @@ class ModelBottomSheetNewRequestWidget extends StatefulWidget {
   final String distance;
   final String fare;
 
+  /// Request stage only (`DD-35`), formatted by the screen: "4 min" and
+  /// "1.2 km". Null when there is no route — no GPS fix, or Directions
+  /// found none — and the summary then shows no figures rather than guesses.
+  final String? pickupEta;
+  final String? pickupDistance;
+
+  /// True until the pickup route has been fetched, or has failed.
+  final bool pickupRouteLoading;
+
+  /// Request stage only: the pickup→destination driving distance and the
+  /// fare estimated from it, both formatted. Null when there is no
+  /// destination or no route.
+  final String? tripDistance;
+  final String? tripFare;
+
+  /// The request's decision time, drawn inside Accept. Null on other stages.
+  final int? requestTimeoutSeconds;
+
+  /// Reports the sheet's height, so the map can pad its camera by it.
+  final ValueChanged<double>? onHeightChanged;
+
   const ModelBottomSheetNewRequestWidget(
       {super.key,
       required this.bookingCode,
@@ -77,7 +103,14 @@ class ModelBottomSheetNewRequestWidget extends StatefulWidget {
       required this.processType,
       required this.whereToGoLocationName,
       required this.passegerLocationName,
-      this.isLoading = false});
+      this.isLoading = false,
+      this.pickupEta,
+      this.pickupDistance,
+      this.pickupRouteLoading = false,
+      this.tripDistance,
+      this.tripFare,
+      this.requestTimeoutSeconds,
+      this.onHeightChanged});
 
   @override
   State<ModelBottomSheetNewRequestWidget> createState() =>
@@ -163,20 +196,58 @@ class _ModelBottomSheetNewRequestWidgetState
     );
 
     switch (widget.processType) {
+      // Request (`DD-35`): what the driver decides on comes first — how far
+      // the pickup is, then what the trip is worth — then where it goes.
       case 1:
+        final (String pickupPlace, String? pickupArea) =
+            splitAddress(widget.passegerLocationName);
+        final (String destinationPlace, String? destinationArea) =
+            splitAddress(widget.whereToGoLocationName);
         return <Widget>[
-          passenger,
+          _RequestSummary(
+            eta: widget.pickupEta,
+            distance: widget.pickupDistance,
+            loading: widget.pickupRouteLoading,
+            passengerName: widget.namePassanger,
+            passengerImage: widget.profilePassanger,
+          ),
+          if (widget.tripDistance != null || widget.tripFare != null) ...[
+            const SizedBox(height: Insets.s12),
+            Row(
+              children: <Widget>[
+                if (widget.tripDistance != null)
+                  Expanded(
+                    child: _FigureTile(
+                      label: "TRIP".tr(),
+                      value: widget.tripDistance!,
+                    ),
+                  ),
+                if (widget.tripDistance != null && widget.tripFare != null)
+                  const SizedBox(width: Insets.s8),
+                if (widget.tripFare != null)
+                  Expanded(
+                    child: _FigureTile(
+                      label: "EST_FARE".tr(),
+                      value: "≈ ៛${widget.tripFare}",
+                    ),
+                  ),
+              ],
+            ),
+          ],
+          const SizedBox(height: Insets.s4),
           TAddressRow(
             kind: TAddressKind.pickup,
             overline: "PICKUP".tr(),
-            primary: widget.passegerLocationName,
+            primary: pickupPlace,
+            secondary: pickupArea,
             loading: widget.passegerLocationName.isEmpty,
           ),
           if (widget.whereToGoLocationName.isNotEmpty)
             TAddressRow(
               kind: TAddressKind.destination,
               overline: "DESTINATION".tr(),
-              primary: widget.whereToGoLocationName,
+              primary: destinationPlace,
+              secondary: destinationArea,
             ),
         ];
       case 2:
@@ -235,111 +306,305 @@ class _ModelBottomSheetNewRequestWidgetState
       bottom: 0,
       left: 0,
       right: 0,
-      child: Container(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.74,
-        ),
-        decoration: BoxDecoration(
-          color: c.bgSurface,
-          borderRadius: Radii.sheetRadius,
-          border: Border.all(color: c.borderDivider),
-          boxShadow: Elevations.sheet,
-        ),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(
-            Insets.s20,
-            Insets.s12,
-            Insets.s20,
-            Insets.s16,
+      child: _MeasureHeight(
+        onChange: widget.onHeightChanged,
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.74,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              // The grabber is the collapse control now that the stage name
-              // lives in the header over the map.
-              // P3: a 48 px target (the bar itself is unchanged) that says
-              // what it does — it was 24 px and unlabelled.
-              Semantics(
-                button: true,
-                expanded: isExpanded,
-                label: isExpanded
-                    ? MaterialLocalizations.of(context).collapsedIconTapHint
-                    : MaterialLocalizations.of(context).expandedIconTapHint,
-                child: GestureDetector(
-                  onTap: () => setState(() => isExpanded = !isExpanded),
-                  behavior: HitTestBehavior.opaque,
-                  child: SizedBox(
-                    height: Sizes.touchTarget,
-                    width: double.infinity,
-                    child: Center(
-                      child: Container(
-                        width: 44,
-                        height: 5,
-                        decoration: BoxDecoration(
-                          color: c.borderDivider,
-                          borderRadius: BorderRadius.circular(Radii.full),
+          decoration: BoxDecoration(
+            color: c.bgSurface,
+            borderRadius: Radii.sheetRadius,
+            border: Border.all(color: c.borderDivider),
+            boxShadow: Elevations.sheet,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              Insets.s20,
+              Insets.s12,
+              Insets.s20,
+              Insets.s16,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                // The grabber is the collapse control now that the stage name
+                // lives in the header over the map.
+                // P3: a 48 px target (the bar itself is unchanged) that says
+                // what it does — it was 24 px and unlabelled.
+                Semantics(
+                  button: true,
+                  expanded: isExpanded,
+                  label: isExpanded
+                      ? MaterialLocalizations.of(context).collapsedIconTapHint
+                      : MaterialLocalizations.of(context).expandedIconTapHint,
+                  child: GestureDetector(
+                    onTap: () => setState(() => isExpanded = !isExpanded),
+                    behavior: HitTestBehavior.opaque,
+                    child: SizedBox(
+                      height: Sizes.touchTarget,
+                      width: double.infinity,
+                      child: Center(
+                        child: Container(
+                          width: 44,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: c.borderDivider,
+                            borderRadius: BorderRadius.circular(Radii.full),
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              TripTimeline(
-                processType: widget.processType,
-                labels: <String>[
-                  "TIMELINE_ACCEPT".tr(),
-                  "TIMELINE_ARRIVE".tr(),
-                  "TIMELINE_START".tr(),
-                  "TIMELINE_DROP".tr(),
+                // DD-35: no stepper on a request — nothing has started yet.
+                if (widget.processType != 1)
+                  TripTimeline(
+                    processType: widget.processType,
+                    labels: <String>[
+                      "TIMELINE_ACCEPT".tr(),
+                      "TIMELINE_ARRIVE".tr(),
+                      "TIMELINE_START".tr(),
+                      "TIMELINE_DROP".tr(),
+                    ],
+                  ),
+                // C4 / DD-14: the live meter is pinned above the collapsible
+                // region, so it stays on screen when the sheet is collapsed.
+                if (widget.processType == 4 || widget.processType == 6) ...[
+                  const SizedBox(height: Insets.s12),
+                  TripMeterStrip(
+                    duration: widget.duration,
+                    distance: widget.distance,
+                    fare: widget.fare,
+                  ),
                 ],
-              ),
-              // C4 / DD-14: the live meter is pinned above the collapsible
-              // region, so it stays on screen when the sheet is collapsed.
-              if (widget.processType == 4 || widget.processType == 6) ...[
-                const SizedBox(height: Insets.s12),
-                TripMeterStrip(
-                  duration: widget.duration,
-                  distance: widget.distance,
-                  fare: widget.fare,
-                ),
-              ],
-              if (isExpanded) ...<Widget>[
-                const SizedBox(height: Insets.s12),
-                Flexible(
-                  child: SingleChildScrollView(
-                    // P1: the stage's content cross-fades over 150 ms. Keyed by
-                    // the content branch, not by every field, so a fare or an
-                    // address updating within a stage never animates. The
-                    // meter and the action bar sit outside it; the outgoing
-                    // content ignores taps during the fade.
-                    child: TCrossFade(
-                      stateKey: _contentBranch,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: _stageContent(context),
+                if (isExpanded) ...<Widget>[
+                  const SizedBox(height: Insets.s12),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      // P1: the stage's content cross-fades over 150 ms. Keyed by
+                      // the content branch, not by every field, so a fare or an
+                      // address updating within a stage never animates. The
+                      // meter and the action bar sit outside it; the outgoing
+                      // content ignores taps during the fade.
+                      child: TCrossFade(
+                        stateKey: _contentBranch,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: _stageContent(context),
+                        ),
                       ),
                     ),
                   ),
+                ],
+                const SizedBox(height: Insets.s16),
+                TripActionBar(
+                  primaryLabel: _primaryLabel,
+                  onPrimary: widget.onTap,
+                  isLoading: widget.isLoading,
+                  // DD-12: Start ride is the one trip action in the success
+                  // colour; Drop off is primary, and never red.
+                  primaryVariant: widget.processType == 3
+                      ? TButtonVariant.success
+                      : TButtonVariant.primary,
+                  showCancel: _canCancel,
+                  cancelLabel: "DECLINE".tr(),
+                  onCancel: _confirmCancel,
+                  countdownSeconds: widget.processType == 1
+                      ? widget.requestTimeoutSeconds
+                      : null,
                 ),
               ],
-              const SizedBox(height: Insets.s16),
-              TripActionBar(
-                primaryLabel: _primaryLabel,
-                onPrimary: widget.onTap,
-                isLoading: widget.isLoading,
-                // DD-12: Start ride is the one trip action in the success
-                // colour; Drop off is primary, and never red.
-                primaryVariant: widget.processType == 3
-                    ? TButtonVariant.success
-                    : TButtonVariant.primary,
-                showCancel: _canCancel,
-                cancelLabel: "CANCEL_REQUEST".tr(),
-                onCancel: _confirmCancel,
-              ),
-            ],
+            ),
           ),
         ),
       ),
     );
+  }
+}
+
+/// Splits a reverse-geocoded address at its first comma: the place, then
+/// the area — "Central Market, Daun Penh, Phnom Penh" reads as
+/// "Central Market" over "Daun Penh, Phnom Penh". An address with no comma
+/// is all place.
+(String, String?) splitAddress(String address) {
+  final int comma = address.indexOf(',');
+  if (comma <= 0) return (address.trim(), null);
+  final String area = address.substring(comma + 1).trim();
+  return (address.substring(0, comma).trim(), area.isEmpty ? null : area);
+}
+
+/// The request's headline (`DD-35`): the stage, the time and distance to the
+/// pickup, and who is waiting there.
+class _RequestSummary extends StatelessWidget {
+  const _RequestSummary({
+    required this.eta,
+    required this.distance,
+    required this.loading,
+    required this.passengerName,
+    required this.passengerImage,
+  });
+
+  final String? eta;
+  final String? distance;
+  final bool loading;
+  final String passengerName;
+  final String passengerImage;
+
+  @override
+  Widget build(BuildContext context) {
+    final TaarraaColors c = context.colors;
+
+    Widget bar(double width, double height) => Container(
+          width: width,
+          height: height,
+          decoration: BoxDecoration(
+            color: c.bgSunken,
+            borderRadius: BorderRadius.circular(Radii.sm),
+          ),
+        );
+
+    return Row(
+      children: <Widget>[
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  TPulseDot(color: c.stageRequestText, size: 8),
+                  const SizedBox(width: Insets.s8),
+                  Flexible(
+                    child: Text(
+                      "STAGE_NEW_REQUEST".tr(),
+                      style: context.texts.caption.copyWith(
+                        color: c.stageRequestText,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: Insets.s4),
+              if (loading) ...<Widget>[
+                bar(96, 26),
+                const SizedBox(height: Insets.s4),
+                bar(140, 14),
+              ] else if (eta != null) ...<Widget>[
+                Text(
+                  eta!,
+                  style: context.texts.numericLg.copyWith(
+                    color: c.textPrimary,
+                  ),
+                ),
+                if (distance != null)
+                  Text(
+                    "TO_PICKUP".tr(args: <String>[distance!]),
+                    style: context.texts.bodySecondary.copyWith(
+                      color: c.textSecondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(width: Insets.s12),
+        SizedBox(
+          width: 80,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              TAvatar(name: passengerName, imageUrl: passengerImage, size: 40),
+              const SizedBox(height: Insets.s4),
+              Text(
+                passengerName,
+                style: context.texts.caption.copyWith(color: c.textSecondary),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// One labelled figure on the request sheet: the trip distance, the fare.
+class _FigureTile extends StatelessWidget {
+  const _FigureTile({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final TaarraaColors c = context.colors;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: Insets.s12,
+        vertical: Insets.s8,
+      ),
+      decoration: BoxDecoration(
+        color: c.bgPage,
+        borderRadius: Radii.controlRadius,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Text(
+            label,
+            style: context.texts.micro.copyWith(color: c.textSecondary),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: context.texts.bodyStrong.copyWith(color: c.textPrimary),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Reports its child's laid-out height after the frame, only when it changes.
+class _MeasureHeight extends SingleChildRenderObjectWidget {
+  const _MeasureHeight({required this.onChange, required super.child});
+
+  final ValueChanged<double>? onChange;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderMeasureHeight(onChange);
+
+  @override
+  void updateRenderObject(
+      BuildContext context, _RenderMeasureHeight renderObject) {
+    renderObject.onChange = onChange;
+  }
+}
+
+class _RenderMeasureHeight extends RenderProxyBox {
+  _RenderMeasureHeight(this.onChange);
+
+  ValueChanged<double>? onChange;
+  double? _reported;
+
+  @override
+  void performLayout() {
+    super.performLayout();
+    final double height = size.height;
+    if (onChange == null || height == _reported) return;
+    _reported = height;
+    WidgetsBinding.instance.addPostFrameCallback((_) => onChange?.call(height));
   }
 }

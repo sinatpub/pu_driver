@@ -142,6 +142,11 @@
     "ACTION_START_RIDE": "Start ride",
     "ACTION_DROP_OFF": "Drop off",
     "CANCEL_REQUEST": "Cancel request",
+    "DECLINE": "Decline",
+    "TRIP": "Trip",
+    "TO_PICKUP": "{} to pickup",
+    "UNIT_MIN": "{} min",
+    "UNIT_SECONDS_SHORT": "{}s",
     "CANCEL_REQUEST_TITLE": "Cancel request?",
     "CANCEL_REQUEST_MSG": "The passenger is waiting. Cancel this request?",
     "YES_CANCEL": "Yes, cancel",
@@ -179,5 +184,11 @@
     "TERM_2": "The company and its member drivers cannot be held responsible for any actual or consequential financial or professional loss due to the late or non-arrival of any rickshaw or cab.",
     "TERM_3": "The company cannot be held responsible for losses consequential from missed connections due to adverse weather or any other events.",
     "TERM_4": "The company and its member drivers reserve the right to refuse to carry passengers who are deeply under the influence of alcohol or drugs.",
-    "TERM_5": "All bookings accepted by the company will be bound by these terms and conditions."
+    "TERM_5": "All bookings accepted by the company will be bound by these terms and conditions.",
+    "ERROR_SOMETHING_WRONG": "Something went wrong. Please try again.",
+    "ERROR_CONNECTION": "Connection error. Please check your internet connection.",
+    "ERROR_UNEXPECTED": "Unexpected error occurred.",
+    "ERROR_SERVER_UNAVAILABLE": "Server is currently unavailable. Please try again later.",
+    "APP_NAME": "PU TAXI",
+    "DRIVER_ROLE": "DRIVER"
 }

@@ -20,12 +20,29 @@ import 'package:tara_driver_application/routes/app_routes.dart';
 /// Known and unchanged: the countdown starts when this widget mounts rather
 /// than when the server issued the request, and it keeps running while an
 /// Accept is in flight (B3).
+///
+/// DD-35: [builder] lets the same timer render somewhere else — the request
+/// sheet draws it inside the Accept button. Only the visual moves; the timer
+/// and the expiry navigation above are the same code either way.
 class SmoothCircularCountdown extends StatefulWidget {
   final int countDuration;
   final bool isPop;
 
+  /// Replaces the default floating ring pill. Called on every animation
+  /// frame with the fraction of time left (1 → 0), the whole seconds left,
+  /// and whether the last ten seconds have started.
+  final Widget Function(
+    BuildContext context,
+    double fractionLeft,
+    int secondsLeft,
+    bool isUrgent,
+  )? builder;
+
   const SmoothCircularCountdown(
-      {super.key, required this.countDuration, required this.isPop});
+      {super.key,
+      required this.countDuration,
+      required this.isPop,
+      this.builder});
 
   @override
   // ignore: library_private_types_in_public_api
@@ -77,6 +94,18 @@ class _SmoothCircularCountdownState extends State<SmoothCircularCountdown>
   @override
   Widget build(BuildContext context) {
     final TaarraaColors c = context.colors;
+
+    if (widget.builder != null) {
+      return AnimatedBuilder(
+        animation: _controller,
+        builder: (BuildContext context, Widget? child) => widget.builder!(
+          context,
+          _controller.value,
+          _secondsLeft,
+          _isUrgent,
+        ),
+      );
+    }
 
     return Center(
       child: AnimatedBuilder(

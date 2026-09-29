@@ -204,7 +204,7 @@ Widget _shellAppBar() {
                     .copyWith(color: c.textPrimary, letterSpacing: 1.5),
               ),
               Text(
-                'DRIVER · តារា',
+                'DRIVER',
                 style: context.texts.micro
                     .copyWith(color: c.brandText, letterSpacing: 1),
               ),

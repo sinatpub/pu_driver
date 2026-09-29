@@ -8,17 +8,17 @@ Follow the maintenance rule: read this file before starting any work, update tas
 
 ## Current Status
 
-Overall Progress: 8 / 21 tasks DONE (S1–S5, P1, P3, Q1); P2 implemented but BLOCKED on native Khmer review; 8 code-complete in `[Q]` (F1–C6) awaiting re-review
-Overall Status: PAUSED after Phase 5 (2026-09-14)
+Overall Progress: 8 / 21 tasks DONE (S1–S5, P1, P3, Q1); P2 implemented but BLOCKED on native Khmer review; 8 code-complete in `[Q]` (F1–C6) awaiting re-review. Q3 measured in-test (reactive rebuild/marker-churn capture); the on-device halves of Q3 (frame times vs 16 ms, real-pan raster cost) recorded as carry-over.
+Overall Status: PAUSED after Phase 5 (2026-09-15)
 
 Current Phase:
 Phase 5 — QA
 
 Current Task:
-none — paused after Q1
+Q3 — Performance review: reactive measurement DONE in-test; frame-times/memory half carried to a device
 
 Next Implementation Task:
-Q2 — Functional regression (device + live backend); Q3 — Performance review
+Q2 — Functional regression (device + live backend); Q3 — repeat the harness on a device for frame times and memory
 
 Verification standard (adopted 2026-09-14, per `docs/implementation_rule.md` and the user's execution brief):
 a task is `[x]` when (1) `dart analyze` is clean for every file it touched, (2) the **full** test suite passes, (3) a debug APK builds, and (4) its UI has been reviewed against `03`/`04` and the prototype — rendered at 390 px and 320 px, EN and KM, with the app's real fonts. Checks that genuinely need a device, a live backend or the G0 oracle (FCM taps, dialer/mail launch, paging against the API, socket emits) are recorded per task and carried by **Q2 — Functional regression**; pixel checks on a device by **Q1**.
@@ -26,7 +26,7 @@ a task is `[x]` when (1) `dart analyze` is clean for every file it touched, (2) 
 How verification runs on this Mac (the old "no test runner" blocker is resolved):
 - The project's pinned 3.38.9 is not installed and `~/FileInstaller/flutter` (3.38.1) has no `flutter_tester`; fvm's **3.44.1** has it.
 - To avoid touching `pubspec.lock`/`.dart_tool` in the working tree, tests and builds run in a scratchpad mirror: `rsync` the repo (minus `build`, `.dart_tool`, `.git`), `~/fvm/versions/3.44.1/bin/flutter pub get --offline`, then `flutter test --no-pub` and `flutter build apk --debug --no-pub -t lib/main.dart`.
-- The IntelliJ run configs still pass `--flavor dev`, but `android/app/build.gradle.kts` defines no flavors — build without `--flavor`.
+- The IntelliJ run configs in `.run/` no longer pass `--flavor`: the project has no flavors (one `lib/main.dart`, one `google-services.json`, one iOS scheme), so every build runs the plain `assembleDebug`/`assembleRelease` path. They now carry `--dart-define-from-file=dart_defines.json`.
 
 Blockers:
 - **G0 baseline not recorded** (`[!]`): no device video and no `tlog` socket-emit oracle. Recording it needs the pre-redesign build, a live backend and a real login (OTP) — a person, not this environment. It is the regression reference for C3–C6 and Q2.
@@ -44,7 +44,7 @@ Blockers:
 | Phase 2 — Core Driver Experience (C1–C6) | 0 | 6 | QA (code complete) |
 | Phase 3 — Supporting Screens (S1–S5) | 5 | 5 | DONE |
 | Phase 4 — Polish (P1–P3) | 2 | 3 | P2 BLOCKED (review) |
-| Phase 5 — QA (Q1–Q3) | 1 | 3 | Q1 DONE; Q2/Q3 TODO |
+| Phase 5 — QA (Q1–Q3) | 1 | 3 | Q1 DONE; Q2 TODO; Q3 reactive capture DONE in-test, device halves carried |
 | **Total** | **7** | **21** | PAUSED |
 
 "Done" means implementation **and** verification passed (see Verification standard above; device-visual and behaviour-vs-baseline checks are carried by Q1/Q2). S1–S5, P1 and P3 are DONE to the verification standard above. F1–C6 are `[Q]`: their tests now pass, but they have not had the rendered UI review.
@@ -92,7 +92,7 @@ Checkbox legend (per `docs/implementation_rule.md`): `- [ ]` TODO · `- [>]` IN 
 
 - [x] Q1 — Visual QA against the prototype
 - [ ] Q2 — Functional regression
-- [ ] Q3 — Performance review
+- [x] Q3 — Performance review (reactive measurement) — `test/qa/performance_review_test.dart` + `docs/qa/q3/`; on-device frame times/memory carried
 
 ---
 
@@ -725,7 +725,6 @@ Recorded while executing S1–P3; none is in a task's scope. Each needs an owner
 - **Legacy `core/api_service` error constants** are English; not shown on redesigned screens today.
 - **`HistoryLogic.switchTab` during an in-flight fetch** can append the previous tab's page (the paging base's `_isFetching` guard drops the new fetch). Pre-existing.
 - **`PaginatedController` screens duplicate their empty/error/skeleton switch** (history, announcements) — a shared paged-list view would remove it.
-- **IntelliJ run configs pass `--flavor dev`** but the Gradle file defines no flavors.
 - **Pinned Flutter 3.38.9 is not installed** (`.fvmrc`), and `~/FileInstaller/flutter` has no `flutter_tester` — tests/builds currently run on fvm 3.44.1 in a mirror.
 - **Unused locale keys** left by the redesign (e.g. `NEW_RIDE_REQUEST`, `CANCEL_BOOK`, `PASSENGER_LOCATION`, `DROP`, `TITLE`, `CREATED_DATE`, `METHOD`, `TOTAL_PRICE`, `IN_PROCESS_BOOKING`) — removable once nothing external reads them.
 - **`state.bankSelected` / `WalletLogic.selectBank`** have no view callers since S2 removed the dead top-up UI.

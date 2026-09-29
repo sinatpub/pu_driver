@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:tara_driver_application/app/alert_widget.dart';
+import 'package:tara_driver_application/mock/mock_backend.dart';
+import 'package:tara_driver_application/mock/mock_mode.dart';
 import 'package:tara_driver_application/routes/app_routes.dart';
 import 'package:tara_driver_application/core/utils/pretty_logger.dart';
 import 'package:tara_driver_application/presentation/screens/booking/data/new_ride_payload_parser.dart';
@@ -83,6 +87,10 @@ abstract class BaseSocketService {
   /// A null socket is still unrecoverable — there is nothing to buffer into —
   /// so that case keeps its log line and stays the only real failure.
   void emitEvent(String event, dynamic data) {
+    if (MockMode.isActive) {
+      tlog('[QA mock] socket emit (not sent): $event, data: $data');
+      return;
+    }
     final socket = _socket;
     if (socket == null) {
       tlog('Failed to emit event: $event, socket was never created.');
@@ -123,9 +131,25 @@ class DriverSocketService extends BaseSocketService {
     emitEvent(SocketEvent.registerDriver.name, driverId);
   }
 
+  /// QA mock mode: server pushes come from [MockBackend] instead of a
+  /// Socket.IO connection, into the same handlers. Attached once, with the
+  /// first caller's context — as the real listeners are, since a second
+  /// `connectToSocket` on a live socket returns early below.
+  StreamSubscription<MockSocketEvent>? _mockEvents;
+
   @override
   void connectToSocket(String url, String id, String role,
       {required BuildContext context}) {
+    if (MockMode.isActive) {
+      _mockEvents ??= MockBackend.instance.socketEvents.listen((event) {
+        if (event.name == SocketEvent.newRide.name) {
+          _onNewRide(event.data);
+        } else if (event.name == SocketEvent.onPassengerCancelDrive.name) {
+          _onPassengerCancelDrive(context, event.data);
+        }
+      });
+      return;
+    }
     if (_socket != null && _socket!.connected) {
       tlog("Socket already connected, skipping new connection.");
       return;
@@ -148,39 +172,43 @@ class DriverSocketService extends BaseSocketService {
 
   // * Listener
   void newRide() {
-    _socket?.on(SocketEvent.newRide.name, (data) async {
-      tlog("New ride data: $data");
+    _socket?.on(SocketEvent.newRide.name, _onNewRide);
+  }
 
-      try {
-        final args = parseNewRideArgs(Map<String, dynamic>.from(data as Map));
-        Get.toNamed(AppRoutes.booking, arguments: args);
-      } catch (e) {
-        tlog("Failed to show new ride request: $e — raw data: $data");
-      }
+  void _onNewRide(dynamic data) {
+    tlog("New ride data: $data");
 
-      // Fires unconditionally — a malformed/partial payload still means a
-      // ride request arrived, and the driver silently never finding out
-      // was the actual defect here (docs/08 L-10), not the parse failure
-      // itself.
-      Taxi.shared.notifyBooking(
-          title: "NEWREQUEST".tr(),
-          description: "DESREQUEST".tr(),
-          isSound: true);
-    });
+    try {
+      final args = parseNewRideArgs(Map<String, dynamic>.from(data as Map));
+      Get.toNamed(AppRoutes.booking, arguments: args);
+    } catch (e) {
+      tlog("Failed to show new ride request: $e — raw data: $data");
+    }
+
+    // Fires unconditionally — a malformed/partial payload still means a
+    // ride request arrived, and the driver silently never finding out
+    // was the actual defect here (docs/08 L-10), not the parse failure
+    // itself.
+    Taxi.shared.notifyBooking(
+        title: "NEWREQUEST".tr(),
+        description: "DESREQUEST".tr(),
+        isSound: true);
   }
 
   void cancelDrive(BuildContext context) {
     _socket?.on(
       SocketEvent.onPassengerCancelDrive.name,
-      (data) {
-        tlog("On cancel: $data");
-        try {
-          AlertWidget().cancelBooking(context);
-        } catch (e) {
-          tlog("On cancel: $e");
-        }
-      },
+      (data) => _onPassengerCancelDrive(context, data),
     );
+  }
+
+  void _onPassengerCancelDrive(BuildContext context, dynamic data) {
+    tlog("On cancel: $data");
+    try {
+      AlertWidget().cancelBooking(context);
+    } catch (e) {
+      tlog("On cancel: $e");
+    }
   }
 
   void arrivedSocket(

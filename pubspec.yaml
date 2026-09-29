@@ -89,6 +89,32 @@ dev_dependencies:
 
 
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.6
+
+
+# Native launch screen: same logo and background as the launcher icon, so the
+# OS splash, the Flutter splash and the home-screen icon read as one mark.
+# Regenerate with `dart run flutter_native_splash:create`.
+flutter_native_splash:
+  color: "#2B3647"
+  image: "assets/launcher/adaptive_foreground_driver_1024.png"
+  android_12:
+    color: "#2B3647"
+    image: "assets/launcher/adaptive_foreground_driver_1024.png"
+    icon_background_color: "#2B3647"
+  fullscreen: false
+
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/launcher/launcher_driver_1024.png"
+  adaptive_icon_background: "#2B3647"
+  adaptive_icon_foreground: "assets/launcher/adaptive_foreground_driver_1024.png"
+  min_sdk_android: 21
+  background_color_ios: "#2B3647"
+  remove_alpha_ios: true
 
 
 flutter:
@@ -112,6 +138,7 @@ flutter:
     - assets/icon/svg/
     - assets/icon/ds/
     - assets/icon/png/
+    - assets/launcher/
     - assets/nav_icon/
     - assets/translations/km.json
     - assets/translations/en.json

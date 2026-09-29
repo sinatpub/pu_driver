@@ -1,7 +1,8 @@
 import 'package:tara_driver_application/routes/app_pages.dart';
 import 'package:tara_driver_application/routes/app_routes.dart';
 import 'package:tara_driver_application/core/theme/app_theme.dart';
-import 'package:tara_driver_application/core/utils/app_constant.dart';
+import 'package:tara_driver_application/mock/mock_dev_panel.dart';
+import 'package:tara_driver_application/mock/mock_mode.dart';
 import 'package:tara_driver_application/services/navigation_service.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -48,7 +49,11 @@ class Root extends StatelessWidget {
               textScaler: MediaQuery.textScalerOf(context)
                   .clamp(minScaleFactor: 1.0, maxScaleFactor: 1.3),
             ),
-            child: easyLoading,
+            // QA mock build only: a "MOCK" tab over every screen, opening
+            // the developer controls. Never present in a release build.
+            child: MockMode.isActive
+                ? MockModeOverlay(child: easyLoading)
+                : easyLoading,
           );
         },
         debugShowCheckedModeBanner: false,
@@ -56,7 +61,7 @@ class Root extends StatelessWidget {
         supportedLocales: context.supportedLocales,
         navigatorKey: NavigationService().navigatorKey,
         locale: context.locale,
-        title: AppConstant.titleApp,
+        title: 'PU Taxi Driver',
         // The Khmer line heights are taller (`02 §2`), so the theme is built
         // from the active locale and rebuilds when the driver switches
         // language.

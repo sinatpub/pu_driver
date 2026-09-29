@@ -217,7 +217,9 @@ void main() {
       (WidgetTester t) async {
     await t.pumpWidget(localizedHost(const SplashMark()));
     await t.pumpAndSettle();
-    expect(find.text('TARA DRIVER'), findsOneWidget);
+    expect(find.text('PU TAXI'), findsOneWidget);
+    expect(find.text('ពូ តាក់ស៊ី'), findsOneWidget);
+    expect(find.text('Driver · អ្នកបើកបរ'), findsOneWidget);
     expect(find.textContaining('Skip'), findsNothing);
   });
 }

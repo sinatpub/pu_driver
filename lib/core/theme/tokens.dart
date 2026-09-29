@@ -363,6 +363,20 @@ class TaarraaColors {
   );
 }
 
+/// Re-weights a type-scale style.
+///
+/// Kantumruy Pro is a variable font, and every style pins its `wght` axis in
+/// [TextStyle.fontVariations]; `copyWith(fontWeight: ...)` alone leaves that
+/// axis at the old value, so the glyphs don't change. This sets both.
+extension TextStyleWeight on TextStyle {
+  TextStyle withWeight(FontWeight weight) => copyWith(
+        fontWeight: weight,
+        fontVariations: <FontVariation>[
+          FontVariation('wght', weight.value.toDouble()),
+        ],
+      );
+}
+
 /// The type scale (`02 §2`).
 ///
 /// Khmer stacks diacritics above and below the baseline, so every style has a

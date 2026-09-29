@@ -9,9 +9,11 @@ class NotificationLocal {
   static bool _isRequestingPermission = false;
   static final notifications = FlutterLocalNotificationsPlugin();
   static const AndroidNotificationChannel channel = AndroidNotificationChannel(
-    '${AppConstant.titleApp}_notification_v2',
-    '${AppConstant.titleApp} Driver',
-    description: 'Channel for ${AppConstant.titleApp} notifications',
+    // Channel id is persisted by Android per install; keep it stable across
+    // the rename so existing drivers keep their sound and importance settings.
+    'TAARRAA_notification_v2',
+    'PU Taxi Driver',
+    description: 'Channel for PU Taxi Driver notifications',
     importance: Importance.max,
     sound: RawResourceAndroidNotificationSound('booking_sound'),
   );

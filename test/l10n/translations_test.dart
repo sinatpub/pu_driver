@@ -69,9 +69,11 @@ void main() {
     }
     // Not copy: a language name is shown in its own language; Smart and
     // Cellcard are carrier brand names in front of a phone number; the plate
-    // hint is a format placeholder.
+    // hint is a format placeholder; the splash role pill is bilingual by
+    // design, shown the same in both languages like the brand name above it.
     const List<String> allowed = <String>[
       '"English"',
+      '"Driver · អ្នកបើកបរ"',
       r'"Smart: ${state.smartPhone}"',
       r'"Cellcard: ${state.cellcardPhone}"',
       '"xxx-xxxx"',

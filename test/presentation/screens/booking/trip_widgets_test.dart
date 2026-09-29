@@ -4,6 +4,7 @@ import 'package:tara_driver_application/core/theme/app_theme.dart';
 import 'package:tara_driver_application/core/theme/tokens.dart';
 import 'package:tara_driver_application/presentation/screens/booking/domain/trip_state_machine.dart';
 import 'package:tara_driver_application/presentation/screens/booking/widgets/passenger_row.dart';
+import 'package:tara_driver_application/presentation/screens/booking/widgets/ride_request_bottom_pop_widget.dart';
 import 'package:tara_driver_application/presentation/screens/booking/widgets/show_distand_and_price_widget.dart';
 import 'package:tara_driver_application/presentation/screens/booking/widgets/trip_action_bar.dart';
 import 'package:tara_driver_application/presentation/screens/booking/widgets/trip_header.dart';
@@ -207,6 +208,104 @@ void main() {
       // instead (`t_button.dart::_styleFor`).
       expect(decoration.color, TaarraaColors.light.success);
       expect(decoration.gradient, isNull);
+    });
+  });
+
+  group('TripActionBar on a request (DD-35)', () {
+    Widget timedBar({required VoidCallback onAccept, bool isLoading = false}) =>
+        localizedHost(
+          TripActionBar(
+            primaryLabel: 'Accept',
+            onPrimary: onAccept,
+            isLoading: isLoading,
+            showCancel: true,
+            cancelLabel: 'Decline',
+            onCancel: () {},
+            countdownSeconds: 30,
+            countdownExpiresToHome: false,
+          ),
+        );
+
+    testWidgets('carries the decision timer inside Accept',
+        (WidgetTester t) async {
+      int accepted = 0;
+      await t.pumpWidget(timedBar(onAccept: () => accepted++));
+      // Short pumps, not pumpAndSettle: the timer animates until it expires.
+      await t.pump(const Duration(milliseconds: 300));
+      await t.pump(const Duration(milliseconds: 300));
+
+      // The ticker starts on the frame after mount, so 0.3 s has elapsed.
+      expect(find.text('29s'), findsOneWidget);
+      await t.pump(const Duration(seconds: 5));
+      expect(find.text('24s'), findsOneWidget);
+
+      // The timer's overlay takes no taps; Accept still does.
+      await t.tap(find.text('Accept'));
+      expect(accepted, 1);
+    });
+
+    testWidgets('accepting swaps to a plain primary cleanly',
+        (WidgetTester t) async {
+      // One host for both stages, so the element tree is kept across the
+      // swap — as the sheet keeps it when the stage changes under Obx.
+      final ValueNotifier<bool> accepted = ValueNotifier<bool>(false);
+      await t.pumpWidget(
+        localizedHost(
+          ValueListenableBuilder<bool>(
+            valueListenable: accepted,
+            builder: (BuildContext context, bool isAccepted, _) =>
+                TripActionBar(
+              primaryLabel: isAccepted ? "I've arrived" : 'Accept',
+              onPrimary: () {},
+              isLoading: false,
+              showCancel: !isAccepted,
+              cancelLabel: 'Decline',
+              onCancel: () {},
+              countdownSeconds: isAccepted ? null : 30,
+              countdownExpiresToHome: false,
+            ),
+          ),
+        ),
+      );
+      await t.pump(const Duration(milliseconds: 300));
+      await t.pump(const Duration(milliseconds: 300));
+      expect(find.text('Accept'), findsOneWidget);
+
+      // The next stage: no timer, no Decline. Decline's element must not be
+      // reused for the primary — the tween between the two throws.
+      accepted.value = true;
+      await t.pump();
+      // Mid-tween: a reused element would interpolate here and throw.
+      await t.pump(const Duration(milliseconds: 50));
+      await t.pump(const Duration(milliseconds: 300));
+
+      expect(t.takeException(), isNull);
+      expect(find.text("I've arrived"), findsOneWidget);
+      expect(find.text('Decline'), findsNothing);
+    });
+
+    testWidgets('hides the seconds while Accept is in flight',
+        (WidgetTester t) async {
+      await t.pumpWidget(timedBar(onAccept: () {}, isLoading: true));
+      await t.pump(const Duration(milliseconds: 300));
+      await t.pump(const Duration(milliseconds: 300));
+
+      expect(find.textContaining(RegExp(r'^\d+s$')), findsNothing);
+    });
+  });
+
+  group('splitAddress', () {
+    test('puts the place over the area', () {
+      expect(
+        splitAddress('Central Market, Daun Penh, Phnom Penh'),
+        ('Central Market', 'Daun Penh, Phnom Penh'),
+      );
+    });
+
+    test('keeps an address with no comma whole', () {
+      expect(splitAddress('Independence Monument'),
+          ('Independence Monument', null));
+      expect(splitAddress(''), ('', null));
     });
   });
 

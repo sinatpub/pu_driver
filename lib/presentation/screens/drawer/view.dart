@@ -17,7 +17,6 @@ import 'package:tara_driver_application/routes/app_routes.dart';
 
 import 'logic.dart';
 import 'state.dart';
-import 'package:tara_driver_application/core/utils/app_constant.dart';
 
 /// The app shell. Tab bodies are full screen units in their own right; their
 /// bindings hang off this screen's route (`14` §6.2).
@@ -32,7 +31,7 @@ class DrawerScreen extends StatelessWidget {
   static String _title(DrawerTab tab) {
     switch (tab) {
       case DrawerTab.home:
-        return AppConstant.titleApp;
+        return "APP_NAME".tr();
       case DrawerTab.history:
         return "RIDING_HISTORY".tr();
       case DrawerTab.wallet:
@@ -157,24 +156,26 @@ class _AppBarTitle extends StatelessWidget {
       );
     }
 
+    // Letter-spacing splits Khmer consonant stacks, so the wordmark's
+    // tracking applies to Latin script only.
+    final bool isKhmer = context.locale.languageCode == 'km';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         Text(
-          AppConstant.titleApp,
+          'APP_NAME'.tr(),
           style: context.texts.subtitle.copyWith(
             color: c.textPrimary,
-            letterSpacing: 1.5,
+            letterSpacing: isKhmer ? null : 1.5,
           ),
         ),
         Text(
-          // Identical in both languages in the prototype's dictionary, so it
-          // carries no translation key.
-          'DRIVER · តារា',
+          'DRIVER_ROLE'.tr(),
           style: context.texts.micro.copyWith(
             color: c.brandText,
-            letterSpacing: 1,
+            letterSpacing: isKhmer ? null : 1,
           ),
         ),
       ],

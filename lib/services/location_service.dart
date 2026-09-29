@@ -3,6 +3,45 @@ import 'dart:async';
 import 'package:geolocator/geolocator.dart';
 import 'package:tara_driver_application/data/datasources/update_driver_location_api.dart';
 
+/// Where positions come from. [GeolocatorPositionSource] in every normal
+/// build; the QA mock build swaps in a simulated one (`lib/mock/`).
+abstract class PositionSource {
+  Future<bool> requestPermission();
+  Future<Position?> getCurrentPosition();
+  Stream<Position> positionStream();
+}
+
+class GeolocatorPositionSource implements PositionSource {
+  const GeolocatorPositionSource();
+
+  @override
+  Future<bool> requestPermission() async {
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+    return permission == LocationPermission.always ||
+        permission == LocationPermission.whileInUse;
+  }
+
+  @override
+  Future<Position?> getCurrentPosition() async {
+    return await Geolocator.getLastKnownPosition() ??
+        await Geolocator.getCurrentPosition(
+          timeLimit: const Duration(seconds: 15),
+          desiredAccuracy: LocationAccuracy.best,
+        );
+  }
+
+  @override
+  Stream<Position> positionStream() => Geolocator.getPositionStream(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.best,
+          distanceFilter: 10,
+        ),
+      );
+}
+
 /// The single owner of the app's live GPS subscription (F-05, docs/12).
 ///
 /// Previously `HomeScreen`, `BookingScreen`, `LocationBloc` and the
@@ -16,6 +55,9 @@ class LocationService {
 
   static final LocationService instance = LocationService._();
 
+  /// Replaced by `MockMode.init` in a QA mock build.
+  PositionSource source = const GeolocatorPositionSource();
+
   final UpdateDriverLocation _updateLocationRepo = UpdateDriverLocation();
   final StreamController<Position> _controller =
       StreamController<Position>.broadcast();
@@ -27,22 +69,9 @@ class LocationService {
   /// that needs it; repeat calls are no-ops).
   Stream<Position> get positionStream => _controller.stream;
 
-  Future<bool> requestPermission() async {
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-    return permission == LocationPermission.always ||
-        permission == LocationPermission.whileInUse;
-  }
+  Future<bool> requestPermission() => source.requestPermission();
 
-  Future<Position?> getCurrentPosition() async {
-    return await Geolocator.getLastKnownPosition() ??
-        await Geolocator.getCurrentPosition(
-          timeLimit: const Duration(seconds: 15),
-          desiredAccuracy: LocationAccuracy.best,
-        );
-  }
+  Future<Position?> getCurrentPosition() => source.getCurrentPosition();
 
   /// One-shot fetch that also reports to the server and emits on
   /// [positionStream], for screens that need a location before the live
@@ -58,12 +87,7 @@ class LocationService {
   /// Opens the single live GPS subscription if one isn't already running.
   void start() {
     if (_subscription != null) return;
-    _subscription = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.best,
-        distanceFilter: 10,
-      ),
-    ).listen(_emit);
+    _subscription = source.positionStream().listen(_emit);
   }
 
   void stop() {

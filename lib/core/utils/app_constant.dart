@@ -7,7 +7,7 @@ class AppConstant {
   static const String khmerCode = "km";
   static const String englishCode = 'en';
 
-  static const String titleApp = 'TAARRAA';
+  static const String titleApp = 'PU TAXI';
 
   // F-07: these now delegate to AppConfig, which owns every environment
   // value. Kept as AppConstant members so existing call sites are

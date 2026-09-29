@@ -14,7 +14,7 @@ import 'state.dart';
 ///
 /// Language control inline at the top right, the existing headline and
 /// description, a `TTextField.phone` with the inline error, and a 56 px Next
-/// pinned above the keyboard. Submitting shows a spinner in the button and
+/// directly under the field. Submitting shows a spinner in the button and
 /// disables the field instead of covering the screen.
 ///
 /// **Validation is untouched** — it lives in [LoginLogic.validate]: empty
@@ -65,9 +65,9 @@ class LoginPage extends StatelessWidget {
                       const SizedBox(height: 40),
                       Text(
                         'LOGINTITLE'.tr(),
-                        style: context.texts.headline.copyWith(
-                          color: c.textPrimary,
-                        ),
+                        style: context.texts.headline
+                            .withWeight(FontWeights.semiBold)
+                            .copyWith(color: c.textPrimary),
                       ),
                       const SizedBox(height: Insets.s8),
                       Text(
@@ -96,21 +96,19 @@ class LoginPage extends StatelessWidget {
                           }
                         },
                       ),
+                      // Next sits right under the field it submits, not
+                      // pinned to the bottom of the screen: with the keyboard
+                      // closed that left a screen-high gap between the number
+                      // and the only way forward.
+                      const SizedBox(height: Insets.s24),
+                      TButton(
+                        label: 'NEXT'.tr(),
+                        loading: isLoading,
+                        onPressed: () =>
+                            logic.submit(logic.phoneController.text),
+                      ),
                     ],
                   ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  Insets.screen,
-                  Insets.s8,
-                  Insets.screen,
-                  Insets.s16,
-                ),
-                child: TButton(
-                  label: 'NEXT'.tr(),
-                  loading: isLoading,
-                  onPressed: () => logic.submit(logic.phoneController.text),
                 ),
               ),
             ],
