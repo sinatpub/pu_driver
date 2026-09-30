@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:tara_driver_application/core/helper/address_parts.dart';
 import 'package:tara_driver_application/core/theme/app_theme.dart';
 import 'package:tara_driver_application/core/theme/tokens.dart';
 import 'package:tara_driver_application/presentation/screens/booking/domain/trip_state_machine.dart';
 import 'package:tara_driver_application/presentation/screens/booking/widgets/passenger_row.dart';
-import 'package:tara_driver_application/presentation/screens/booking/widgets/ride_request_bottom_pop_widget.dart';
 import 'package:tara_driver_application/presentation/screens/booking/widgets/show_distand_and_price_widget.dart';
 import 'package:tara_driver_application/presentation/screens/booking/widgets/trip_action_bar.dart';
 import 'package:tara_driver_application/presentation/screens/booking/widgets/trip_header.dart';
@@ -82,7 +82,68 @@ void main() {
     });
   });
 
+  group('TripProgressBar at pickup (DD-37)', () {
+    testWidgets('two steps done, the third current', (WidgetTester t) async {
+      const Color current = Color(0xFF1A579E);
+      await t.pumpWidget(
+        localizedHost(
+          const TripProgressBar(processType: 3, currentColor: current),
+        ),
+      );
+      await t.pumpAndSettle();
+
+      expect(find.bySemanticsLabel('Step 3 of 4'), findsOneWidget);
+    });
+  });
+
+  group('TripProgressBar (DD-36)', () {
+    Color segment(WidgetTester t, int i) => (t
+            .widgetList<Container>(find.descendant(
+              of: find.byType(TripProgressBar),
+              matching: find.byType(Container),
+            ))
+            .elementAt(i)
+            .decoration! as BoxDecoration)
+        .color!;
+
+    testWidgets('going to pickup: one step done, the second current',
+        (WidgetTester t) async {
+      const Color current = Color(0xFF1A579E);
+      await t.pumpWidget(
+        localizedHost(
+          const TripProgressBar(processType: 2, currentColor: current),
+        ),
+      );
+      await t.pumpAndSettle();
+
+      expect(segment(t, 0), TaarraaColors.light.success);
+      expect(segment(t, 1), current);
+      expect(segment(t, 2), TaarraaColors.light.borderDivider);
+      expect(segment(t, 3), TaarraaColors.light.borderDivider);
+      expect(find.bySemanticsLabel('Step 2 of 4'), findsOneWidget);
+    });
+  });
+
   group('PassengerRow', () {
+    testWidgets('dense: a 32 px avatar and the call button, no phone line',
+        (WidgetTester t) async {
+      await t.pumpWidget(
+        _host(
+          PassengerRow(
+            name: 'Mey Lin',
+            phone: '012345678',
+            callSemanticLabel: 'Phone Number',
+            onCall: () {},
+            dense: true,
+          ),
+        ),
+      );
+
+      expect(t.widget<TAvatar>(find.byType(TAvatar)).size, 32);
+      expect(find.byType(TIconButton), findsOneWidget);
+      expect(find.textContaining('012345678'), findsNothing);
+    });
+
     testWidgets('shows who to collect and offers a call',
         (WidgetTester t) async {
       int calls = 0;
@@ -294,6 +355,131 @@ void main() {
     });
   });
 
+  group('Drop off is hold-to-confirm (DD-38)', () {
+    Widget holdBar({required VoidCallback onDrop, bool isLoading = false}) =>
+        localizedHost(
+          TripActionBar(
+            primaryLabel: 'Hold to drop off',
+            onPrimary: onDrop,
+            isLoading: isLoading,
+            holdToConfirm: true,
+          ),
+        );
+
+    testWidgets('a tap does nothing', (WidgetTester t) async {
+      int dropped = 0;
+      await t.pumpWidget(holdBar(onDrop: () => dropped++));
+      await t.pump(const Duration(milliseconds: 300));
+
+      await t.tap(find.text('Hold to drop off'));
+      await t.pump(const Duration(seconds: 2));
+      expect(dropped, 0);
+    });
+
+    testWidgets('letting go early does nothing', (WidgetTester t) async {
+      int dropped = 0;
+      await t.pumpWidget(holdBar(onDrop: () => dropped++));
+      await t.pump(const Duration(milliseconds: 300));
+
+      final TestGesture press =
+          await t.startGesture(t.getCenter(find.text('Hold to drop off')));
+      await t.pump();
+      await t.pump(const Duration(milliseconds: 600));
+      await press.up();
+      await t.pump(const Duration(seconds: 2));
+      expect(dropped, 0);
+    });
+
+    testWidgets('holding for a second drops off, once', (WidgetTester t) async {
+      int dropped = 0;
+      await t.pumpWidget(holdBar(onDrop: () => dropped++));
+      await t.pump(const Duration(milliseconds: 300));
+
+      final TestGesture press =
+          await t.startGesture(t.getCenter(find.text('Hold to drop off')));
+      // The fill's ticker takes its start time from the first frame.
+      await t.pump();
+      await t.pump(const Duration(milliseconds: 500));
+      await t.pump(const Duration(milliseconds: 600));
+      await press.up();
+      await t.pump(const Duration(seconds: 1));
+      expect(dropped, 1);
+    });
+
+    testWidgets('dragging off cancels', (WidgetTester t) async {
+      int dropped = 0;
+      await t.pumpWidget(holdBar(onDrop: () => dropped++));
+      await t.pump(const Duration(milliseconds: 300));
+
+      final TestGesture press =
+          await t.startGesture(t.getCenter(find.text('Hold to drop off')));
+      await t.pump(const Duration(milliseconds: 300));
+      await press.moveBy(const Offset(0, -60));
+      await t.pump(const Duration(seconds: 2));
+      await press.up();
+      expect(dropped, 0);
+    });
+
+    testWidgets('an in-flight action cannot be held', (WidgetTester t) async {
+      int dropped = 0;
+      await t.pumpWidget(holdBar(onDrop: () => dropped++, isLoading: true));
+      await t.pump(const Duration(milliseconds: 300));
+
+      final TestGesture press =
+          await t.startGesture(t.getCenter(find.byType(TripActionBar)));
+      await t.pump(const Duration(seconds: 2));
+      await press.up();
+      expect(dropped, 0);
+    });
+
+    testWidgets("a screen reader's activate confirms directly",
+        (WidgetTester t) async {
+      int dropped = 0;
+      final SemanticsHandle semantics = t.ensureSemantics();
+      await t.pumpWidget(holdBar(onDrop: () => dropped++));
+      await t.pump(const Duration(milliseconds: 300));
+
+      t.semantics.tap(find.semantics.byLabel('Hold to drop off'));
+      expect(dropped, 1);
+      semantics.dispose();
+    });
+  });
+
+  group('TripProgressBar on a trip (DD-38)', () {
+    testWidgets('the current step fills with the trip', (WidgetTester t) async {
+      await t.pumpWidget(
+        localizedHost(
+          const SizedBox(
+            width: 403,
+            child: TripProgressBar(
+              processType: 4,
+              currentColor: Color(0xFF10CF7C),
+              currentFraction: 0.5,
+            ),
+          ),
+        ),
+      );
+      await t.pumpAndSettle();
+
+      final double segment = t
+          .getSize(find
+              .descendant(
+                of: find.byType(TripProgressBar),
+                matching: find.byType(Container),
+              )
+              .last)
+          .width;
+      final double fill = t
+          .getSize(find.descendant(
+            of: find.byType(TripProgressBar),
+            matching: find.byType(ColoredBox),
+          ))
+          .width;
+      expect(fill, closeTo(segment / 2, 0.5));
+      expect(find.bySemanticsLabel('Step 4 of 4'), findsOneWidget);
+    });
+  });
+
   group('splitAddress', () {
     test('puts the place over the area', () {
       expect(
@@ -306,6 +492,47 @@ void main() {
       expect(splitAddress('Independence Monument'),
           ('Independence Monument', null));
       expect(splitAddress(''), ('', null));
+    });
+
+    test('drops the postcode and the country', () {
+      expect(
+        splitAddress('Street 13, Daun Penh, Phnom Penh, 12203, Cambodia'),
+        ('Street 13', 'Daun Penh, Phnom Penh'),
+      );
+      expect(
+        splitAddress('ផ្លូវ ១៣, ដូនពេញ, ភ្នំពេញ, ១២២០៣, កម្ពុជា'),
+        ('ផ្លូវ ១៣', 'ដូនពេញ, ភ្នំពេញ'),
+      );
+    });
+
+    test('never leads with a plus code', () {
+      expect(
+        splitAddress('8M5X+2Q, Street 13, Daun Penh'),
+        ('Street 13', 'Daun Penh'),
+      );
+      expect(
+        splitAddress('8M5X+2Q Phnom Penh, Cambodia'),
+        ('Phnom Penh', null),
+      );
+    });
+
+    test('joins a bare house number to its street', () {
+      expect(
+        splitAddress('12, Street 13, Daun Penh, Phnom Penh'),
+        ('12 Street 13', 'Daun Penh, Phnom Penh'),
+      );
+      expect(splitAddress('#12B, Street 13'), ('#12B Street 13', null));
+    });
+
+    test('drops the repeated name/street part', () {
+      expect(
+        splitAddress('Street 13, Street 13, Daun Penh'),
+        ('Street 13', 'Daun Penh'),
+      );
+    });
+
+    test('keeps the input when nothing is left', () {
+      expect(splitAddress('Cambodia'), ('Cambodia', null));
     });
   });
 

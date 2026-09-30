@@ -23,6 +23,7 @@ class PassengerRow extends StatelessWidget {
     this.imageUrl,
     this.onCall,
     this.trailing,
+    this.dense = false,
   });
 
   final String name;
@@ -39,12 +40,19 @@ class PassengerRow extends StatelessWidget {
   final Widget? trailing;
   final VoidCallback? onCall;
 
+  /// DD-36: a slimmer row — 32 px avatar, tighter padding — for the compact
+  /// trip sheet, where the call button alone says how to reach them.
+  final bool dense;
+
   @override
   Widget build(BuildContext context) {
     final TaarraaColors c = context.colors;
 
     return Container(
-      padding: const EdgeInsets.all(Insets.s12),
+      padding: dense
+          ? const EdgeInsets.fromLTRB(
+              Insets.s12, Insets.s4, Insets.s4, Insets.s4)
+          : const EdgeInsets.all(Insets.s12),
       decoration: BoxDecoration(
         color: c.bgPage,
         borderRadius: Radii.controlRadius,
@@ -52,7 +60,7 @@ class PassengerRow extends StatelessWidget {
       ),
       child: Row(
         children: <Widget>[
-          TAvatar(name: name, imageUrl: imageUrl),
+          TAvatar(name: name, imageUrl: imageUrl, size: dense ? 32 : 48),
           const SizedBox(width: Insets.s12),
           Expanded(
             child: Column(

@@ -15,6 +15,11 @@ class StorageRemove {
     tlog("Remove Driver Pref success");
   }
 
+  static Future<void> removeArrivedAt() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove(StorageKeys.arrivedAt);
+  }
+
   static Future<void> removeFCMTOKEN() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove("fcm_token_data");

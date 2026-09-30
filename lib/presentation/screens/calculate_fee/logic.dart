@@ -87,6 +87,9 @@ class CalculateFeeLogic extends GetxController {
   }
 
   Future<void> acceptPayment() async {
+    // DD-39: one request at a time — a second tap while the first is in
+    // flight would accept, and emit `acceptPayment` on the socket, twice.
+    if (state.status.value == PaymentStatus.loading) return;
     state.status.value = PaymentStatus.loading;
     final result = await _repository.acceptPayment(rideId);
     result.when(

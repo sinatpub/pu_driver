@@ -411,26 +411,25 @@ final List<_SurfaceDef> _surfaces = <_SurfaceDef>[
   // the scrollable `localizedHost` — they lay out with `Expanded`.
   (name: 'S07 request', build: () => Scaffold(body: _sheet(1)), page: true),
   (name: 'S07 pickup', build: () => Scaffold(body: _sheet(2)), page: true),
-  (
-    name: 'S07 at pickup',
-    build: () => Scaffold(body: _sheet(3)),
-    page: true
-  ),
+  (name: 'S07 at pickup', build: () => Scaffold(body: _sheet(3)), page: true),
   (name: 'S07 on trip', build: () => Scaffold(body: _sheet(4)), page: true),
   (
     name: 'S08 receipt',
     build: () => Column(
           children: <Widget>[
-            ReceiptCard(
-              passengerName: 'Mey Lin',
+            const PaymentHeader(bookingCode: '48213'),
+            const PaymentHero(
               method: 'Cash',
-              distance: '3.50 km',
+              amount: '៛7,600',
+              distance: '3.5 km',
               duration: '14:20',
-              dateTime: 'Sat/12/Sep/2026 09:30 AM',
+              time: '09:30',
+            ),
+            const PaymentRoute(
+              passengerName: 'Mey Lin',
               startAddress: 'St. 271, Phnom Penh',
               endAddress: 'Sisowath Quay',
             ),
-            TotalBox(amount: '៛7,600'),
           ],
         ),
     page: false
@@ -617,8 +616,7 @@ void main() {
   tearDown(Get.reset);
 
   for (final _SurfaceDef surface in _surfaces) {
-    testWidgets('Q1 render: ${surface.name}',
-        (WidgetTester t) async {
+    testWidgets('Q1 render: ${surface.name}', (WidgetTester t) async {
       for (final Locale l in const <Locale>[Locale('en'), Locale('km')]) {
         for (final double w in const <double>[390, 320]) {
           Directory('$_outRoot/renders').createSync(recursive: true);
@@ -633,8 +631,7 @@ void main() {
               .replaceAll(RegExp('[^a-z0-9]+'), '_')
               .replaceAll(RegExp('^_|_\$'), '');
           await _capturePng(t, '${safe}__${l.languageCode}__${w.toInt()}');
-          await _dumpGeometry(
-              t, safe, l.languageCode, w.toInt(), surface.name);
+          await _dumpGeometry(t, safe, l.languageCode, w.toInt(), surface.name);
         }
       }
     });
@@ -676,8 +673,8 @@ Future<void> _dumpGeometry(
   for (final Element e in t.allElements) {
     final Widget w = e.widget;
     if (w is Text) {
-      final TextStyle s = w.style ??
-          const TextStyle(fontSize: 14, fontWeight: FontWeight.w400);
+      final TextStyle s =
+          w.style ?? const TextStyle(fontSize: 14, fontWeight: FontWeight.w400);
       final String txt = w.data ?? w.textSpan?.toPlainText() ?? '';
       fonts.add(_encodeTextStyle(s, txt));
     } else if (w is DecoratedBox && w.decoration is BoxDecoration) {
@@ -689,8 +686,8 @@ Future<void> _dumpGeometry(
       _encodeBox(w.decoration as BoxDecoration, radii, fills, borders);
     } else if (w is Padding) {
       final EdgeInsets ev = w.padding.resolve(TextDirection.ltr);
-      paddings
-          .add('${ev.left.truncate()},${ev.top.truncate()},${ev.right.truncate()},${ev.bottom.truncate()}');
+      paddings.add(
+          '${ev.left.truncate()},${ev.top.truncate()},${ev.right.truncate()},${ev.bottom.truncate()}');
     }
     if (w is TButton || w is TIconButton) {
       final RenderBox? r = e.renderObject! as RenderBox?;
@@ -727,7 +724,8 @@ String _encodeTextStyle(TextStyle s, String text) {
   final Color? c = s.color;
   final String color = c == null ? 'inherit' : _hex(c);
   final String plain = text.trim().replaceAll(RegExp(r'\s+'), ' ');
-  final String sample = plain.length <= 24 ? plain : '${plain.substring(0, 24)}…';
+  final String sample =
+      plain.length <= 24 ? plain : '${plain.substring(0, 24)}…';
   return '${s.fontSize}px/${s.fontWeight?.value ?? 400} $color '
       '${s.fontFamily ?? 'unknown'} '
       '$sample$feature';

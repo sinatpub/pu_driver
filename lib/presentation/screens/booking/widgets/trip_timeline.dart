@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:tara_driver_application/core/theme/tokens.dart';
 import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
@@ -10,6 +11,16 @@ import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
 ///
 /// Driven by `processStepBook`, the legacy int the sheet already receives:
 /// 1 = request, 2 = en route, 3 = at pickup, 4 = in progress, 6 = completing.
+/// How many of the four steps are finished at [processType]. `completing`
+/// (6) is the drop-off in flight, so every step is done.
+int tripStepsDone(int processType) => switch (processType) {
+      1 => 0,
+      2 => 1,
+      3 => 2,
+      4 => 3,
+      _ => 4,
+    };
+
 class TripTimeline extends StatelessWidget {
   const TripTimeline({
     super.key,
@@ -24,13 +35,7 @@ class TripTimeline extends StatelessWidget {
 
   /// How many steps are finished. `completing` (6) is the drop-off in flight,
   /// so every step is done.
-  int get doneCount => switch (processType) {
-        1 => 0,
-        2 => 1,
-        3 => 2,
-        4 => 3,
-        _ => 4,
-      };
+  int get doneCount => tripStepsDone(processType);
 
   @override
   Widget build(BuildContext context) {
@@ -154,6 +159,69 @@ class _Step extends StatelessWidget {
           style: context.texts.micro.copyWith(color: labelColor),
         ),
       ],
+    );
+  }
+}
+
+/// DD-36 — the four steps as one thin bar under the stage line, replacing
+/// [TripTimeline]'s numbered circles on the stages that have moved to the
+/// compact sheet. Finished steps are green, the current one is in the
+/// stage's colour, the rest are neutral.
+///
+/// DD-38: on a trip with a destination, the current step fills as the trip
+/// progresses ([currentFraction]); otherwise it is drawn solid.
+class TripProgressBar extends StatelessWidget {
+  const TripProgressBar({
+    super.key,
+    required this.processType,
+    required this.currentColor,
+    this.currentFraction,
+  });
+
+  final int processType;
+  final Color currentColor;
+
+  /// 0–1: how much of the current step is done. Null draws it solid.
+  final double? currentFraction;
+
+  @override
+  Widget build(BuildContext context) {
+    final TaarraaColors c = context.colors;
+    final int done = tripStepsDone(processType);
+
+    return Semantics(
+      label: 'STEP_OF'.tr(args: <String>['${(done + 1).clamp(1, 4)}', '4']),
+      child: ExcludeSemantics(
+        child: Row(
+          children: <Widget>[
+            for (int i = 0; i < 4; i++) ...<Widget>[
+              if (i > 0) const SizedBox(width: 3),
+              Expanded(
+                child: Container(
+                  height: 3,
+                  clipBehavior: Clip.antiAlias,
+                  decoration: BoxDecoration(
+                    color: i < done
+                        ? c.success
+                        : i == done && currentFraction == null
+                            ? currentColor
+                            : c.borderDivider,
+                    borderRadius: BorderRadius.circular(Radii.full),
+                  ),
+                  alignment: Alignment.centerLeft,
+                  child: i == done && currentFraction != null
+                      ? FractionallySizedBox(
+                          widthFactor: currentFraction!.clamp(0.0, 1.0),
+                          heightFactor: 1,
+                          child: ColoredBox(color: currentColor),
+                        )
+                      : null,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }

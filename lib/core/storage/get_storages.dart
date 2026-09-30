@@ -42,6 +42,18 @@ class StorageGet {
     return null;
   }
 
+  /// DD-37: when the driver arrived for [bookingId]; null when none was
+  /// saved, or it was saved for another booking.
+  static Future<DateTime?> getArrivedAt(int bookingId) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final List<String>? parts =
+        prefs.getString(StorageKeys.arrivedAt)?.split('|');
+    if (parts == null || parts.length != 2) return null;
+    if (parts[0] != '$bookingId') return null;
+    final int? ms = int.tryParse(parts[1]);
+    return ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms);
+  }
+
   ////// FCM TOKEN
   static Future<String?> getFcmTokenLocal() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();

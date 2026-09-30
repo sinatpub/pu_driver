@@ -7,7 +7,6 @@ Each decision is recorded once. Other docs reference them as `DD-xx`. **Status**
 | Decision | Topic | Owner |
 |---|---|---|
 | DD-05 | Logout | Product |
-| DD-13 | Drop-off confirmation | Product / Ops |
 | DD-33 | Error-dialog semantics | Engineering + Product |
 
 ---
@@ -343,7 +342,9 @@ Every CTA is orange at 42 px.
 ### Impact
 `02 §7`.
 
-## Decision DD-13: Drop-off confirmation — OPEN
+## Decision DD-13: Drop-off confirmation — settled by DD-38
+
+**Settled by the user on 2026-09-30: hold-to-confirm. See DD-38.**
 
 ### Context
 Drop off is irreversible. It completes the trip at the current GPS point and triggers fare computation.
@@ -463,6 +464,8 @@ No loading state.
 The sheet receives `isLoading`. This is a required acceptance check in step 5.
 
 ## Decision DD-18: Payment screen shows server figures, no success overlay
+
+**Still in force; the layout and wording are reworked by DD-39 (2026-09-30).** Server amount only, method badge only when present, immediate navigation.
 
 ### Context
 The payment screen's figures and completion flow.
@@ -712,6 +715,8 @@ Double feedback is noise while driving.
 
 ## Decision DD-28: Map presentation
 
+**Superseded for every trip stage by DD-35–DD-38 (2026-09-30):** each stage frames its route (or, on a trip with no destination, follows the car at a neighbourhood zoom) instead of zoom 19, and hides the zoom buttons.
+
 ### Context
 How the map looks and behaves.
 
@@ -887,7 +892,9 @@ On a new request the map showed only the streets around the pickup, and the pick
 - **Route:** on arrival, one Directions request from the driver's position to the pickup. It draws the polyline and gives "4 min" and "1.2 km to pickup". The camera fits the driver, the pickup and the route once, inside the map's padding (status bar above, measured sheet height below), and does not follow GPS ticks at this stage.
 - **Reuse on accept:** the pickup stage reuses that route when the driver is still within 50 m of where it was fetched. Only requests that are declined or expire cost an extra Directions request.
 - **Trip figures:** when the request has a destination, a second Directions request (pickup to destination) gives the trip distance. The fare is `estimateFare` over that distance, prefixed "≈" (DD-14), and shown only once the vehicle's per-km price and minimum fare are known.
-- **Sheet:** the stage name, the ETA and distance to the pickup, the passenger's avatar and name, the trip figures, then the two addresses split into place and area. No stepper, no phone number and no call button until the ride is accepted.
+- **Sheet:** one line with the stage name and the passenger (small avatar, full name); the ETA and distance to the pickup; the trip figures; then the two addresses split into place and area. No stepper, no phone number and no call button until the ride is accepted.
+- **Tighter layout:** no grabber on the request stage, because a 30-second decision has nothing to collapse for. The sheet has 16 px above the content and 8 px under Decline. The other stages keep the grabber and their padding.
+- **Addresses:** `splitAddress` drops plus codes, the postcode, the country and repeated parts, and joins a bare house number to its street. The place wraps to 2 lines and the area to 1, then ellipsis; beyond 74% of the screen the content scrolls and Accept stays pinned.
 - **Countdown:** drawn inside Accept. The elapsed share darkens from the right and the seconds left sit in a pill. Same `SmoothCircularCountdown` timer; expiry still goes home, still silently.
 - **Header:** not shown at the request stage. The sheet names the stage.
 - **Decline:** the text action below Accept reads "Decline" (new key `DECLINE`). The confirm dialog and the emit-then-cancel order (DD-11) are unchanged.
@@ -898,4 +905,109 @@ On a new request the map showed only the streets around the pickup, and the pick
 A driver decides on distance to the pickup and the trip's value. Showing real route figures replaces the guesswork DD-15 avoided by showing nothing.
 
 ### Impact
-`booking/view.dart`, `ride_request_bottom_pop_widget.dart`, `trip_action_bar.dart`, `count_down_widget.dart` (`builder`), `route_service.dart` (`RouteSummary`), `mock_route_provider.dart`, `load_custom_marker.dart` (`loadTripPin`). New keys: `DECLINE`, `TRIP`, `TO_PICKUP`, `UNIT_MIN`, `UNIT_SECONDS_SHORT`. Directions usage: up to two requests per request received, instead of zero.
+`booking/view.dart`, `ride_request_bottom_pop_widget.dart`, `trip_action_bar.dart`, `count_down_widget.dart` (`builder`), `route_service.dart` (`RouteSummary`), `mock_route_provider.dart`, `load_custom_marker.dart` (`loadTripPin`), `core/helper/address_parts.dart` (`splitAddress`). New keys: `DECLINE`, `TRIP`, `TO_PICKUP`, `UNIT_MIN`, `UNIT_SECONDS_SHORT`. Directions usage: up to two requests per request received, instead of zero.
+
+## Decision DD-36: Going to pickup uses the compact sheet and follows the driver
+
+**Supersedes DD-28 and DD-10 for the going-to-pickup stage. Settled by the user on 2026-09-30.**
+
+### Context
+After DD-35 the request stage and the going-to-pickup stage looked like two different apps: a floating header, a numbered stepper, no headline figure, a heavier unsplit address and a phone line came back on accept. The camera also stayed on the pickup at zoom 19 and re-centred on every GPS tick, so the driver's own car only appeared in the last ~100 m.
+
+### Existing Behavior
+- Floating `TripHeader` with the stage and booking code.
+- `TripTimeline` with four numbered circles (~100 px).
+- Pickup address in the focused title style, not split.
+- `PassengerRow` with the phone number line and the call button.
+- Camera centred on the pickup at zoom 19 on every tick; the full route drawn from where it was fetched.
+
+### Decision
+- **Sheet:** the same anatomy as the request. A stage line ("Go to passenger", `#code` on the right), a thin 4-segment `TripProgressBar`, and one headline: time and distance left. These three stay visible when the sheet is collapsed. Below them, the pickup address split into place and area, and a dense `PassengerRow` (32 px avatar, call button, no phone line). The grabber stays, inside the sheet's top padding.
+- **No floating header and no map zoom buttons** on this stage.
+- **Time and distance left** are worked out on the phone: the driver is projected onto the route (`routeProgress`), the distance left is the rest of the route, and the time left is the route's Directions duration scaled by the share of distance still to drive. Under a minute reads "< 1 min".
+- **Route:** the part already driven is trimmed away on every tick. A new route is fetched only when the driver is more than 80 m off it, at most once every 30 s, or when the stage opens without the request's route (screen reopened mid-trip, or the driver moved more than 50 m before accepting).
+- **Camera:** frames the driver, the pickup and the route left, never smaller than ~170 m across, refitted at most every 4 s. When the driver moves the map themselves, the auto-fit pauses for 10 s.
+
+### Reason
+The driver's job on this stage is to reach the pickup; the map should show where they are and what is left, and the sheet should read like the one they just accepted.
+
+### Impact
+`booking/view.dart`, `ride_request_bottom_pop_widget.dart`, `trip_timeline.dart` (`TripProgressBar`, `tripStepsDone`), `passenger_row.dart` (`dense`), new `core/utils/route_progress.dart`. New keys: `DISTANCE_LEFT`, `STEP_OF`, `UNIT_UNDER_MIN`. Directions usage on this stage: none when the request's route is reused; otherwise one on entry, plus one per 30 s while off route.
+
+## Decision DD-37: At pickup uses the compact sheet, a waiting timer and a trip preview
+
+**Supersedes DD-28 and DD-10 for the at-pickup stage. Settled by the user on 2026-09-30. No no-show rule exists, so the timer has no threshold.**
+
+### Context
+After DD-36 the at-pickup stage still had the floating header, the numbered stepper, the phone line and the unsplit destination in the title style. Its distance line read "8.85 ម គ.ម" — `formatDistanceWithUnits` took the unitless number for metres and " km" was appended after it. The camera sat on the driver at zoom 19, so the route to the destination was a stub off-screen, and nothing said how long the driver had waited.
+
+### Existing Behavior
+- Floating `TripHeader`, `TripTimeline`, `PassengerRow` with the phone line.
+- Destination in the focused title style with the broken distance line, and "≈ Est. fare" as a `TKeyValueRow`.
+- Camera centred on the driver at zoom 19 on every GPS tick.
+- No arrival time anywhere: not in `BookingScreenArgs`, not in the booking models.
+
+### Decision
+- **Sheet:** the DD-36 anatomy. Stage line ("At pickup", `#code`), `TripProgressBar` at step 3, then the waiting time as the headline — these stay when collapsed. Below: the trip distance and "≈" fare as the request's two tiles (the figures this stage already computed, now formatted "8.9 km"), the destination split into place and area, and the dense passenger row. "Start ride" stays in the success colour (DD-12).
+- **Waiting timer:** counts up from the moment "I've arrived" succeeds, as "2:10" or "1:02:10". It is saved on the phone per booking (`StorageKeys.arrivedAt`, one key for the one active trip) so it survives an app restart, and cleared when the ride starts or is cancelled. Reopened at this stage with nothing saved, the timer is not shown. It ticks on its own, so only its line rebuilds each second. No colour change: there is no no-show rule.
+- **Camera:** frames the whole trip once — driver at the pickup, the route to the destination — as a preview, and does not follow GPS ticks (the car is parked). With no destination, it frames the pickup. No floating header and no map zoom buttons.
+- **No destination:** no tiles and no destination row; the timer, the passenger and Start ride.
+
+### Reason
+At the pickup the driver waits and then drives the trip; the sheet should say how long they have waited and what the trip is, in the same form as the two stages before it.
+
+### Impact
+`booking/view.dart`, `ride_request_bottom_pop_widget.dart` (`_StageSummary`, `_WaitingClock`, `_TripFigures`), `core/storage/*` (`arrivedAt`). New key: `WAITING`. No new network requests.
+
+## Decision DD-38: On trip uses the compact sheet, a route-aware headline, and hold-to-confirm Drop off
+
+**Supersedes DD-28 and DD-10 for the on-trip stage, and settles DD-13. Settled by the user on 2026-09-30.**
+
+### Context
+The on-trip stage still had the floating header and the numbered stepper. Its meter mixed two meanings on a ride with a destination — the time was elapsed but the distance and fare were the whole planned trip, so the full fare showed two seconds in — and read "8 គ.ម:850 ម" and "00:00:02". The route was drawn once at the start and never trimmed, and the camera followed the car at zoom 19. Drop off was a single tap that cannot be undone.
+
+### Existing Behavior
+- `TripMeterStrip`: `formatDuration`, `convertKmToKmM` / `convertMaterToKm`, and the fare expression (`DD-14`).
+- `_drawPolylines` driver→destination on entering the stage; camera centred on the driver at zoom 19 on every tick.
+- Drop off: one tap → `getLocation(TripStage.completing)`.
+
+### Decision
+- **Sheet:** the DD-36 anatomy — "On trip", `#code`, `TripProgressBar` at step 4. Steps 1–3 are already the stage's green, so the current step is drawn in the lighter success green; with a destination it fills as the trip progresses (against the trip's full driving distance, so a detour's new route does not reset it).
+- **Headline by ride type:** with a destination, the time and distance left — the phone projects the driver onto the route (`routeProgress`) and scales the route's Directions duration, as DD-36; tiles "Duration" (elapsed) and "Est. fare". Without one, the elapsed time and distance driven; tile "Fare so far". The headline, tiles and the `EST_NOTE` line are pinned, so they stay when the sheet is collapsed (C4). The destination is split into place and area.
+- **Values unchanged, formats changed:** the same figures and fare expression (`DD-14`), shown as a clock ("12:40", "1:02:10") and as "3.2 km" (`_formatKm`).
+- **Route:** `_drawPolylines` now takes the Directions summary — the same one request — so the trip knows its duration. The route drawn at pickup is reused when the driver starts within 50 m of where it was fetched. It is trimmed on every tick, refetched when the driver is more than 80 m off it (at most every 30 s); the fare figures computed once (`laodCalculateDistance`) are not recomputed.
+- **Camera:** with a destination, frames the car and the route left, refitted at most every 4 s, paused for 10 s after the driver moves the map. Long trips start zoomed out and zoom in as the car gets closer — accepted. Without a destination, it follows the car on every tick at a neighbourhood zoom (~170 m across). While dropping off it stays still. No floating header and no map zoom buttons.
+- **Drop off is hold-to-confirm:** the button reads "Hold to drop off" and fills over 1 s while pressed, then fires with a haptic tick. Letting go early or dragging off empties it; a tap does nothing. The fill takes real time under the reduced-motion setting. A screen reader's activate action confirms directly. Disabled while any trip action is in flight (DD-17).
+
+### Reason
+One sheet language across all four stages; the headline says what the driver needs now (how far to go, or what the meter reads); and the one irreversible action cannot fire by accident.
+
+### Impact
+`booking/view.dart`, `ride_request_bottom_pop_widget.dart` (`_FigureTiles`, `_EstimateNote`; `TripMeterStrip` no longer used by the sheet), `trip_action_bar.dart` (`holdToConfirm`), `trip_timeline.dart` (`currentFraction`), new `core/utils/clock_format.dart`. New keys: `HOLD_TO_DROP_OFF`, `DISTANCE_DRIVEN`, `FARE_SO_FAR`. Directions usage: none extra when the pickup route is reused; otherwise one on entry, plus one per 30 s while off route.
+
+## Decision DD-39: Payment leads with the amount, words follow the method, one request at a time
+
+**Keeps DD-18. Settled by the user on 2026-09-30. "Payment done" stays a single tap.**
+
+### Context
+After the trip sheet (DD-35–DD-38) the payment screen was the one screen left in the old style. The amount the driver acts on sat below the receipt; duration and date were English and long in Khmer ("8 m 24 s", "Wed/30/Sep/2026 05:36 PM"); addresses were unsplit; the hint told the driver to collect cash whatever the method. And the button's spinner never showed: `loading` was read in a `StatelessWidget` without `Obx`, and `acceptPayment()` had no guard, so a second tap sent a second request.
+
+### Existing Behavior
+- Title bar, `ReceiptCard` (passenger + method badge, distance / duration / date rows, addresses), `TotalBox`, hint, success button.
+- `convertTimeString`, `formatDateTime` (`EEE/dd/MMM/yyyy hh:mm a`, no locale), `formatDistanceWithUnits`.
+
+### Decision
+- **Layout:** `PaymentHeader` — "✓ Trip complete", `#code`, the four-step bar all done — where the trip sheet left off. `PaymentHero` — the method's wording, the server amount as the one hero figure, the method badge, and distance / duration / time as three tiles, falling back to labelled rows when a tile would be too narrow for its figure (small phones, large text). `PaymentRoute` — both addresses split into place and area, then the passenger, no call button. Hint and button pinned.
+- **Formats:** distance "3.1 km" (`formatDistanceText`; a bare number is kilometres), duration as a clock "8:24" (`parseDurationText` → `formatClock`), time "17:36" today or "30/09 17:36" otherwise — digits only, so it reads the same in both languages. Unparseable server text is shown as given.
+- **Method-aware wording** (`PaymentKind`, matched case-insensitively on "cash", "wallet", "card" — the server's exact strings are unconfirmed; mock mode sends Cash / Wallet / Card):
+  - cash: "Collect in cash", hint "Take ៛9,100 in cash, then confirm.", button "Cash received";
+  - wallet / card: "Paid by wallet" / "Paid by card", "Nothing to collect", hint "Paid in the app. Confirm to finish the trip.", button "Finish trip";
+  - anything else or no method: the previous wording ("Total to collect", the old hint, "Payment done"), with the server's method text on the badge.
+- **One request at a time:** the button is reactive (`Obx`) — it shows the spinner and is disabled while the request is in flight — and `acceptPayment()` returns early while one is. The REST call, the socket emit after it, the profile refresh and the immediate navigation are unchanged.
+- **No hold-to-confirm** on this screen: it is the screen's only action, and the driver has just held Drop off.
+
+### Reason
+The amount and how it is paid are what the driver acts on; the screen should say exactly what to do for that method, look like the trip it ends, and never send the payment twice.
+
+### Impact
+`calculate_fee/view.dart`, `calculate_fee/logic.dart` (guard), `calculate_fee/widgets/receipt_card.dart` (`ReceiptCard` and `TotalBox` replaced by `PaymentHeader`, `PaymentHero`, `PaymentRoute`), new `core/utils/distance_format.dart`, `core/utils/clock_format.dart` (`parseDurationText`). New keys: `TRIP_COMPLETE`, `COLLECT_IN_CASH`, `PAID_BY_WALLET`, `PAID_BY_CARD`, `PAY_CASH`, `PAY_WALLET`, `PAY_CARD`, `NOTHING_TO_COLLECT`, `COLLECT_CASH_HINT`, `PAID_IN_APP_HINT`, `CASH_RECEIVED`, `FINISH_TRIP`.

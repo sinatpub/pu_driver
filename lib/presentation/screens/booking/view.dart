@@ -5,10 +5,15 @@ import 'package:tara_driver_application/core/helper/get_address_latlng_helper.da
 import 'package:tara_driver_application/routes/app_routes.dart';
 import 'package:tara_driver_application/routes/route_arguments.dart';
 import 'package:tara_driver_application/core/storage/get_storages.dart';
+import 'package:tara_driver_application/core/storage/remove_storage.dart';
+import 'package:tara_driver_application/core/storage/set_storages.dart';
 import 'package:tara_driver_application/core/utils/app_constant.dart';
+import 'package:tara_driver_application/core/utils/clock_format.dart';
+import 'package:tara_driver_application/core/utils/distance_format.dart';
 import 'package:tara_driver_application/core/utils/fare_estimate.dart';
 import 'package:tara_driver_application/core/utils/load_custom_marker.dart';
 import 'package:tara_driver_application/core/utils/pretty_logger.dart';
+import 'package:tara_driver_application/core/utils/route_progress.dart';
 import 'package:tara_driver_application/data/models/complete_driver_model.dart';
 import 'package:tara_driver_application/data/models/register_model.dart';
 import 'package:tara_driver_application/presentation/screens/booking/domain/trip_state_machine.dart';
@@ -121,6 +126,49 @@ class _BookingScreenState extends State<BookingScreen> {
   bool _pickupRouteLoading = true;
   static const double _routeReuseMeters = 50;
 
+  /// DD-36 — going to the pickup. The route is trimmed to what is left on
+  /// every GPS tick, and the time left is the route's duration scaled by the
+  /// share of its distance still to drive. No Directions request is made
+  /// unless the driver leaves the route by more than [_offRouteMeters], and
+  /// then at most once every [_refetchInterval].
+  List<LatLng>? _remainingPickupRoute;
+  double? _pickupRemainingMeters;
+  DateTime? _lastRouteFetchAt;
+  static const double _offRouteMeters = 80;
+  static const Duration _refetchInterval = Duration(seconds: 30);
+
+  /// DD-36 — the camera follows the driver and the route left by refitting
+  /// every [_autoFitInterval], and stops for [_userPanPause] after the driver
+  /// moves the map themselves.
+  DateTime _lastAutoFitAt = DateTime.fromMillisecondsSinceEpoch(0);
+  DateTime? _userMovedMapAt;
+  bool _programmaticMove = false;
+  static const Duration _autoFitInterval = Duration(seconds: 4);
+  static const Duration _userPanPause = Duration(seconds: 10);
+
+  /// DD-37 — at pickup. When "I've arrived" succeeded, for the waiting timer;
+  /// saved per booking so it survives an app restart, and null (no timer)
+  /// when the screen reopens at this stage without one.
+  DateTime? _arrivedAt;
+
+  /// DD-37/DD-38 — the route to the destination, drawn at pickup (where the
+  /// camera frames it once as a preview) and reused on the trip when the
+  /// driver starts within [_routeReuseMeters] of where it was fetched. On the
+  /// trip it is trimmed like the pickup route (DD-36), with the same
+  /// off-route refetch.
+  RouteSummary? _tripRouteSummary;
+  LatLng? _tripRouteOrigin;
+  List<LatLng>? _tripRemaining;
+  double? _tripRemainingMeters;
+  bool _tripRouteLoading = false;
+  DateTime? _lastTripRouteFetchAt;
+
+  /// Whether the passenger set a destination — the same test the meter uses.
+  bool get _hasDestination =>
+      args.desLatPassenger != null &&
+      args.desLngPassenger != null &&
+      args.desLatPassenger != 0.0;
+
   /// The pickup→destination driving distance, for the request sheet's trip
   /// figures. Null without a destination or a route.
   double? _tripDistanceKm;
@@ -167,6 +215,8 @@ class _BookingScreenState extends State<BookingScreen> {
         currentLngDriver = position.longitude;
         latDriver = position.latitude;
         lngDriver = position.longitude;
+        _applyPickupProgress(current);
+        _applyTripProgress(current);
         _turnRight();
         syncMarker();
       });
@@ -238,9 +288,7 @@ class _BookingScreenState extends State<BookingScreen> {
           lngDriver = position.longitude;
         });
         if (!_reusePickupRoute(LatLng(currentLatDriver, currentLngDriver))) {
-          _drawPolylines(
-              dLocation: LatLng(currentLatDriver, currentLngDriver),
-              pLocation: LatLng(args.latPassenger, args.lngPassenger));
+          _fetchPickupRoute(LatLng(currentLatDriver, currentLngDriver));
         }
       } else if (stage == TripStage.waitingAtPickup) {
         if (refreshApp == true) {
@@ -263,6 +311,7 @@ class _BookingScreenState extends State<BookingScreen> {
               pLocation: LatLng(args.desLatPassenger!, args.desLngPassenger!));
         } else {
           _clearPolyline();
+          _fitRouteCamera();
         }
       } else if (stage == TripStage.inProgress) {
         if (refreshApp == true) {
@@ -291,9 +340,17 @@ class _BookingScreenState extends State<BookingScreen> {
         });
 
         if (args.desLatPassenger != null && args.desLngPassenger != null) {
-          _drawPolylines(
-              dLocation: LatLng(currentLatDriver, currentLngDriver),
-              pLocation: LatLng(args.desLatPassenger!, args.desLngPassenger!));
+          if (!_reuseTripRoute(LatLng(currentLatDriver, currentLngDriver))) {
+            setState(() => _tripRouteLoading = true);
+            _lastTripRouteFetchAt = DateTime.now();
+            _drawPolylines(
+                dLocation: LatLng(currentLatDriver, currentLngDriver),
+                pLocation:
+                    LatLng(args.desLatPassenger!, args.desLngPassenger!));
+          }
+        } else {
+          // DD-38: no destination — frame the car at a neighbourhood zoom.
+          _fitRouteCamera();
         }
       } else if (stage == TripStage.completing) {
         debugPrint("drop - total distance ${Taxi.shared.totalDistance}");
@@ -325,7 +382,7 @@ class _BookingScreenState extends State<BookingScreen> {
       // No fix, so no route: the request shows the pickup alone.
       if (stage == TripStage.requestReceived) {
         setState(() => _pickupRouteLoading = false);
-        _fitRequestCamera();
+        _fitRouteCamera();
       }
     }
   }
@@ -356,7 +413,7 @@ class _BookingScreenState extends State<BookingScreen> {
       }
     });
     if (!stillRequest) return;
-    _fitRequestCamera();
+    _fitRouteCamera();
 
     final double? desLat = args.desLatPassenger;
     final double? desLng = args.desLngPassenger;
@@ -377,8 +434,101 @@ class _BookingScreenState extends State<BookingScreen> {
     final double moved = Geolocator.distanceBetween(
         origin.latitude, origin.longitude, driver.latitude, driver.longitude);
     if (moved > _routeReuseMeters) return false;
-    setState(() => _setRoutePolyline(route.points));
+    setState(() => _applyPickupProgress(driver));
+    _fitRouteCamera();
     return true;
+  }
+
+  /// Going to pickup without a usable request route — the screen was
+  /// reopened mid-trip, the driver moved before accepting, or they left the
+  /// route: fetch a new one from where the driver is now.
+  Future<void> _fetchPickupRoute(LatLng driver) async {
+    _lastRouteFetchAt = DateTime.now();
+    if (_pickupRoute == null) setState(() => _pickupRouteLoading = true);
+    final RouteSummary? route = await RouteService.instance
+        .summary(driver, LatLng(args.latPassenger, args.lngPassenger));
+    if (!mounted ||
+        tripController.state.stage.value != TripStage.enRouteToPickup) {
+      return;
+    }
+    setState(() {
+      _pickupRouteLoading = false;
+      if (route == null) return;
+      _pickupRoute = route;
+      _pickupRouteOrigin = driver;
+      _applyPickupProgress(
+          LatLng(latDriver ?? driver.latitude, lngDriver ?? driver.longitude));
+    });
+    _fitRouteCamera();
+  }
+
+  /// Trims the pickup route to what is left from [driver] and updates the
+  /// distance left. Call inside `setState`. Going to pickup only.
+  void _applyPickupProgress(LatLng driver) {
+    final RouteSummary? route = _pickupRoute;
+    if (route == null ||
+        tripController.state.stage.value != TripStage.enRouteToPickup) {
+      return;
+    }
+    final RouteProgress progress = routeProgress(route.points, driver);
+    final DateTime? lastFetch = _lastRouteFetchAt;
+    if (progress.offRouteMeters > _offRouteMeters &&
+        (lastFetch == null ||
+            DateTime.now().difference(lastFetch) > _refetchInterval)) {
+      // After this frame: the fetch calls setState itself.
+      Future<void>.microtask(() {
+        if (mounted) _fetchPickupRoute(driver);
+      });
+    }
+    _remainingPickupRoute = progress.remaining;
+    _pickupRemainingMeters = progress.remainingMeters;
+    _setRoutePolyline(progress.remaining);
+  }
+
+  /// Starting the trip: keeps the route drawn at pickup instead of fetching
+  /// the same one again, if the driver has not moved from where it was
+  /// fetched (DD-38).
+  bool _reuseTripRoute(LatLng driver) {
+    final RouteSummary? route = _tripRouteSummary;
+    final LatLng? origin = _tripRouteOrigin;
+    if (route == null || origin == null) return false;
+    final double moved = Geolocator.distanceBetween(
+        origin.latitude, origin.longitude, driver.latitude, driver.longitude);
+    if (moved > _routeReuseMeters) return false;
+    setState(() => _applyTripProgress(driver));
+    _fitRouteCamera();
+    return true;
+  }
+
+  /// Trims the trip route to what is left from [driver] and updates the
+  /// distance left; fetches a new route when the driver has left this one.
+  /// Call inside `setState`. On a trip with a destination only.
+  void _applyTripProgress(LatLng driver) {
+    final RouteSummary? route = _tripRouteSummary;
+    if (route == null ||
+        !_hasDestination ||
+        tripController.state.stage.value != TripStage.inProgress) {
+      return;
+    }
+    final RouteProgress progress = routeProgress(route.points, driver);
+    final DateTime? lastFetch = _lastTripRouteFetchAt;
+    if (progress.offRouteMeters > _offRouteMeters &&
+        (lastFetch == null ||
+            DateTime.now().difference(lastFetch) > _refetchInterval)) {
+      _lastTripRouteFetchAt = DateTime.now();
+      // After this frame: `_drawPolylines` calls setState itself. The fare
+      // figures it computes once are not recomputed (`laodCalculateDistance`).
+      Future<void>.microtask(() {
+        if (mounted) {
+          _drawPolylines(
+              dLocation: driver,
+              pLocation: LatLng(args.desLatPassenger!, args.desLngPassenger!));
+        }
+      });
+    }
+    _tripRemaining = progress.remaining;
+    _tripRemainingMeters = progress.remainingMeters;
+    _setRoutePolyline(progress.remaining);
   }
 
   void _setRoutePolyline(List<LatLng> points) {
@@ -392,44 +542,84 @@ class _BookingScreenState extends State<BookingScreen> {
       ));
   }
 
-  /// Frames the driver, the pickup and the route between them, inside the
-  /// map's padding (so above the sheet). Request stage only — every other
-  /// stage keeps the camera behaviour it had (DD-28).
-  void _fitRequestCamera() {
+  /// Frames the driver, the pickup and the stage's route, inside the map's
+  /// padding (so above the sheet): the route to the pickup on a request
+  /// (DD-35), what is left of it going there (DD-36), and the trip to the
+  /// destination at pickup (DD-37). The on-trip stage keeps the camera
+  /// behaviour it had (DD-28).
+  void _fitRouteCamera() {
     final GoogleMapController? controller = _mapController;
-    if (controller == null ||
-        tripController.state.stage.value != TripStage.requestReceived) {
-      return;
-    }
-    final LatLng pickup = LatLng(args.latPassenger, args.lngPassenger);
+    final TripStage stage = tripController.state.stage.value;
+    if (controller == null || !_compactStage(stage)) return;
+    final bool onTrip =
+        stage == TripStage.inProgress || stage == TripStage.completing;
+    final LatLng? driver =
+        latDriver != null && lngDriver != null && latDriver != 0.0
+            ? LatLng(latDriver!, lngDriver!)
+            : null;
+    // On the trip the pickup is behind: frame the car and what is left.
+    final LatLng anchor = onTrip && driver != null
+        ? driver
+        : LatLng(args.latPassenger, args.lngPassenger);
     final List<LatLng> points = <LatLng>[
-      pickup,
-      if (latDriver != null && lngDriver != null && latDriver != 0.0)
-        LatLng(latDriver!, lngDriver!),
-      ...?_pickupRoute?.points,
+      anchor,
+      if (driver != null) driver,
+      ...?switch (stage) {
+        TripStage.requestReceived => _pickupRoute?.points,
+        TripStage.enRouteToPickup => _remainingPickupRoute,
+        TripStage.waitingAtPickup => _tripRouteSummary?.points,
+        _ => _hasDestination ? _tripRemaining : null,
+      },
     ];
 
-    double south = pickup.latitude, north = pickup.latitude;
-    double west = pickup.longitude, east = pickup.longitude;
+    double south = anchor.latitude, north = anchor.latitude;
+    double west = anchor.longitude, east = anchor.longitude;
     for (final LatLng p in points) {
       if (p.latitude < south) south = p.latitude;
       if (p.latitude > north) north = p.latitude;
       if (p.longitude < west) west = p.longitude;
       if (p.longitude > east) east = p.longitude;
     }
-    final CameraUpdate update =
-        (north - south).abs() < 1e-5 && (east - west).abs() < 1e-5
-            ? CameraUpdate.newLatLngZoom(pickup, 16)
-            : CameraUpdate.newLatLngBounds(
-                LatLngBounds(
-                  southwest: LatLng(south, west),
-                  northeast: LatLng(north, east),
-                ),
-                56,
-              );
+    // Never frame less than ~170 m: as the driver closes in, the bounds
+    // shrink toward a point and the map would zoom to the curb.
+    const double minSpan = 0.0015;
+    if (north - south < minSpan) {
+      final double mid = (north + south) / 2;
+      south = mid - minSpan / 2;
+      north = mid + minSpan / 2;
+    }
+    if (east - west < minSpan) {
+      final double mid = (east + west) / 2;
+      west = mid - minSpan / 2;
+      east = mid + minSpan / 2;
+    }
+    final CameraUpdate update = CameraUpdate.newLatLngBounds(
+      LatLngBounds(
+        southwest: LatLng(south, west),
+        northeast: LatLng(north, east),
+      ),
+      56,
+    );
+    _lastAutoFitAt = DateTime.now();
+    _programmaticMove = true;
     controller
         .animateCamera(update)
-        .catchError((Object e) => tlog("Request camera: $e"));
+        .catchError((Object e) => tlog("Route camera: $e"));
+  }
+
+  /// Going to pickup: refit as the driver moves, but not more than every
+  /// [_autoFitInterval], and not while the driver is looking around the map.
+  ///
+  /// DD-38: on a trip with no destination there is no route to frame, so it
+  /// follows the car on every tick (at a neighbourhood zoom, not zoom 19).
+  void _autoFitEnRoute({bool followEveryTick = false}) {
+    final DateTime now = DateTime.now();
+    final DateTime? moved = _userMovedMapAt;
+    if (moved != null && now.difference(moved) < _userPanPause) return;
+    if (!followEveryTick && now.difference(_lastAutoFitAt) < _autoFitInterval) {
+      return;
+    }
+    _fitRouteCamera();
   }
 
   void _onSheetHeight(double height) {
@@ -439,21 +629,86 @@ class _BookingScreenState extends State<BookingScreen> {
     // from a microtask after this rebuild, so a post-frame refit would reach
     // the platform first — and the padding change would then push the fitted
     // route up under the status bar by half the height difference.
-    if (!_pickupRouteLoading) {
+    if (_canFrame) {
       Future<void>.delayed(const Duration(milliseconds: 150), () {
-        if (mounted) _fitRequestCamera();
+        if (mounted) _fitRouteCamera();
       });
     }
   }
 
-  /// "4 min" — rounded, never below one minute.
-  String _formatEta(int seconds) =>
-      'UNIT_MIN'.tr(args: <String>['${(seconds / 60).round().clamp(1, 999)}']);
+  /// The stages on the compact sheet, with no floating header and no map
+  /// zoom buttons (DD-35, DD-36, DD-37).
+  bool _compactStage(TripStage stage) =>
+      stage == TripStage.requestReceived ||
+      stage == TripStage.enRouteToPickup ||
+      stage == TripStage.waitingAtPickup ||
+      stage == TripStage.inProgress ||
+      stage == TripStage.completing;
+
+  /// Whether a camera fit has anything to frame yet. At pickup it always
+  /// has — the pickup itself, and the trip route once drawn.
+  bool get _canFrame =>
+      !_pickupRouteLoading ||
+      tripController.state.stage.value != TripStage.requestReceived &&
+          tripController.state.stage.value != TripStage.enRouteToPickup;
+
+  /// On a request, the whole route's figures; going to pickup, what is left
+  /// — the route's duration scaled by the share of its distance still to
+  /// drive (DD-36).
+  String? _pickupEtaText(TripStage stage) {
+    final RouteSummary? route = _pickupRoute;
+    if (route == null) return null;
+    final double? left = _pickupRemainingMeters;
+    if (stage == TripStage.enRouteToPickup &&
+        left != null &&
+        route.distanceMeters > 0) {
+      return _formatEta(
+          (route.durationSeconds * left / route.distanceMeters).round());
+    }
+    return _formatEta(route.durationSeconds);
+  }
+
+  String? _pickupDistanceText(TripStage stage) {
+    final RouteSummary? route = _pickupRoute;
+    if (route == null) return null;
+    final double? left = _pickupRemainingMeters;
+    return _formatKm((stage == TripStage.enRouteToPickup && left != null
+            ? left
+            : route.distanceMeters) /
+        1000);
+  }
+
+  /// On the trip: the route's duration scaled by the share of its distance
+  /// still to drive (DD-38), as for the pickup (DD-36).
+  String? _tripEtaText() {
+    final RouteSummary? route = _tripRouteSummary;
+    final double? left = _tripRemainingMeters;
+    if (route == null || left == null || route.distanceMeters <= 0) {
+      return null;
+    }
+    return _formatEta(
+        (route.durationSeconds * left / route.distanceMeters).round());
+  }
+
+  /// How much of the trip is done, against the trip's full driving distance
+  /// — so a refetched route after a detour does not send the bar back to 0.
+  double? _tripProgress() {
+    final double? left = _tripRemainingMeters;
+    final double totalMeters = totalDistance > 0
+        ? totalDistance * 1000
+        : (_tripRouteSummary?.distanceMeters ?? 0);
+    if (left == null || totalMeters <= 0) return null;
+    return (1 - left / totalMeters).clamp(0.0, 1.0);
+  }
+
+  /// "4 min", rounded; "< 1 min" under a minute, so arriving never reads
+  /// "1 min · 0 m left".
+  String _formatEta(int seconds) => seconds < 60
+      ? 'UNIT_UNDER_MIN'.tr()
+      : 'UNIT_MIN'.tr(args: <String>['${(seconds / 60).round()}']);
 
   /// "650 m" under a kilometre, "1.2 km" from there.
-  String _formatKm(double km) => km < 1
-      ? '${(km * 1000).round()} ${'m'.tr()}'
-      : '${km.toStringAsFixed(1)} ${'km'.tr()}';
+  String _formatKm(double km) => formatKm(km);
 
   /// The request's "≈" fare, with the same [estimateFare] the trip meter
   /// uses. Shown only once the vehicle's per-km price and minimum fare are
@@ -486,8 +741,12 @@ class _BookingScreenState extends State<BookingScreen> {
     ];
     for (int i = 0; i < routes.length; i++) {
       // Fetch route details
-      final List<LatLng> polylineCoordinates = await RouteService.instance
-          .route(routes[i]['start']!, routes[i]['end']!);
+      // DD-38: the summary — the same one Directions request — so the trip
+      // also knows its duration for the time left.
+      final RouteSummary? summary = await RouteService.instance
+          .summary(routes[i]['start']!, routes[i]['end']!);
+      final List<LatLng> polylineCoordinates =
+          summary?.points ?? const <LatLng>[];
 
       // Check if the route was fetched successfully
       if (polylineCoordinates.isNotEmpty) {
@@ -500,6 +759,20 @@ class _BookingScreenState extends State<BookingScreen> {
             width: 5, // Set polyline width
           ),
         );
+        // DD-37: at pickup, the camera previews the whole trip once.
+        // DD-38: on the trip, the route is trimmed from the driver on.
+        final TripStage drawnAt = tripController.state.stage.value;
+        if (mounted &&
+            (drawnAt == TripStage.waitingAtPickup ||
+                drawnAt == TripStage.inProgress)) {
+          setState(() {
+            _tripRouteSummary = summary;
+            _tripRouteOrigin = routes[i]['start'];
+            _tripRouteLoading = false;
+            _applyTripProgress(LatLng(currentLatDriver, currentLngDriver));
+          });
+          _fitRouteCamera();
+        }
         if ((args.desLatPassenger != null && args.desLngPassenger != null) &&
             (tripController.state.stage.value == TripStage.waitingAtPickup ||
                 tripController.state.stage.value == TripStage.inProgress)) {
@@ -522,6 +795,9 @@ class _BookingScreenState extends State<BookingScreen> {
       } else {
         // Log error if route couldn't be fetched
         tlog("Error drawing polyline $i: no route found");
+        if (mounted && _tripRouteLoading) {
+          setState(() => _tripRouteLoading = false);
+        }
       }
     }
   }
@@ -538,6 +814,11 @@ class _BookingScreenState extends State<BookingScreen> {
     // follows once it is fetched.
     if (tripController.state.stage.value == TripStage.requestReceived) {
       _currentZoom = 16.0;
+    }
+    if (tripController.state.stage.value == TripStage.waitingAtPickup) {
+      StorageGet.getArrivedAt(args.bookingId).then((DateTime? at) {
+        if (mounted && at != null) setState(() => _arrivedAt = at);
+      });
     }
     ever<TripActionResult?>(tripController.state.lastResult, _onTripAction);
     ever<TripActionError?>(tripController.state.lastError, _onTripError);
@@ -602,9 +883,12 @@ class _BookingScreenState extends State<BookingScreen> {
         );
         setState(() {
           refreshApp = false;
+          _arrivedAt = DateTime.now();
           getLocation(TripStage.waitingAtPickup);
         });
+        StorageSet.setArrivedAt(args.bookingId, _arrivedAt!);
       case TripStarted():
+        StorageRemove.removeArrivedAt();
         setState(() {
           refreshApp = false;
           getLocation(TripStage.inProgress);
@@ -632,6 +916,7 @@ class _BookingScreenState extends State<BookingScreen> {
         );
         _navigateToCalculateFee(completed);
       case TripCancelled():
+        StorageRemove.removeArrivedAt();
         Get.offAllNamed(AppRoutes.home);
     }
   }
@@ -747,6 +1032,21 @@ class _BookingScreenState extends State<BookingScreen> {
     // DD-35: a request's camera is framed once, by [_fitRequestCamera], and
     // not pulled back to the curb on every GPS tick.
     if (tripController.state.stage.value == TripStage.requestReceived) return;
+    // DD-36: going to pickup follows the driver and the route left instead
+    // of pinning the camera to the pickup.
+    if (tripController.state.stage.value == TripStage.enRouteToPickup) {
+      _autoFitEnRoute();
+      return;
+    }
+    // DD-37: at pickup the car is parked; the trip preview stays put.
+    if (tripController.state.stage.value == TripStage.waitingAtPickup) return;
+    // DD-38: on the trip, the same auto-fit as going to pickup.
+    if (tripController.state.stage.value == TripStage.inProgress) {
+      _autoFitEnRoute(followEveryTick: !_hasDestination);
+      return;
+    }
+    // Dropping off: the trip is ending; leave the camera where it is.
+    if (tripController.state.stage.value == TripStage.completing) return;
     if (_mapController != null) {
       final stage = tripController.state.stage.value;
       _mapController!.animateCamera(
@@ -794,7 +1094,8 @@ class _BookingScreenState extends State<BookingScreen> {
   /// The stage header floating over the top of the map. The app bar used to
   /// provide the status-bar inset, so this claims it with a SafeArea.
   ///
-  /// DD-35: not shown on a request. The sheet names the stage, the decision
+  /// DD-35–DD-37: not shown on the compact stages (request, going to pickup,
+  /// at pickup). The sheet names the stage and the booking, the decision
   /// timer moved into Accept, and the map above the sheet is left to the
   /// route.
   Widget _topOverlay(BuildContext context, TripStage stage) {
@@ -833,11 +1134,13 @@ class _BookingScreenState extends State<BookingScreen> {
           // C4 / DD-14: the meter's values are the exact expressions the old
           // top-of-map strip used, moved unchanged into the sheet. The strip
           // itself only prefixes the "≈", so the fare logic cannot drift.
-          final String meterDuration = formatDuration(remaining);
-          final String meterDistance = (args.desLatPassenger == null ||
-                  args.desLatPassenger == 0.0)
-              ? convertMaterToKm(double.parse(totalDistanceCount.toString()))
-              : convertKmToKmM(double.parse(totalDistance.toString()));
+          // DD-38: the same figures, read as a clock ("12:40") and as
+          // "3.2 km" — driven without a destination, the trip with one.
+          final String meterDuration = formatClock(remaining);
+          final String meterDistance =
+              (args.desLatPassenger == null || args.desLatPassenger == 0.0)
+                  ? _formatKm(totalDistanceCount / 1000)
+                  : _formatKm(totalDistance);
           final String meterFare =
               (args.desLatPassenger == null || args.desLatPassenger == 0.0)
                   ? totalDistanceCount <= 1000
@@ -864,9 +1167,9 @@ class _BookingScreenState extends State<BookingScreen> {
                 myLocationButtonEnabled: true,
                 compassEnabled: true,
                 // A request is decided at a glance, not explored.
-                zoomControlsEnabled: stage != TripStage.requestReceived,
+                zoomControlsEnabled: !_compactStage(stage),
                 zoomGesturesEnabled: true,
-                mapToolbarEnabled: stage != TripStage.requestReceived,
+                mapToolbarEnabled: !_compactStage(stage),
                 polylines: _polylines,
                 markers: _markers,
                 initialCameraPosition: CameraPosition(
@@ -877,16 +1180,21 @@ class _BookingScreenState extends State<BookingScreen> {
                 ),
                 onMapCreated: (GoogleMapController controller) {
                   _mapController = controller;
-                  if (!_pickupRouteLoading) _fitRequestCamera();
+                  if (_canFrame) _fitRouteCamera();
                 },
+                // DD-36: a move the screen did not start is the driver
+                // looking around — pause the auto-fit for a while.
+                onCameraMoveStarted: () {
+                  if (!_programmaticMove) _userMovedMapAt = DateTime.now();
+                },
+                onCameraIdle: () => _programmaticMove = false,
                 onCameraMove: (CameraPosition position) {
                   setState(() {
                     _currentZoom = position.zoom;
                   });
                 },
               ),
-              if (stage != TripStage.requestReceived)
-                _topOverlay(context, stage),
+              if (!_compactStage(stage)) _topOverlay(context, stage),
               ModelBottomSheetNewRequestWidget(
                 isLoading: isLoading || _dropPending,
                 duration: meterDuration,
@@ -903,17 +1211,27 @@ class _BookingScreenState extends State<BookingScreen> {
                 whereToGoLocationName: destinationPassengerPM,
                 passegerLocationName: currentPassengerPM,
                 processType: stage.toProcessStep(),
-                pickupEta: _pickupRoute == null
-                    ? null
-                    : _formatEta(_pickupRoute!.durationSeconds),
-                pickupDistance: _pickupRoute == null
-                    ? null
-                    : _formatKm(_pickupRoute!.distanceMeters / 1000),
+                pickupEta: _pickupEtaText(stage),
+                pickupDistance: _pickupDistanceText(stage),
                 pickupRouteLoading: _pickupRouteLoading,
-                tripDistance: _tripDistanceKm == null
+                // At pickup, the figures this stage has always computed
+                // (driver→destination route, `estimateFare`), as tiles.
+                tripDistance: stage == TripStage.waitingAtPickup
+                    ? (totalDistance > 0 ? _formatKm(totalDistance) : null)
+                    : (_tripDistanceKm == null
+                        ? null
+                        : _formatKm(_tripDistanceKm!)),
+                tripFare: stage == TripStage.waitingAtPickup
+                    ? (totalFee.isEmpty ? null : formatRielAmount(totalFee))
+                    : _requestFare(),
+                waitingSince: _arrivedAt,
+                hasDestination: _hasDestination,
+                tripEta: _tripEtaText(),
+                tripLeft: _tripRemainingMeters == null
                     ? null
-                    : _formatKm(_tripDistanceKm!),
-                tripFare: _requestFare(),
+                    : _formatKm(_tripRemainingMeters! / 1000),
+                tripProgress: _tripProgress(),
+                tripRouteLoading: _tripRouteLoading,
                 requestTimeoutSeconds: args.timeOut,
                 onHeightChanged: _onSheetHeight,
                 onCancel: tripController.cancel,

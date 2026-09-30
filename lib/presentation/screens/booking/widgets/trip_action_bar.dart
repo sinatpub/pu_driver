@@ -1,5 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:tara_driver_application/core/theme/tokens.dart';
 import 'package:tara_driver_application/presentation/widgets/count_down_widget.dart';
 import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
@@ -23,6 +25,12 @@ import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
 /// sit in a pill at its end. It is the same [SmoothCircularCountdown] timer
 /// that used to float over the map, so expiry still sends the driver home.
 ///
+/// Drop off is hold-to-confirm (`DD-38`, settling `DD-13`): it ends the trip
+/// at the current GPS point and cannot be undone, so the button fills over
+/// [holdDuration] while pressed and fires only when full. Letting go early,
+/// or dragging off, empties it. A screen reader's activate action confirms
+/// directly — that user is already acting deliberately.
+///
 /// **Both actions are disabled while [isLoading].** That is not cosmetic:
 /// Cancel emits `driverCancelDrive` before the controller's guard runs, so a
 /// Cancel tapped during an in-flight Accept would tell the passenger the trip
@@ -40,7 +48,11 @@ class TripActionBar extends StatelessWidget {
     this.onCancel,
     this.countdownSeconds,
     this.countdownExpiresToHome = true,
+    this.holdToConfirm = false,
   });
+
+  /// How long Drop off must be held.
+  static const Duration holdDuration = Duration(milliseconds: 1000);
 
   final String primaryLabel;
   final VoidCallback onPrimary;
@@ -66,6 +78,9 @@ class TripActionBar extends StatelessWidget {
   /// off, so a pumped bar does not navigate when the timer runs out.
   final bool countdownExpiresToHome;
 
+  /// Makes the primary action hold-to-confirm (Drop off).
+  final bool holdToConfirm;
+
   @override
   Widget build(BuildContext context) {
     // Keyed: when a request is accepted the timer and Cancel leave the
@@ -85,7 +100,15 @@ class TripActionBar extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          if (countdownSeconds == null)
+          if (holdToConfirm)
+            _HoldToConfirm(
+              key: const ValueKey<String>('trip-primary-hold'),
+              label: primaryLabel,
+              onConfirmed: onPrimary,
+              isLoading: isLoading,
+              variant: primaryVariant,
+            )
+          else if (countdownSeconds == null)
             primary
           else
             SmoothCircularCountdown(
@@ -191,6 +214,126 @@ class _TimedPrimary extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+/// A primary button that fires only after being held for
+/// [TripActionBar.holdDuration], filling from the left as it is held.
+class _HoldToConfirm extends StatefulWidget {
+  const _HoldToConfirm({
+    super.key,
+    required this.label,
+    required this.onConfirmed,
+    required this.isLoading,
+    required this.variant,
+  });
+
+  final String label;
+  final VoidCallback onConfirmed;
+  final bool isLoading;
+  final TButtonVariant variant;
+
+  @override
+  State<_HoldToConfirm> createState() => _HoldToConfirmState();
+}
+
+class _HoldToConfirmState extends State<_HoldToConfirm>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _hold = AnimationController(
+    vsync: this,
+    duration: TripActionBar.holdDuration,
+    // The fill is the confirmation, not decoration: it must take real time
+    // under the OS reduced-motion setting too (see the request countdown).
+    animationBehavior: AnimationBehavior.preserve,
+  )..addStatusListener(_onStatus);
+
+  Offset? _downAt;
+
+  void _onStatus(AnimationStatus status) {
+    if (status != AnimationStatus.completed) return;
+    HapticFeedback.mediumImpact();
+    widget.onConfirmed();
+    _hold.value = 0;
+  }
+
+  void _start(PointerDownEvent e) {
+    if (widget.isLoading) return;
+    _downAt = e.position;
+    _hold.forward(from: 0);
+  }
+
+  void _move(PointerMoveEvent e) {
+    final Offset? down = _downAt;
+    if (down != null && (e.position - down).distance > kTouchSlop) _release();
+  }
+
+  void _release([PointerEvent? _]) {
+    _downAt = null;
+    if (_hold.isAnimating) _hold.reverse();
+  }
+
+  @override
+  void didUpdateWidget(_HoldToConfirm oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isLoading && _hold.value > 0) _hold.value = 0;
+  }
+
+  @override
+  void dispose() {
+    _hold.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      enabled: !widget.isLoading,
+      label: widget.label,
+      onTap: widget.isLoading ? null : widget.onConfirmed,
+      child: ExcludeSemantics(
+        child: Listener(
+          behavior: HitTestBehavior.opaque,
+          onPointerDown: _start,
+          onPointerMove: _move,
+          onPointerUp: _release,
+          onPointerCancel: _release,
+          child: Stack(
+            children: <Widget>[
+              IgnorePointer(
+                child: TButton(
+                  label: widget.label,
+                  loading: widget.isLoading,
+                  // Never null: a null handler would draw it disabled. The
+                  // Listener above is what takes the press.
+                  onPressed: () {},
+                  variant: widget.variant,
+                ),
+              ),
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: ClipRRect(
+                    borderRadius: Radii.controlRadius,
+                    child: AnimatedBuilder(
+                      animation: _hold,
+                      builder: (BuildContext context, Widget? child) => Align(
+                        alignment: Alignment.centerLeft,
+                        child: FractionallySizedBox(
+                          widthFactor: _hold.value,
+                          heightFactor: 1,
+                          child: child,
+                        ),
+                      ),
+                      child: const ColoredBox(color: Color(0x33FFFFFF)),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

@@ -95,7 +95,7 @@ DataHistory _trip() => DataHistory.fromJson(<String, dynamic>{
       },
     });
 
-Widget _sheet(int processType) => Stack(
+Widget _sheet(int processType, {bool hasDestination = true}) => Stack(
       children: <Widget>[
         ModelBottomSheetNewRequestWidget(
           bookingId: 1,
@@ -105,7 +105,10 @@ Widget _sheet(int processType) => Stack(
           profilePassanger: '',
           namePassanger: 'Sok Dara',
           phonePassanger: '090000001',
-          passegerLocationName: 'St. 271, Phnom Penh',
+          // DD-35–DD-37: a long geocoded pickup, and every figure the
+          // compact stages can show, so their wrapping is checked too.
+          passegerLocationName: 'No. 12, Street 271, Sangkat Tuol Tumpung '
+              'Ti Muoy, Chamkar Mon, Phnom Penh, 12306, Cambodia',
           whereToGoLocationName: 'Independence Monument',
           distandTotal: 3.5,
           totalFee: '7600',
@@ -114,6 +117,17 @@ Widget _sheet(int processType) => Stack(
           duration: '00:12:40',
           distance: '3.20 km',
           fare: '7,600',
+          pickupEta: '12 min',
+          pickupDistance: '4.8 km',
+          tripDistance: '12.4 km',
+          tripFare: '24,600',
+          waitingSince: DateTime.now().subtract(
+            const Duration(minutes: 12, seconds: 34),
+          ),
+          hasDestination: hasDestination,
+          tripEta: '18 min',
+          tripLeft: '5.8 km',
+          tripProgress: 0.35,
         ),
       ],
     );
@@ -134,6 +148,10 @@ final Map<String, (Widget Function(), bool)> _surfaces =
   'trip pickup': (() => Scaffold(body: _sheet(2)), true),
   'trip at pickup': (() => Scaffold(body: _sheet(3)), true),
   'trip in progress': (() => Scaffold(body: _sheet(4)), true),
+  'trip in progress, no destination': (
+    () => Scaffold(body: _sheet(4, hasDestination: false)),
+    true
+  ),
   'home status + location': (
     () => Column(
           children: <Widget>[
@@ -178,16 +196,19 @@ final Map<String, (Widget Function(), bool)> _surfaces =
   'payment receipt': (
     () => const Column(
           children: <Widget>[
-            ReceiptCard(
-              passengerName: 'Mey Lin',
+            const PaymentHeader(bookingCode: '48213'),
+            const PaymentHero(
               method: 'Cash',
-              distance: '3.50 km',
+              amount: '៛7,600',
+              distance: '3.5 km',
               duration: '14:20',
-              dateTime: 'Sat/12/Sep/2026 09:30 AM',
+              time: '09:30',
+            ),
+            const PaymentRoute(
+              passengerName: 'Mey Lin',
               startAddress: 'St. 271, Phnom Penh',
               endAddress: 'Sisowath Quay',
             ),
-            TotalBox(amount: '៛7,600'),
           ],
         ),
     false
