@@ -278,6 +278,24 @@ final Map<String, (Widget Function(), bool)> _surfaces =
                 date: '2026-09-01',
                 unread: true,
                 onTap: () {}),
+            const ContactHeader(
+              title: 'PU Taxi support',
+              blurb: 'Feel free to reach out to us if you have any questions, '
+                  'feedback, or issues.',
+            ),
+            ContactGroup(
+              children: <Widget>[
+                PhoneRow(
+                    carrier: 'Cellcard', number: '012 285 048', onCall: () {}),
+                ContactInfoRow(
+                  icon: DsIcons.home,
+                  overline: 'Office · open in maps',
+                  value: '#74, Street 192, Sangkat Teuk Laok 3, Toul Kork '
+                      'District, Phnom Penh',
+                  onTap: () {},
+                ),
+              ],
+            ),
             ContactRow(
                 icon: DsIcons.phone,
                 label: 'Smart: +855 70 427 213',

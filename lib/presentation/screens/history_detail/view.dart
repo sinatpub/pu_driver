@@ -6,6 +6,7 @@ import 'package:get/get.dart' hide Trans;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:tara_driver_application/core/theme/tokens.dart';
 import 'package:tara_driver_application/presentation/screens/calculate_fee/widgets/receipt_card.dart';
+import 'package:tara_driver_application/presentation/screens/contact_us/logic.dart';
 import 'package:tara_driver_application/presentation/screens/contact_us/state.dart';
 import 'package:tara_driver_application/presentation/screens/contact_us/view.dart';
 import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
@@ -104,7 +105,7 @@ class _HistoryDetailPageState extends State<HistoryDetailPage> {
           ]) ...<Widget>[
             ContactRow(
               icon: DsIcons.phone,
-              label: '$carrier: $number',
+              label: '$carrier: ${formatLocalPhone(number)}',
               onTap: () => logic.callSupport(number.replaceAll(' ', '')),
             ),
             const SizedBox(height: Insets.s8),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tara_driver_application/core/theme/app_theme.dart';
 import 'package:tara_driver_application/core/theme/tokens.dart';
+import 'package:tara_driver_application/presentation/screens/contact_us/logic.dart';
 import 'package:tara_driver_application/presentation/screens/contact_us/view.dart';
 import 'package:tara_driver_application/presentation/screens/term_condition/state.dart';
 import 'package:tara_driver_application/presentation/screens/term_condition/view.dart';
@@ -34,6 +35,93 @@ void main() {
     expect(find.text('Term 1'), findsOneWidget);
     final Text number = t.widget<Text>(find.text('1'));
     expect(number.style!.color, TaarraaColors.light.brandText);
+  });
+
+  group('contact page (DD-44)', () {
+    test('numbers read the local way; dialling is not what this formats', () {
+      expect(formatLocalPhone('+855 70 427 213'), '070 427 213');
+      expect(formatLocalPhone('+85512285048'), '012 285 048');
+      // Ten local digits: the last group is short, not dropped.
+      expect(formatLocalPhone('+855 96 1234 567'), '096 123 456 7');
+      // Not a Cambodian number: left alone.
+      expect(formatLocalPhone('+1 415 555 0100'), '+1 415 555 0100');
+    });
+
+    testWidgets('a phone row shows the carrier and number, and calls',
+        (WidgetTester t) async {
+      int calls = 0;
+      await t.pumpWidget(
+        _host(
+          PhoneRow(
+            carrier: 'Smart',
+            number: '070 427 213',
+            onCall: () => calls++,
+          ),
+        ),
+      );
+
+      expect(find.text('Smart'), findsOneWidget);
+      expect(find.text('070 427 213'), findsOneWidget);
+      await t.tap(find.byType(TIconButton));
+      expect(calls, 1);
+    });
+
+    testWidgets('the whole info row is the tap target, with a chevron',
+        (WidgetTester t) async {
+      int taps = 0;
+      await t.pumpWidget(
+        _host(
+          ContactInfoRow(
+            icon: DsIcons.home,
+            overline: 'Office · open in maps',
+            value: '#74, Street 192, Sangkat Teuk Laok 3',
+            onTap: () => taps++,
+          ),
+        ),
+      );
+
+      await t.tap(find.text('#74, Street 192, Sangkat Teuk Laok 3'));
+      expect(taps, 1);
+      expect(
+        find.byWidgetPredicate(
+          (Widget w) => w is TIcon && w.asset == DsIcons.chevron,
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a group separates its rows with a hairline',
+        (WidgetTester t) async {
+      await t.pumpWidget(
+        _host(
+          ContactGroup(
+            children: <Widget>[
+              PhoneRow(carrier: 'Smart', number: '070', onCall: () {}),
+              PhoneRow(carrier: 'Cellcard', number: '012', onCall: () {}),
+            ],
+          ),
+        ),
+      );
+
+      expect(find.byType(Divider), findsOneWidget);
+    });
+
+    testWidgets('the header shows the brand mark, the name and the blurb',
+        (WidgetTester t) async {
+      await t.pumpWidget(
+        _host(
+          const ContactHeader(title: 'PU Taxi support', blurb: 'We can help.'),
+        ),
+      );
+
+      expect(find.text('PU Taxi support'), findsOneWidget);
+      expect(find.text('We can help.'), findsOneWidget);
+      final Image mark = t.widget<Image>(find.byType(Image));
+      expect(
+        (mark.image as ResizeImage).imageProvider,
+        const AssetImage('assets/launcher/launcher_driver_1024.png'),
+      );
+    });
   });
 
   group('ContactRow', () {

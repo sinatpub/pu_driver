@@ -1126,3 +1126,21 @@ The wallet showed two money cards — "Wallet 85,400 ៛" and "Commission fare 1
 
 ### Impact
 `wallet/view.dart`, `wallet/wallet_presentation.dart`, `wallet/widgets/wallet_widgets.dart` (`WalletDebtCard`; `WalletBalanceTone` removed). New keys: `WALLET_BALANCE`, `WALLET_COMMISSION_NOTE`, `WALLET_DEBT_TITLE`, `WALLET_DEBT_MESSAGE`, `WALLET_TX_TOP_UP`, `WALLET_TX_TRIP_EARNING`, `WALLET_TX_COMMISSION`, `WALLET_TX_WITHDRAW`, `WALLET_TX_REFERRAL_REWARD`. The keys `WALLET` and `COMMISSION_FARE` are no longer used by this screen.
+
+## Decision DD-44: The contact page is grouped by what the driver wants to do
+
+**Settled by the user on 2026-10-01: this layout, the PU Taxi name, local number format, the new logo.**
+
+### Context
+The contact page (drawer tab "Contact us") was a large logo badge, a centred blurb and four identical bold rows — two phone numbers written "Smart: +855 70 427 213", the email, and an address that looked tappable and did nothing. The logo and copyright said "TAARRAA" while the rest of the app says PU Taxi, and the copyright year was hardcoded to 2025.
+
+### Decision
+- **Header:** a compact card with the PU Taxi mark (`assets/launcher/launcher_driver_1024.png`, decoded at display size), "PU Taxi support" and the existing blurb.
+- **"Call us":** one card, a row per carrier — the carrier's name as a small label, the number in bold, and the green call button the trip screen uses.
+- **"Other ways":** the email, and the office address, which now opens in the phone's maps app (`ContactUsLogic.openMap`).
+- **Local number format:** "+855 70 427 213" is shown as "070 427 213" (`formatLocalPhone`). Display only; dialling still uses the full international number. The trip detail's support sheet (DD-42) shows the same format.
+- **Footer:** "Version 1.1.9" — the version the app's update check is pinned to (`HomeLogic`), since the app has no package-info dependency — and the copyright as "© {year} PU Taxi", with the current year filled in.
+- **Not done:** Telegram or Facebook rows and support hours — none were supplied.
+
+### Impact
+`contact_us/view.dart` (`ContactHeader`, `ContactSectionLabel`, `ContactGroup`, `PhoneRow`, `ContactInfoRow`; `ContactRow` kept for the support sheet), `contact_us/logic.dart` (`openMap`, `formatLocalPhone`), `history_detail/view.dart`. `COPYRIGHT` now takes the year. New keys: `SUPPORT_TITLE`, `CALL_US`, `OTHER_WAYS`, `CONTACT_EMAIL`, `CONTACT_OFFICE`, `APP_VERSION`. `assets/image/png/company_logo.png` is no longer used by the app.
