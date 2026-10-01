@@ -24,19 +24,29 @@ Future<BitmapDescriptor> loadCustomMarkerTukTuk({
 }) async {
   return BitmapDescriptor.asset(
     const ImageConfiguration(size: Size(30, 50)),
-    typeVehicleId == 1
-        ? "assets/marker/rickshaw_icon_svg.png"
-        : typeVehicleId == 2
-            ? "assets/marker/classis_car.png"
-            : typeVehicleId == 3
-                ? "assets/marker/mini_van.png"
-                : typeVehicleId == 4
-                    ? "assets/marker/SUV.png"
-                    : typeVehicleId == 5
-                        ? "assets/marker/alphard_vip.png"
-                        : "",
+    vehicleMarkerAsset(typeVehicleId),
   );
 }
+
+/// The marker image for a vehicle type. Any id without its own image — 0
+/// before the driver's profile has loaded, a ride payload with no
+/// `vehicleType`, or a type added on the server later — gets the classic car.
+///
+/// It used to return "" for those. A debug build stopped that at an
+/// `assert` in `BitmapDescriptor.asset`; a profile or release build has no
+/// asserts, so the empty path reached Google Maps, which threw
+/// `IllegalArgumentException: 'asset' cannot open asset:` on the main thread
+/// and crashed the app on the home map's first GPS fix.
+String vehicleMarkerAsset(int typeVehicleId) => switch (typeVehicleId) {
+      1 => "assets/marker/rickshaw_icon_svg.png",
+      2 => "assets/marker/classis_car.png",
+      3 => "assets/marker/mini_van.png",
+      4 => "assets/marker/SUV.png",
+      5 => "assets/marker/alphard_vip.png",
+      _ => fallbackVehicleMarkerAsset,
+    };
+
+const String fallbackVehicleMarkerAsset = "assets/marker/classis_car.png";
 
 /// The trip screen's pickup and destination pins (DD-35), drawn in code so
 /// they stay sharp at every screen density and need no asset. Pickup is a
