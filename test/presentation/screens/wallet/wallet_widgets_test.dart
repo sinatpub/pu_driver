@@ -6,13 +6,11 @@ import 'package:tara_driver_application/presentation/screens/wallet/wallet_prese
 import 'package:tara_driver_application/presentation/screens/wallet/widgets/wallet_widgets.dart';
 import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
 
-/// UX-redesign S2 — the wallet's balance card and transaction row
-/// (`03 S11`, `DD-21`, `DD-04`).
+/// The wallet's pieces after DD-43 (`03 S11`, `DD-04`).
 ///
 /// `wallet/view.dart` is not pumped: it reaches for a GetX controller and a
-/// repository. Loaded / empty / error states, every filter chip and a USD
-/// balance are verified on a device (roadmap S2 Verification). The money
-/// rules themselves are covered by `test/presentation/screens/wallet/`.
+/// repository. The money rules themselves are covered by
+/// `wallet_presentation_test.dart`.
 Widget _host(Widget child) {
   return MaterialApp(
     theme: AppTheme.light(khmer: false),
@@ -22,21 +20,37 @@ Widget _host(Widget child) {
 
 void main() {
   group('WalletBalanceCard', () {
-    testWidgets('shows the label and a USD amount with its decimals',
+    testWidgets('shows the balance and the commission note',
         (WidgetTester t) async {
       await t.pumpWidget(
         _host(
-          WalletBalanceCard(
-            label: 'Wallet',
-            amount: formatWalletAmountWithSymbol('125.50', 'USD'),
-            tone: WalletBalanceTone.wallet,
+          const WalletBalanceCard(
+            label: 'Balance',
+            amount: '៛85,400',
+            note: 'Platform commission: 10% of each trip',
           ),
         ),
       );
+      final BuildContext context = t.element(find.byType(WalletBalanceCard));
 
-      expect(find.text('Wallet'), findsOneWidget);
-      expect(find.text('125.50 \$'), findsOneWidget);
-      // DD-21: the existing label only — no invented sub-label.
+      expect(find.text('Balance'), findsOneWidget);
+      expect(
+          find.text('Platform commission: 10% of each trip'), findsOneWidget);
+      final Text amount = t.widget<Text>(find.text('៛85,400'));
+      // Neutral money, tabular (DD-04).
+      expect(amount.style!.color, context.colors.textPrimary);
+      expect(
+        amount.style!.fontFeatures,
+        contains(const FontFeature.tabularFigures()),
+      );
+    });
+
+    testWidgets('no note when the rate is not reported',
+        (WidgetTester t) async {
+      await t.pumpWidget(
+        _host(const WalletBalanceCard(label: 'Balance', amount: '៛0')),
+      );
+
       final Iterable<Text> texts = t.widgetList<Text>(
         find.descendant(
           of: find.byType(WalletBalanceCard),
@@ -45,56 +59,100 @@ void main() {
       );
       expect(texts.length, 2);
     });
+  });
 
-    testWidgets('amount is neutral and tabular in both tones',
+  group('WalletDebtCard', () {
+    testWidgets('says how much is owed, in the warning colour, never red',
         (WidgetTester t) async {
-      for (final WalletBalanceTone tone in WalletBalanceTone.values) {
-        await t.pumpWidget(
-          _host(
-            WalletBalanceCard(label: 'L', amount: '7,600 ៛', tone: tone),
+      await t.pumpWidget(
+        _host(
+          const WalletDebtCard(
+            title: 'You owe ៛5,000',
+            message: 'Unpaid commission from cash trips. Top up to clear it.',
           ),
-        );
-        final BuildContext context = t.element(find.byType(WalletBalanceCard));
-        final Text amount = t.widget<Text>(find.text('7,600 ៛'));
-        expect(amount.style!.color, context.colors.textPrimary);
-        expect(
-          amount.style!.fontFeatures,
-          contains(const FontFeature.tabularFigures()),
-        );
-      }
+        ),
+      );
+      final BuildContext context = t.element(find.byType(WalletDebtCard));
+
+      final Text title = t.widget<Text>(find.text('You owe ៛5,000'));
+      expect(title.style!.color, context.colors.warning);
+      expect(title.style!.color, isNot(context.colors.danger));
     });
   });
 
   group('TransactionRow', () {
-    testWidgets('joins date and status into one caption',
+    testWidgets('money in is green with its sign', (WidgetTester t) async {
+      await t.pumpWidget(
+        _host(
+          const TransactionRow(
+            title: 'Top up',
+            kind: WalletTxKind.topUp,
+            direction: WalletTxDirection.moneyIn,
+            amount: '+៛100,000',
+            time: '09:14',
+          ),
+        ),
+      );
+      final BuildContext context = t.element(find.byType(TransactionRow));
+
+      expect(find.text('Top up'), findsOneWidget);
+      expect(find.text('09:14'), findsOneWidget);
+      expect(
+        t.widget<Text>(find.text('+៛100,000')).style!.color,
+        context.colors.success,
+      );
+    });
+
+    testWidgets('money out is neutral, not red', (WidgetTester t) async {
+      await t.pumpWidget(
+        _host(
+          const TransactionRow(
+            title: 'Commission',
+            kind: WalletTxKind.commission,
+            direction: WalletTxDirection.moneyOut,
+            amount: '−៛1,300',
+            time: '09:14',
+          ),
+        ),
+      );
+      final BuildContext context = t.element(find.byType(TransactionRow));
+
+      final Text amount = t.widget<Text>(find.text('−៛1,300'));
+      expect(amount.style!.color, context.colors.textPrimary);
+      expect(t.widget<TIcon>(find.byType(TIcon)).asset, DsIcons.doc);
+    });
+
+    testWidgets('a status is joined to the time only when one is passed',
         (WidgetTester t) async {
       await t.pumpWidget(
         _host(
           const TransactionRow(
-            typeName: 'Commission',
-            amount: '1,200 ៛',
-            date: '12 Sep 2026 · 09:30',
-            status: 'Success',
+            title: 'Top up',
+            amount: '៛500',
+            time: '09:14',
+            status: 'Pending',
           ),
         ),
       );
-
-      expect(find.text('Commission'), findsOneWidget);
-      expect(find.text('12 Sep 2026 · 09:30 · Success'), findsOneWidget);
-      expect(find.text('1,200 ៛'), findsOneWidget);
+      expect(find.text('09:14 · Pending'), findsOneWidget);
     });
 
-    testWidgets('never colours or signs the amount', (WidgetTester t) async {
+    testWidgets('an unknown kind is unsigned and neutral; no title is a dash',
+        (WidgetTester t) async {
       await t.pumpWidget(
-        _host(const TransactionRow(typeName: null, amount: '-3.00 \$')),
+        _host(const TransactionRow(title: null, amount: '៛500')),
       );
       final BuildContext context = t.element(find.byType(TransactionRow));
 
-      expect(find.text('—'), findsOneWidget); // null type name
-      final Text amount = t.widget<Text>(find.text('-3.00 \$'));
-      expect(amount.style!.color, context.colors.textPrimary);
-      final TIcon icon = t.widget<TIcon>(find.byType(TIcon));
-      expect(icon.color, context.colors.textSecondary);
+      expect(find.text('—'), findsOneWidget);
+      expect(
+        t.widget<Text>(find.text('៛500')).style!.color,
+        context.colors.textPrimary,
+      );
+      expect(
+        t.widget<TIcon>(find.byType(TIcon)).color,
+        context.colors.textSecondary,
+      );
     });
   });
 

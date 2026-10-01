@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:tara_driver_application/core/theme/tokens.dart';
 import 'package:tara_driver_application/presentation/widgets/ds/t_motion.dart';
@@ -59,21 +60,48 @@ class TSegmented extends StatelessWidget {
 }
 
 /// Content filter tabs — history's Completed / Cancelled.
+///
+/// DD-41: one thumb slides between equal segments, like an iOS segmented
+/// control. With [position] (a page position, e.g. from a `PageController`)
+/// the thumb follows a swipe as it happens; without it, the thumb animates to
+/// [index] when that changes.
 class TTabs extends StatelessWidget {
   const TTabs({
     super.key,
     required this.labels,
     required this.index,
     required this.onChanged,
+    this.position,
   });
 
   final List<String> labels;
   final int index;
   final ValueChanged<int> onChanged;
 
+  /// 0 … `labels.length - 1`, fractional while a page swipe is in flight.
+  final ValueListenable<double>? position;
+
+  Alignment _alignment(double at) => labels.length < 2
+      ? Alignment.center
+      : Alignment(
+          -1 + 2 * at.clamp(0, labels.length - 1) / (labels.length - 1), 0);
+
   @override
   Widget build(BuildContext context) {
     final TaarraaColors c = context.colors;
+
+    final Widget thumb = FractionallySizedBox(
+      widthFactor: 1 / labels.length,
+      heightFactor: 1,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: c.bgSurface,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: Elevations.selected,
+        ),
+      ),
+    );
+
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
@@ -81,17 +109,66 @@ class TTabs extends StatelessWidget {
         borderRadius: Radii.controlRadius,
         border: Border.all(color: c.borderDivider),
       ),
-      child: Row(
+      child: Stack(
         children: <Widget>[
-          for (int i = 0; i < labels.length; i++)
-            Expanded(
-              child: _SelectableSegment(
-                label: labels[i],
-                isSelected: i == index,
-                onTap: () => onChanged(i),
-                radius: 10,
-              ),
-            ),
+          Positioned.fill(
+            child: position == null
+                ? AnimatedAlign(
+                    alignment: _alignment(index.toDouble()),
+                    duration: reduceMotion(context)
+                        ? Duration.zero
+                        : Motion.colorChange,
+                    curve: Curves.easeOut,
+                    child: thumb,
+                  )
+                : ValueListenableBuilder<double>(
+                    valueListenable: position!,
+                    builder: (BuildContext context, double at, Widget? child) =>
+                        Align(alignment: _alignment(at), child: child),
+                    child: thumb,
+                  ),
+          ),
+          Row(
+            children: <Widget>[
+              for (int i = 0; i < labels.length; i++)
+                Expanded(
+                  child: Semantics(
+                    button: true,
+                    selected: i == index,
+                    label: labels[i],
+                    child: GestureDetector(
+                      onTap: () => onChanged(i),
+                      behavior: HitTestBehavior.opaque,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          minHeight: Sizes.touchTarget,
+                        ),
+                        child: Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: Insets.s8,
+                            ),
+                            child: ExcludeSemantics(
+                              child: Text(
+                                labels[i],
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: context.texts.label.copyWith(
+                                  color: i == index
+                                      ? c.textPrimary
+                                      : c.textSecondary,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ],
       ),
     );

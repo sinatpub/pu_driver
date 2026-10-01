@@ -47,9 +47,170 @@ String formatWalletAmount(dynamic amount, String? currency) {
   return NumberFormat(pattern).format(value);
 }
 
-/// Amount with its symbol, in the order the screen already used.
-String formatWalletAmountWithSymbol(dynamic amount, String? currency) =>
-    "${formatWalletAmount(amount, currency)} ${currencySymbol(currency)}";
+/// A wallet amount with its symbol first — "៛85,400", "$125.50" — the order
+/// every other money figure in the app uses (DD-43). A negative amount keeps
+/// its sign in front of the symbol: "−៛1,300".
+String formatWalletMoney(dynamic amount, String? currency) {
+  final value = parseMoney(amount);
+  if (value == null) return "—";
+  final String figure = formatWalletAmount(value.abs(), currency);
+  return "${value < 0 ? "−" : ""}${currencySymbol(currency)}$figure";
+}
+
+/// What a wallet transaction is (DD-43), read from the backend's `type_name`
+/// — the integer `type` codes are still undocumented (see
+/// [transactionTypeNames]). Matching is loose on purpose ("Top Up", "top-up",
+/// "TOPUP"); a name that matches nothing is [unknown] and is shown as the
+/// backend wrote it, with no sign or direction assumed.
+enum WalletTxKind {
+  topUp,
+  tripEarning,
+  commission,
+  withdraw,
+  referralReward,
+  unknown;
+
+  static WalletTxKind of(String? typeName) {
+    final String name =
+        (typeName ?? '').toLowerCase().replaceAll(RegExp('[^a-z]'), '');
+    if (name.contains('topup')) return WalletTxKind.topUp;
+    if (name.contains('commission')) return WalletTxKind.commission;
+    if (name.contains('withdraw')) return WalletTxKind.withdraw;
+    if (name.contains('referral') || name.contains('reward')) {
+      return WalletTxKind.referralReward;
+    }
+    if (name.contains('earning')) return WalletTxKind.tripEarning;
+    return WalletTxKind.unknown;
+  }
+
+  /// The translation key for this kind's name; null for [unknown], whose
+  /// name is the backend's own text.
+  String? get labelKey => switch (this) {
+        WalletTxKind.topUp => 'WALLET_TX_TOP_UP',
+        WalletTxKind.tripEarning => 'WALLET_TX_TRIP_EARNING',
+        WalletTxKind.commission => 'WALLET_TX_COMMISSION',
+        WalletTxKind.withdraw => 'WALLET_TX_WITHDRAW',
+        WalletTxKind.referralReward => 'WALLET_TX_REFERRAL_REWARD',
+        WalletTxKind.unknown => null,
+      };
+}
+
+/// Which way the money moved.
+enum WalletTxDirection { moneyIn, moneyOut, unknown }
+
+/// A transaction's direction (DD-43): a negative amount is always money out;
+/// otherwise the kind decides — commission and withdrawals go out, top-ups,
+/// trip earnings and referral rewards come in. An unknown kind with a
+/// positive amount is [WalletTxDirection.unknown]: no sign is guessed.
+WalletTxDirection walletTxDirection(WalletTxKind kind, dynamic amount) {
+  final num? value = parseMoney(amount);
+  if (value != null && value < 0) return WalletTxDirection.moneyOut;
+  return switch (kind) {
+    WalletTxKind.commission ||
+    WalletTxKind.withdraw =>
+      WalletTxDirection.moneyOut,
+    WalletTxKind.topUp ||
+    WalletTxKind.tripEarning ||
+    WalletTxKind.referralReward =>
+      WalletTxDirection.moneyIn,
+    WalletTxKind.unknown => WalletTxDirection.unknown,
+  };
+}
+
+/// A transaction amount with its direction: "+៛18,200", "−៛1,300", or the
+/// bare "៛500" when the direction is unknown. The figure is the absolute
+/// value — the sign comes from [direction], so a commission the backend
+/// sends as a positive number still reads as money out.
+String formatSignedWalletMoney(
+  dynamic amount,
+  String? currency,
+  WalletTxDirection direction,
+) {
+  final num? value = parseMoney(amount);
+  if (value == null) return "—";
+  final String figure =
+      "${currencySymbol(currency)}${formatWalletAmount(value.abs(), currency)}";
+  return switch (direction) {
+    WalletTxDirection.moneyIn => "+$figure",
+    WalletTxDirection.moneyOut => "−$figure",
+    WalletTxDirection.unknown => figure,
+  };
+}
+
+/// The platform's commission rate as text — "10", "7.5" — from the wallet's
+/// `commission_fare`, which is a percentage of each trip's fare (DD-43).
+/// Null when it is not reported or not positive, so no note is shown.
+String? commissionRateText(dynamic commissionFare) {
+  final num? rate = parseMoney(commissionFare);
+  if (rate == null || rate <= 0) return null;
+  return rate == rate.roundToDouble()
+      ? rate.round().toString()
+      : NumberFormat('0.##').format(rate);
+}
+
+/// What the driver owes the platform — the wallet's `debted`, unpaid
+/// commission (DD-43) — or null when nothing is owed or it is not reported.
+num? walletDebt(dynamic debted) {
+  final num? value = parseMoney(debted);
+  return value != null && value > 0 ? value : null;
+}
+
+/// Whether a status needs no mention. "Success" on every row is noise; a
+/// status is shown only when it is something else (pending, failed…).
+bool isRoutineStatus(String? statusName) => const <String>{
+      '',
+      'success',
+      'successful',
+      'completed',
+      'paid',
+    }.contains((statusName ?? '').trim().toLowerCase());
+
+/// When a transaction happened, in local time, or null.
+DateTime? transactionDateTime(dynamic createdAt) =>
+    _parseDate(createdAt)?.toLocal();
+
+/// "09:14" — the day is in the list's header.
+String? formatTransactionTime(dynamic createdAt) {
+  final DateTime? at = transactionDateTime(createdAt);
+  return at == null ? null : DateFormat('HH:mm').format(at);
+}
+
+/// One line of the transaction list: a day header or a transaction.
+sealed class WalletRow {
+  const WalletRow();
+}
+
+class WalletDayHeader extends WalletRow {
+  const WalletDayHeader(this.day);
+
+  /// Midnight of the day, local time.
+  final DateTime day;
+}
+
+class WalletTxRow extends WalletRow {
+  const WalletTxRow(this.transaction);
+
+  final Transaction transaction;
+}
+
+/// [transactions] (already sorted) with a [WalletDayHeader] before the first
+/// one of each day. One with no readable date stays under the header above.
+List<WalletRow> walletRows(List<Transaction> transactions) {
+  final List<WalletRow> rows = <WalletRow>[];
+  DateTime? current;
+  for (final Transaction t in transactions) {
+    final DateTime? at = transactionDateTime(t.createdAt);
+    if (at != null) {
+      final DateTime day = DateTime(at.year, at.month, at.day);
+      if (day != current) {
+        rows.add(WalletDayHeader(day));
+        current = day;
+      }
+    }
+    rows.add(WalletTxRow(t));
+  }
+  return rows;
+}
 
 /// Transactions, newest first.
 ///

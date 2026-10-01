@@ -163,4 +163,146 @@ void main() {
       expect(formatTransactionDate(42), isNull);
     });
   });
+
+  group('formatWalletMoney (DD-43)', () {
+    test('the symbol comes first, as on every other money figure', () {
+      expect(formatWalletMoney(85400, 'KHR'), '៛85,400');
+      expect(formatWalletMoney('125.5', 'USD'), '\$125.50');
+    });
+
+    test('a negative amount keeps its sign in front of the symbol', () {
+      expect(formatWalletMoney(-1300, 'KHR'), '−៛1,300');
+    });
+
+    test('an unreported amount is an em dash, not zero', () {
+      expect(formatWalletMoney(null, 'KHR'), '—');
+    });
+  });
+
+  group('WalletTxKind (DD-43)', () {
+    test('reads the backend type name loosely', () {
+      expect(WalletTxKind.of('Top Up'), WalletTxKind.topUp);
+      expect(WalletTxKind.of('top-up'), WalletTxKind.topUp);
+      expect(WalletTxKind.of('TOPUP'), WalletTxKind.topUp);
+      expect(WalletTxKind.of('Trip Earning'), WalletTxKind.tripEarning);
+      expect(WalletTxKind.of('Commission'), WalletTxKind.commission);
+      expect(WalletTxKind.of('Withdraw'), WalletTxKind.withdraw);
+      expect(WalletTxKind.of('Referral Reward'), WalletTxKind.referralReward);
+    });
+
+    test('a name it does not know is unknown, with no label of its own', () {
+      expect(WalletTxKind.of('Adjustment'), WalletTxKind.unknown);
+      expect(WalletTxKind.of(null), WalletTxKind.unknown);
+      expect(WalletTxKind.unknown.labelKey, isNull);
+      expect(WalletTxKind.commission.labelKey, 'WALLET_TX_COMMISSION');
+    });
+  });
+
+  group('walletTxDirection and the signed amount (DD-43)', () {
+    test('the kind decides when the amount is positive', () {
+      expect(walletTxDirection(WalletTxKind.topUp, 100000),
+          WalletTxDirection.moneyIn);
+      expect(walletTxDirection(WalletTxKind.tripEarning, 18200),
+          WalletTxDirection.moneyIn);
+      expect(walletTxDirection(WalletTxKind.referralReward, 1000),
+          WalletTxDirection.moneyIn);
+      // A commission the backend sends as a positive number is still out.
+      expect(walletTxDirection(WalletTxKind.commission, 1300),
+          WalletTxDirection.moneyOut);
+      expect(walletTxDirection(WalletTxKind.withdraw, 50000),
+          WalletTxDirection.moneyOut);
+    });
+
+    test('a negative amount is always money out', () {
+      expect(walletTxDirection(WalletTxKind.commission, -1300),
+          WalletTxDirection.moneyOut);
+      expect(walletTxDirection(WalletTxKind.unknown, '-500'),
+          WalletTxDirection.moneyOut);
+      expect(walletTxDirection(WalletTxKind.topUp, -1),
+          WalletTxDirection.moneyOut);
+    });
+
+    test('an unknown kind with a positive amount is not guessed', () {
+      expect(walletTxDirection(WalletTxKind.unknown, 500),
+          WalletTxDirection.unknown);
+      expect(
+        formatSignedWalletMoney(500, 'KHR', WalletTxDirection.unknown),
+        '៛500',
+      );
+    });
+
+    test('the sign comes from the direction, the figure is absolute', () {
+      expect(
+        formatSignedWalletMoney(18200, 'KHR', WalletTxDirection.moneyIn),
+        '+៛18,200',
+      );
+      expect(
+        formatSignedWalletMoney(-1300, 'KHR', WalletTxDirection.moneyOut),
+        '−៛1,300',
+      );
+      expect(
+        formatSignedWalletMoney(1300, 'KHR', WalletTxDirection.moneyOut),
+        '−៛1,300',
+      );
+      expect(
+        formatSignedWalletMoney(null, 'KHR', WalletTxDirection.moneyIn),
+        '—',
+      );
+    });
+  });
+
+  group('commission rate and debt (DD-43)', () {
+    test('commission_fare is a percentage', () {
+      expect(commissionRateText(10), '10');
+      expect(commissionRateText('10'), '10');
+      expect(commissionRateText(7.5), '7.5');
+    });
+
+    test('no rate, no note', () {
+      expect(commissionRateText(null), isNull);
+      expect(commissionRateText(0), isNull);
+      expect(commissionRateText('nonsense'), isNull);
+    });
+
+    test('debted is shown only when something is owed', () {
+      expect(walletDebt(5000), 5000);
+      expect(walletDebt('5000'), 5000);
+      expect(walletDebt(0), isNull);
+      expect(walletDebt(null), isNull);
+      expect(walletDebt(-10), isNull);
+    });
+  });
+
+  group('transaction rows (DD-43)', () {
+    test('"Success" is not worth saying; anything else is', () {
+      expect(isRoutineStatus('Success'), isTrue);
+      expect(isRoutineStatus(' completed '), isTrue);
+      expect(isRoutineStatus(null), isTrue);
+      expect(isRoutineStatus('Pending'), isFalse);
+      expect(isRoutineStatus('Failed'), isFalse);
+    });
+
+    test('a header goes before the first transaction of each day', () {
+      Transaction at(String? when) => Transaction(createdAt: when);
+      final List<WalletRow> rows = walletRows(<Transaction>[
+        at('2026-09-30 09:14:00'),
+        at('2026-09-30 08:00:00'),
+        at('2026-09-28 09:14:00'),
+        at(null),
+      ]);
+
+      expect(
+        rows.map((WalletRow r) => switch (r) {
+              WalletDayHeader(:final DateTime day) => 'day ${day.day}',
+              WalletTxRow() => 'tx',
+            }),
+        <String>['day 30', 'tx', 'tx', 'day 28', 'tx', 'tx'],
+      );
+    });
+
+    test('the time is local hours and minutes', () {
+      expect(formatTransactionTime('2026-09-30 09:14:00'), '09:14');
+      expect(formatTransactionTime(null), isNull);
+    });
+  });
 }

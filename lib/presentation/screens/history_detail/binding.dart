@@ -8,16 +8,7 @@ class HistoryDetailBinding extends Bindings {
   void dependencies() {
     final args = Get.arguments as MapHistoryDetailArgs;
     Get.lazyPut<HistoryDetailLogic>(
-      () => HistoryDetailLogic(
-        typeVehicleId: args.typeVehicleId,
-        cost: args.cost,
-        distand: args.distand,
-        duration: args.duration,
-        latStart: args.latStart,
-        lngStart: args.lngStart,
-        latEnd: args.latEnd,
-        lngEnd: args.lngEnd,
-      ),
+      () => HistoryDetailLogic(args),
       fenix: true,
     );
   }

@@ -39,6 +39,15 @@ class MapHistoryDetailArgs {
     required this.lngStart,
     required this.latEnd,
     required this.lngEnd,
+    this.invoiceId,
+    this.passengerName,
+    this.passengerImage,
+    this.passengerPhone,
+    this.startAddress,
+    this.endAddress,
+    this.paymentMethod,
+    this.tripTime,
+    this.endedAt,
   });
 
   final int typeVehicleId;
@@ -49,6 +58,25 @@ class MapHistoryDetailArgs {
   final double lngStart;
   final double latEnd;
   final double lngEnd;
+
+  /// DD-42: the rest of the trip, so the detail screen shows what the list
+  /// card did and more. All optional — a caller that only has the figures
+  /// still gets the old, figures-only screen.
+  final String? invoiceId;
+  final String? passengerName;
+  final String? passengerImage;
+
+  /// Never printed: only dialled, and only within 24 h of [endedAt].
+  final String? passengerPhone;
+  final String? startAddress;
+  final String? endAddress;
+  final String? paymentMethod;
+
+  /// When the trip started, for the "Time" figure.
+  final DateTime? tripTime;
+
+  /// When the trip ended, for the passenger-call window.
+  final DateTime? endedAt;
 }
 
 class CalculateFeeScreenArgs {

@@ -120,7 +120,13 @@ class PaymentHero extends StatelessWidget {
     required this.distance,
     required this.duration,
     required this.time,
+    this.label,
   });
+
+  /// Replaces the method's instruction ("Collect in cash") over the amount,
+  /// and drops the "Nothing to collect" line — for the history detail
+  /// (`DD-42`), where the trip is long paid and the amount is just a figure.
+  final String? label;
 
   /// `payment.paymentMethod` — the badge shows only when present (`DD-18`).
   final String? method;
@@ -148,7 +154,7 @@ class PaymentHero extends StatelessWidget {
             children: <Widget>[
               Expanded(
                 child: Text(
-                  kind.heroLabel,
+                  label ?? kind.heroLabel,
                   style: context.texts.caption.copyWith(color: c.textSecondary),
                 ),
               ),
@@ -160,7 +166,7 @@ class PaymentHero extends StatelessWidget {
             alignment: Alignment.centerLeft,
             child: TAmount(text: amount, style: TAmountStyle.hero),
           ),
-          if (kind.paidInApp)
+          if (kind.paidInApp && label == null)
             Text(
               'NOTHING_TO_COLLECT'.tr(),
               style: context.texts.caption.copyWith(color: c.success),
@@ -189,10 +195,15 @@ class PaymentRoute extends StatelessWidget {
     required this.startAddress,
     required this.endAddress,
     this.passengerImageUrl,
+    this.passengerCaption,
   });
 
   final String passengerName;
   final String? passengerImageUrl;
+
+  /// A line under the passenger's name — the history detail's invoice
+  /// number (`DD-42`).
+  final String? passengerCaption;
   final String startAddress;
   final String endAddress;
 
@@ -231,6 +242,7 @@ class PaymentRoute extends StatelessWidget {
           ),
           PassengerRow(
             name: passengerName,
+            phoneLabel: passengerCaption,
             imageUrl: passengerImageUrl,
             dense: true,
           ),

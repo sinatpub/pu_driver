@@ -34,7 +34,10 @@ import 'package:tara_driver_application/presentation/screens/otp/view.dart';
 import 'package:tara_driver_application/presentation/screens/profile/logic.dart';
 import 'package:tara_driver_application/presentation/screens/register/logic.dart';
 import 'package:tara_driver_application/presentation/screens/register/view.dart';
+import 'package:tara_driver_application/presentation/screens/wallet/wallet_presentation.dart';
 import 'package:tara_driver_application/presentation/screens/wallet/widgets/wallet_widgets.dart';
+import 'package:tara_driver_application/presentation/screens/history_detail/view.dart';
+import 'package:tara_driver_application/routes/route_arguments.dart';
 import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
 
 import '../helpers/localized_host.dart';
@@ -213,6 +216,31 @@ final Map<String, (Widget Function(), bool)> _surfaces =
         ),
     false
   ),
+  'history detail': (
+    () => TripDetailBody(
+          trip: MapHistoryDetailArgs(
+            typeVehicleId: 2,
+            cost: '129,100',
+            distand: '13.1 km',
+            duration: '1:08:24',
+            latStart: 11.55,
+            lngStart: 104.92,
+            latEnd: 11.57,
+            lngEnd: 104.93,
+            invoiceId: '7712',
+            passengerName: 'Sreymom Chanthavy Sokunthea',
+            startAddress: 'No. 12, Street 271, Sangkat Tuol Tumpung Ti Muoy, '
+                'Chamkar Mon, Phnom Penh, 12306, Cambodia',
+            endAddress: 'Phnom Penh International Airport, Pou Senchey',
+            paymentMethod: 'Cash',
+            tripTime: DateTime(2026, 9, 12, 9, 30),
+          ),
+          canCallPassenger: true,
+          onCallPassenger: () {},
+          onContactSupport: () {},
+        ),
+    false
+  ),
   'history + wallet + news': (
     () => Column(
           children: <Widget>[
@@ -227,7 +255,23 @@ final Map<String, (Widget Function(), bool)> _surfaces =
                 TChip(label: 'Commission', selected: false, onTap: () {}),
               ],
             ),
-            const TransactionRow(typeName: 'Top up', amount: '25.00 \$'),
+            const WalletBalanceCard(
+              label: 'Balance',
+              amount: '៛1,285,400',
+              note: 'Platform commission: 10% of each trip',
+            ),
+            const WalletDebtCard(
+              title: 'You owe ៛5,000',
+              message: 'Unpaid commission from cash trips. Top up to clear it.',
+            ),
+            const TransactionRow(
+              title: 'Referral reward',
+              kind: WalletTxKind.referralReward,
+              direction: WalletTxDirection.moneyIn,
+              amount: '+៛1,100,000',
+              time: '09:14',
+              status: 'Pending',
+            ),
             NewsCard(
                 title: 'Holiday hours',
                 body: 'Closed Monday.',

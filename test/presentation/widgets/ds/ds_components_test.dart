@@ -196,6 +196,68 @@ void main() {
       await t.tap(find.text('Cancelled'));
       expect(picked, 1);
     });
+
+    testWidgets('one thumb, half the track wide, under the selected tab',
+        (WidgetTester t) async {
+      Future<Rect> thumbAt(int index) async {
+        await t.pumpWidget(
+          _host(
+            Center(
+              child: SizedBox(
+                width: 328,
+                child: TTabs(
+                  labels: const <String>['Done', 'Cancelled trips'],
+                  index: index,
+                  onChanged: (_) {},
+                ),
+              ),
+            ),
+          ),
+        );
+        await t.pumpAndSettle();
+        return t.getRect(find.byType(FractionallySizedBox));
+      }
+
+      final Rect first = await thumbAt(0);
+      final Rect second = await thumbAt(1);
+      // 328 wide, 4 px padding and a 1 px border each side: two 159 px halves,
+      // whatever the label lengths.
+      expect(first.width, 159);
+      expect(second.width, 159);
+      expect(second.left - first.left, 159);
+    });
+
+    testWidgets('the thumb follows a page position mid-swipe (DD-41)',
+        (WidgetTester t) async {
+      final ValueNotifier<double> position = ValueNotifier<double>(0);
+      await t.pumpWidget(
+        _host(
+          Center(
+            child: SizedBox(
+              width: 328,
+              child: TTabs(
+                labels: const <String>['Completed', 'Cancelled'],
+                index: 0,
+                position: position,
+                onChanged: (_) {},
+              ),
+            ),
+          ),
+        ),
+      );
+      final double start = t.getRect(find.byType(FractionallySizedBox)).left;
+
+      position.value = 0.5;
+      await t.pump();
+      expect(
+        t.getRect(find.byType(FractionallySizedBox)).left - start,
+        closeTo(79.5, 0.01),
+      );
+
+      position.value = 1;
+      await t.pump();
+      expect(t.getRect(find.byType(FractionallySizedBox)).left - start, 159);
+    });
   });
 
   group('TAvatar', () {

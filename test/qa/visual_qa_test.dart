@@ -51,8 +51,10 @@ import 'package:tara_driver_application/presentation/screens/register/logic.dart
 import 'package:tara_driver_application/presentation/screens/register/view.dart';
 import 'package:tara_driver_application/presentation/screens/splash_screen/view.dart';
 import 'package:tara_driver_application/presentation/screens/term_condition/view.dart';
+import 'package:tara_driver_application/presentation/screens/wallet/wallet_presentation.dart';
 import 'package:tara_driver_application/presentation/screens/wallet/widgets/wallet_widgets.dart';
 import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
+import 'package:tara_driver_application/routes/route_arguments.dart';
 import 'package:tara_driver_application/presentation/widgets/widge_update.dart';
 
 import '../helpers/localized_host.dart';
@@ -452,10 +454,26 @@ final List<_SurfaceDef> _surfaces = <_SurfaceDef>[
   ),
   (
     name: 'S10 history detail card',
-    build: () => const TripDetailCard(
-          distance: '3.5 km',
-          duration: '14 mins',
-          amount: '៛7,600',
+    build: () => TripDetailBody(
+          trip: MapHistoryDetailArgs(
+            typeVehicleId: 2,
+            cost: '7,600',
+            distand: '3.5 km',
+            duration: '14:00',
+            latStart: 11.55,
+            lngStart: 104.92,
+            latEnd: 11.57,
+            lngEnd: 104.93,
+            invoiceId: '7712',
+            passengerName: 'Mey Lin',
+            startAddress: 'St. 271, Phnom Penh',
+            endAddress: 'Sisowath Quay',
+            paymentMethod: 'Cash',
+            tripTime: DateTime(2026, 9, 12, 9, 30),
+          ),
+          canCallPassenger: true,
+          onCallPassenger: () {},
+          onContactSupport: () {},
         ),
     page: false
   ),
@@ -463,28 +481,24 @@ final List<_SurfaceDef> _surfaces = <_SurfaceDef>[
     name: 'S11 wallet',
     build: () => Column(
           children: <Widget>[
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: WalletBalanceCard(
-                    label: 'MY_WALLET'.tr(),
-                    amount: '25.00 \$',
-                    tone: WalletBalanceTone.wallet,
-                  ),
-                ),
-                const SizedBox(width: Insets.s8),
-                Expanded(
-                  child: WalletBalanceCard(
-                    label: 'COMMISSION_FARE'.tr(),
-                    amount: '7,600 ៛',
-                    tone: WalletBalanceTone.commission,
-                  ),
-                ),
-              ],
+            WalletBalanceCard(
+              label: 'WALLET_BALANCE'.tr(),
+              amount: '៛85,400',
+              note: 'WALLET_COMMISSION_NOTE'.tr(args: <String>['10']),
+            ),
+            const SizedBox(height: Insets.s8),
+            WalletDebtCard(
+              title: 'WALLET_DEBT_TITLE'.tr(args: <String>['៛5,000']),
+              message: 'WALLET_DEBT_MESSAGE'.tr(),
             ),
             const SizedBox(height: Insets.s24),
-            const TransactionRow(
-                typeName: 'Top up', amount: '25.00 \$', date: '2026-09-12'),
+            TransactionRow(
+              title: 'WALLET_TX_TOP_UP'.tr(),
+              kind: WalletTxKind.topUp,
+              direction: WalletTxDirection.moneyIn,
+              amount: '+៛100,000',
+              time: '09:14',
+            ),
           ],
         ),
     page: false

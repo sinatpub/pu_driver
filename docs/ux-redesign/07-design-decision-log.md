@@ -496,6 +496,8 @@ The payment screen's figures and completion flow.
 
 ## Decision DD-19: The history card replaces the map thumbnail as the tap target
 
+**Still in force; the card's layout is reworked by DD-40 (2026-10-01).** The whole completed card is the tap target; cancelled cards are not tappable.
+
 ### Context
 How a history card opens its detail.
 
@@ -518,6 +520,8 @@ The thumbnail is a fake image. A bigger target is better.
 `HistoryCard`.
 
 ## Decision DD-20: History detail shows only what its args carry
+
+**Superseded by DD-42 (2026-10-01).** The route args now carry the whole trip. Still no replay.
 
 ### Context
 What the history detail screen can display.
@@ -542,6 +546,8 @@ No route-arg changes in a redesign. Replay is a new feature.
 `03 S10`.
 
 ## Decision DD-21: Wallet — no withdraw, no invented sub-labels
+
+**Partly superseded by DD-43 (2026-10-01):** the user defined what the commission card and `debted` mean, so the wallet is one balance with a commission-rate note and a debt warning. Still no withdraw and no top-up — there is no API.
 
 ### Context
 The prototype's wallet features and labels.
@@ -1011,3 +1017,112 @@ The amount and how it is paid are what the driver acts on; the screen should say
 
 ### Impact
 `calculate_fee/view.dart`, `calculate_fee/logic.dart` (guard), `calculate_fee/widgets/receipt_card.dart` (`ReceiptCard` and `TotalBox` replaced by `PaymentHeader`, `PaymentHero`, `PaymentRoute`), new `core/utils/distance_format.dart`, `core/utils/clock_format.dart` (`parseDurationText`). New keys: `TRIP_COMPLETE`, `COLLECT_IN_CASH`, `PAID_BY_WALLET`, `PAID_BY_CARD`, `PAY_CASH`, `PAY_WALLET`, `PAY_CARD`, `NOTHING_TO_COLLECT`, `COLLECT_CASH_HINT`, `PAID_IN_APP_HINT`, `CASH_RECEIVED`, `FINISH_TRIP`.
+
+## Decision DD-40: History is grouped by day, with compact cards and equal tabs
+
+**Card and tabs reworked by DD-41 (2026-10-01).** The day grouping, the formats and the cancelled-card rule stand.
+
+**Keeps DD-19 and DD-20. Settled by the user on 2026-10-01. Day totals were proposed and not taken.**
+
+### Context
+The user found the history list hard to use "because of the tabs and the cards". The selected tab pill hugged its label, so the two tabs did not read as equal halves. Each card was about 330 px — two per screen — and led with the invoice number in bold; "Completed" was repeated on every card of the Completed tab; the date ("Thu/01/Oct/2026 07:14 AM") wrapped to two lines; full addresses took two lines each; and nothing showed the card was tappable. The list was flat, with no day breaks. Cancelled cards printed ៛0, "Unknown" and 0 km.
+
+### Existing Behavior
+- `TTabs` with label-hugging pills; a flat `ListView` of `HistoryCardWidget`.
+- Card: avatar, `#invoice`, "passenger · `formatDateTime`", amount, status and method badges, a route box, a distance/duration line (`formatDistanceWithUnits`, `convertTimeString`).
+
+### Decision
+- **Tabs:** each `TTabs` pill fills its half (`_SelectableSegment.fill`). Same two filters, same `switchTab`.
+- **Grouped by day:** a header before each day's run of trips — "Today", "Yesterday", "Mon 28 Sep" (the year is added for another year), with day and month names in the app's language. Presentation only (`historyRows`): the list keeps the server's order, and paging, pull-to-refresh and the footer are unchanged. A trip's day is its `start_time`, or `created_at` when it never started.
+- **Compact completed card** (four lines, about a third of the height): "07:14 · passenger" and the amount; the pickup and destination by place name (`splitAddress`), one line each, with the full address still spoken; then "3.5 km · 14:00 · Cash · #7712" (`formatDistanceText`, `formatClock`, `PaymentKind`) and a chevron. No avatar and no status badge — the tab says "Completed".
+- **Cancelled card:** "07:14 · passenger", the status badge, and the invoice number. No amount, route or figures. Still not tappable (DD-19).
+- **Not done:** day totals (a phone-side sum over a paged list; proposed, not taken), an "All" tab, date filters and search (all need API changes).
+
+### Reason
+A driver scanning history looks for when, how much and where. The day belongs in a header, not on every card, and a list that shows four or five trips at once is quicker to scan than one that shows two.
+
+### Impact
+`history/view.dart`, `history/widgets/history_card_widget.dart`, new `history/widgets/history_days.dart`, `widgets/ds/t_selection.dart` (`fill`). New keys: `TODAY`, `YESTERDAY`. The detail route and its `MapHistoryDetailArgs` are unchanged.
+
+## Decision DD-41: History tabs are swipeable pages; the card gets its weight back
+
+**Reworks DD-40's card and tabs. Keeps DD-19, DD-20 and DD-40's day grouping. Settled by the user on 2026-10-01 (card A, swipe option 1).**
+
+### Context
+The user tested DD-40 and asked for two things: to swipe sideways between the tabs "like a Cupertino tab bar", and a new card, because the compact one "is thin and the weight does not look good" — most of it was small grey caption text, with only the amount in bold.
+
+### Existing Behavior (DD-40)
+- One `HistoryLogic` list, reloaded from page 1 on every tab switch; tabs changed by tap only.
+- A four-line card in caption text.
+
+### Decision
+- **Pages:** the two tabs are a `PageView`. Swiping moves between them; tapping a tab slides to its page (it jumps under the reduced-motion setting). `TTabs` now has one thumb that slides between equal segments and follows the page position mid-swipe (`position`).
+- **One list per tab:** `HistoryLogic.lists` holds a `HistoryListLogic` per status, each with its own items, paging and scroll position, kept alive while the other page shows. The completed list loads with the screen; the cancelled one the first time its tab shows. **Switching tabs no longer refetches** — pull-to-refresh reloads that tab. Lists are always scrollable, so pull-to-refresh works on a short list too.
+- **Card A, three tiers:** the time in bold with the payment-method badge and the amount in the subtitle style; the pickup and destination by place name in semi-bold, joined by a line between their markers; then, under a divider, a 24 px avatar with "passenger · #invoice", and the distance and duration with a chevron. The invoice stays on the card because the detail screen does not show it (DD-20).
+- **Adaptive footer:** the distance and duration share the footer's line while the name keeps at least 96 px; otherwise they move to a line of their own. On a very narrow header the method badge scales down rather than overflowing.
+- **Cancelled card:** time, the status badge, and the footer without figures. No amount, route or method (DD-40's rule).
+
+### Reason
+A swipe is the expected gesture for two sibling lists, and it only feels right if both lists exist while the finger moves — hence a list per tab. The card needed a clear hierarchy: when and how much, where, then who.
+
+### Impact
+`history/view.dart`, `history/logic.dart` (`HistoryListLogic`; `switchTab` no longer reloads), `history/state.dart`, `history/widgets/history_card_widget.dart`, `widgets/ds/t_selection.dart` (`TTabs` sliding thumb, `position`). No new keys.
+
+## Decision DD-42: Trip detail shows the whole trip, and how to reach the passenger about a lost item
+
+**Supersedes DD-20. Settled by the user on 2026-10-01: call and support together, a 24-hour call window, the number reachable by button only.**
+
+### Context
+The history detail showed a map and three figures. The user asked whether it should show the passenger, and then raised the case that decides it: a passenger leaves something in the vehicle — how does the driver reach them? The history payload already carries the passenger's phone number.
+
+### Existing Behavior (DD-20)
+- `MapHistoryDetailArgs`: vehicle type, three pre-formatted figures, four coordinates.
+- A map opened at zoom 17 on the start, with the driver's vehicle image at the pickup and the old passenger pin at the destination, so the route ran off-screen; zoom buttons and the map toolbar on.
+- `TripDetailCard`: a "Completed" badge, distance, duration, total.
+
+### Decision
+- **The whole trip:** the args gain the invoice, the passenger's name, image and phone, both addresses, the payment method, and the trip's start and end times. All optional, so a caller with only the figures still works.
+- **Layout, from the payment screen's pieces:** `PaymentHero` with the label "Total price" (not the payment screen's "Collect in cash" wording) — amount, method badge, and distance / duration / time; then `PaymentRoute` — both addresses split into place and area, and the passenger with the invoice number under the name.
+- **Map:** the trip screen's pickup and destination pins (DD-35) instead of the vehicle and the person; framed once on the whole route, never tighter than ~170 m; no zoom buttons or toolbar. Still one Directions request per open.
+- **Lost item card:** "Found something the passenger left?"
+  - For **24 hours after the trip ended** (`canCallPassenger`; the end is `end_time`, else the payment's `created_at`, else the start): a "Call passenger" button and a "Contact support" text action.
+  - After that, or with no number or no known end time: "Contact support" only, with the invoice number to quote.
+  - **Button only:** the passenger's number is never printed — though the phone's dialer will show it once the driver taps. `callPassenger()` re-checks the window, so a screen left open past it cannot still call.
+  - "Contact support" opens a sheet with the company's two lines (the Contact us screen's numbers).
+- **Not done:** an in-app lost-item report with a notification to the passenger — the right long-term answer, but it needs a backend endpoint and a passenger-app screen. And the payload still carries the passenger's email and date of birth, which this app has no use for; trimming that is a server change.
+
+### Reason
+A driver who finds a phone on the back seat needs to reach its owner within the hour, and the trip detail is where they will look. A time-limited call keeps that case fast without turning the driver app into a permanent directory of passengers' numbers.
+
+### Impact
+`routes/route_arguments.dart` (`MapHistoryDetailArgs`), `history_detail/{logic,view,binding}.dart`, new `history_detail/contact_window.dart`, `history/widgets/history_card_widget.dart` (`_openDetail`), `history/widgets/history_days.dart` (`historyEndedAt`), `calculate_fee/widgets/receipt_card.dart` (`PaymentHero.label`, `PaymentRoute.passengerCaption`). `TripDetailCard` is replaced by `TripDetailBody` and `LostItemCard`. New keys: `LOST_ITEM_TITLE`, `LOST_ITEM_CALL_HINT`, `LOST_ITEM_SUPPORT_HINT`, `LOST_ITEM_SUPPORT_ONLY_HINT`, `CALL_PASSENGER`.
+
+## Decision DD-43: The wallet is a prepaid commission wallet
+
+**Supersedes DD-21's "meaning unclear" for `commission_fare` and `debted`. The model was proposed and agreed with the user (product owner) on 2026-10-01. It is a product definition: the backend's behaviour still has to be confirmed against it — see "Needs from the backend".**
+
+### Context
+The wallet showed two money cards — "Wallet 85,400 ៛" and "Commission fare 10 ៛" — and nobody could say what the second meant (`docs/reverse-engineering/06 §5`, DD-21). The payload's `debted` was not shown at all. Transaction names and statuses were the backend's English text, amounts had no direction, and the money format ("85,400 ៛") differed from every other screen ("៛9,100").
+
+### The model
+- **`commission_fare` is the platform's rate, a percentage** of each completed trip's fare. `10` is 10%. It is not a sum of money.
+- **Cash trip:** the driver keeps the cash; the wallet is charged the commission ("Commission −៛1,300").
+- **Wallet or card trip:** the platform holds the fare; the wallet gets the fare as "Trip earning +" and the commission as "Commission −", two rows.
+- **Top-up:** money the driver adds to cover commission.
+- **`debted` is unpaid commission the driver owes.** The balance does not go below zero; a shortfall is debt. A top-up or a wallet-trip earning pays debt first. Past a limit the platform sets, the driver stops receiving requests until they top up.
+- **Referral rewards** (the flowchart) stay a separate balance with "Transfer to wallet" and withdraw — reward money is the driver's to cash out, top-up money is prepaid commission. Not built: no backend (DD-22, Q-4).
+
+### Decision (this app, now)
+- **One balance card:** "Balance", the amount, and under it "Platform commission: 10% of each trip" when the rate is reported. The "Commission fare" money card is gone.
+- **Debt warning:** shown only when `debted` is above zero — "You owe ៛5,000", "Unpaid commission from cash trips. Top up to clear it." Warning amber, not red. No "Top up" button: there is no endpoint. The copy does not say requests will stop, because that rule is not yet confirmed server-side.
+- **Transactions:** grouped by day (as DD-40); each row has a translated name for the kinds the app knows (`WalletTxKind`, matched loosely on `type_name`: top-up, trip earning, commission, withdrawal, referral reward) and the backend's own text otherwise; the time; a status only when it is not the routine one; and the amount with a sign — "+" in success green for money in, "−" in neutral for money out. A negative amount is always out; otherwise the kind decides, so a commission sent as a positive number still reads as out. An unknown kind with a positive amount gets no sign. The filter chips use the translated names; the filter itself still matches `type_name`.
+- **Money format:** symbol first ("៛85,400", "$125.50"), as everywhere else. The USD/riel decimal rules are unchanged.
+
+### Needs from the backend
+- Confirm `commission_fare` is a percentage and `debted` is unpaid commission, with the balance floor and the pay-debt-first rule.
+- The debt limit, and whether requests stop past it.
+- Transaction `type` codes (CLIENT_BRIEF B4), so names and directions come from codes, not from matching English text.
+- Top-up and withdraw endpoints (Q-4).
+
+### Impact
+`wallet/view.dart`, `wallet/wallet_presentation.dart`, `wallet/widgets/wallet_widgets.dart` (`WalletDebtCard`; `WalletBalanceTone` removed). New keys: `WALLET_BALANCE`, `WALLET_COMMISSION_NOTE`, `WALLET_DEBT_TITLE`, `WALLET_DEBT_MESSAGE`, `WALLET_TX_TOP_UP`, `WALLET_TX_TRIP_EARNING`, `WALLET_TX_COMMISSION`, `WALLET_TX_WITHDRAW`, `WALLET_TX_REFERRAL_REWARD`. The keys `WALLET` and `COMMISSION_FARE` are no longer used by this screen.
