@@ -47,8 +47,12 @@ class AuthDatasource {
     required File profileImage,
     required File vehicleImage,
     required File driverLicenseImage,
+    String? inviteCode,
   }) async {
     final formData = FormData.fromMap({
+      // DD-45: sent only when the driver signed up with an invite code.
+      if (inviteCode != null && inviteCode.isNotEmpty)
+        'invite_code': inviteCode,
       'fullname': fullName,
       'phone': phoneNumber,
       'type_vehicle_id': vehicalId,

@@ -3,6 +3,8 @@ import 'package:tara_driver_application/data/datasources/get_vehical_remote_data
 import 'package:tara_driver_application/presentation/screens/login/data/datasource/auth_datasource.dart';
 import 'package:tara_driver_application/presentation/screens/login/data/repository/auth_repository.dart';
 import 'package:tara_driver_application/presentation/controllers/vehicle_controller.dart';
+import 'package:tara_driver_application/presentation/screens/invite/data/datasource/referral_datasource.dart';
+import 'package:tara_driver_application/presentation/screens/invite/data/repository/referral_repository.dart';
 
 import 'logic.dart';
 
@@ -11,7 +13,17 @@ class RegisterBinding extends Bindings {
   void dependencies() {
     Get.lazyPut<AuthDatasource>(() => AuthDatasource(), fenix: true);
     Get.lazyPut<AuthRepository>(() => AuthRepository(Get.find()), fenix: true);
-    Get.lazyPut<RegisterLogic>(() => RegisterLogic(Get.find()), fenix: true);
+    Get.lazyPut<ReferralDatasource>(() => ReferralDatasource(), fenix: true);
+    Get.lazyPut<ReferralRepository>(() => ReferralRepository(Get.find()),
+        fenix: true);
+    Get.lazyPut<RegisterLogic>(
+        () => RegisterLogic(
+              Get.find(),
+              // Typed: the parameter is nullable, and an untyped find would
+              // look up `ReferralRepository?`, which nothing registers.
+              referral: Get.find<ReferralRepository>(),
+            ),
+        fenix: true);
     Get.lazyPut<GetVehicalRemoteDataSource>(() => GetVehicalRemoteDataSource(),
         fenix: true);
     Get.lazyPut<VehicleController>(() => VehicleController(Get.find()),

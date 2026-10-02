@@ -283,6 +283,101 @@ class MockData {
         'transactions': transactions,
       };
 
+  /// The mock driver's own invite code (DD-45).
+  static const String inviteCode = 'PU7K2M';
+
+  /// Codes the sign-up form accepts, and whose they are. Anything else is
+  /// "not recognised".
+  static const Map<String, String> inviters = {
+    'SOKHA88': 'Sokha Vann',
+    'BOPHA21': 'Bopha Kim',
+  };
+
+  /// The invite screen's payload: the code, the two reward rates, the people
+  /// who joined with it and what each has earned the driver. Every amount is
+  /// derived from a rate, so the totals on screen add up.
+  static Map<String, dynamic> referral({required DateTime now}) {
+    const driverRate = 1; // % of an invited driver's top-up
+    const passengerRate =
+        10; // % of the commission on an invited passenger's trip
+
+    // (invitee id, days ago, hour, top-up or trip fare)
+    const topUps = [(1, 1, 9, 100000), (3, 3, 14, 100000), (1, 8, 11, 250000)];
+    const trips = [
+      (2, 0, 8, 12000),
+      (4, 2, 18, 9000),
+      (2, 2, 7, 15500),
+      (2, 5, 19, 22000),
+      (4, 6, 12, 7500),
+    ];
+
+    final rewards = <Map<String, dynamic>>[];
+    final earned = <int, int>{};
+    DateTime at(int daysAgo, int hour) =>
+        DateTime(now.year, now.month, now.day, hour, 14)
+            .subtract(Duration(days: daysAgo));
+
+    const names = {
+      1: 'Sokha Vann',
+      2: 'Bopha Kim',
+      3: 'Rithy Chea',
+      4: 'Chanthou Ly',
+      5: 'Vuthy Nhem',
+    };
+
+    for (final (who, daysAgo, hour, amount) in topUps) {
+      final reward = (amount * driverRate / 100).round();
+      earned[who] = (earned[who] ?? 0) + reward;
+      rewards.add({
+        'id': rewards.length + 1,
+        'invitee_id': who,
+        'invitee_name': names[who],
+        'invitee_role': 'driver',
+        'amount': reward,
+        'base_amount': amount,
+        'created_at': timestamp(at(daysAgo, hour)),
+      });
+    }
+    for (final (who, daysAgo, hour, fare) in trips) {
+      final commission = fare * 10 / 100;
+      final reward = (commission * passengerRate / 100).round();
+      earned[who] = (earned[who] ?? 0) + reward;
+      rewards.add({
+        'id': rewards.length + 1,
+        'invitee_id': who,
+        'invitee_name': names[who],
+        'invitee_role': 'passenger',
+        'amount': reward,
+        'created_at': timestamp(at(daysAgo, hour)),
+      });
+    }
+
+    Map<String, dynamic> invitee(int id, String role, int joinedDaysAgo) => {
+          'id': id,
+          'name': names[id],
+          'profile_image': '',
+          'role': role,
+          'joined_at': timestamp(at(joinedDaysAgo, 10)),
+          'earned': earned[id] ?? 0,
+        };
+
+    return {
+      'code': inviteCode,
+      'link': 'https://putaxi.example/i/$inviteCode',
+      'currency': 'KHR',
+      'driver_top_up_rate': driverRate,
+      'passenger_commission_rate': passengerRate,
+      'invitees': [
+        invitee(1, 'driver', 21),
+        invitee(2, 'passenger', 15),
+        invitee(3, 'driver', 9),
+        invitee(4, 'passenger', 7),
+        invitee(5, 'passenger', 1),
+      ],
+      'rewards': rewards,
+    };
+  }
+
   static Map<String, dynamic> transaction({
     required int id,
     required String typeName,

@@ -8,6 +8,7 @@ Each decision is recorded once. Other docs reference them as `DD-xx`. **Status**
 |---|---|---|
 | DD-05 | Logout | Product |
 | DD-33 | Error-dialog semantics | Engineering + Product |
+| DD-45 | Invite: what a driver earns for inviting a passenger; code format; link domain; the referral endpoints | Product + Backend |
 
 ---
 
@@ -577,6 +578,8 @@ The prototype's wallet features and labels.
 
 ## Decision DD-22: Referral isn't part of this redesign
 
+**Superseded by DD-45 to DD-47 (2026-10-01): the invite QR, the rewards and the sign-up invite code are built, on mock data. The rules are the user's, not the copy deck's.**
+
 ### Context
 The prototype's referral tab.
 
@@ -1110,7 +1113,7 @@ The wallet showed two money cards — "Wallet 85,400 ៛" and "Commission fare 1
 - **Wallet or card trip:** the platform holds the fare; the wallet gets the fare as "Trip earning +" and the commission as "Commission −", two rows.
 - **Top-up:** money the driver adds to cover commission.
 - **`debted` is unpaid commission the driver owes.** The balance does not go below zero; a shortfall is debt. A top-up or a wallet-trip earning pays debt first. Past a limit the platform sets, the driver stops receiving requests until they top up.
-- **Referral rewards** (the flowchart) stay a separate balance with "Transfer to wallet" and withdraw — reward money is the driver's to cash out, top-up money is prepaid commission. Not built: no backend (DD-22, Q-4).
+- *(Superseded by DD-46: rewards are paid into the wallet balance.)* **Referral rewards** (the flowchart) stay a separate balance with "Transfer to wallet" and withdraw — reward money is the driver's to cash out, top-up money is prepaid commission. Not built: no backend (DD-22, Q-4).
 
 ### Decision (this app, now)
 - **One balance card:** "Balance", the amount, and under it "Platform commission: 10% of each trip" when the rate is reported. The "Commission fare" money card is gone.
@@ -1144,3 +1147,62 @@ The contact page (drawer tab "Contact us") was a large logo badge, a centred blu
 
 ### Impact
 `contact_us/view.dart` (`ContactHeader`, `ContactSectionLabel`, `ContactGroup`, `PhoneRow`, `ContactInfoRow`; `ContactRow` kept for the support sheet), `contact_us/logic.dart` (`openMap`, `formatLocalPhone`), `history_detail/view.dart`. `COPYRIGHT` now takes the year. New keys: `SUPPORT_TITLE`, `CALL_US`, `OTHER_WAYS`, `CONTACT_EMAIL`, `CONTACT_OFFICE`, `APP_VERSION`. `assets/image/png/company_logo.png` is no longer used by the app.
+
+## Decision DD-45: One invite QR for everyone, opened from the home map
+
+**Settled by the user (product owner) on 2026-10-01, screen by screen. Supersedes DD-22. Built on mock data only: the backend has no referral endpoints.**
+
+### Context
+The reward flowchart and `ux_ui_design/referral-ux-copy-deck.md` describe a driver-only referral programme. The user set different rules, and asked to see the driver side working before anything else is built.
+
+### The rules
+- **One QR and one invite code per person**, the same for inviting drivers and passengers. The QR holds a link; the app the new person signs up in decides what they joined as.
+- **Both drivers and passengers can invite and earn.** (The passenger app is not built yet.)
+- **The invited person is a driver:** the inviter earns **1% of each wallet top-up** that driver makes.
+- **The invited person is a passenger:** the inviter earns **10% of the platform's commission** on each trip they take. It comes out of the commission, never the fare or the driver's share, and it has no end date.
+- **A code is given at sign-up only.** There is no way to add one later.
+
+### Decision (driver app)
+- **Entry point:** a round QR button floating over the home map, above the status card. The map's bottom padding grows by the button's height, so Google's logo and the zoom buttons sit above its row and nothing is covered.
+- **"My QR" sheet:** a line of pitch, the QR (always black on white, high error correction, the PU Taxi mark in the middle), the code with a copy button, "Share invite link" (the system share sheet, with the code and the link), the two reward rules, and one line on what the invites have earned (DD-46).
+- **Sign-up:** an optional "Invite code" field at the end of the form, on its own card, with a scan button inside it. The code is checked when typing pauses and shows "Invited by {name}" or "Code not recognised". **A wrong code stops Submit** — the code cannot be added later, so dropping it silently would lose the invite for good; clearing the field lets the driver continue. A code is sent with the registration as `invite_code` only when present.
+- **Scanner:** a full-screen camera with a frame and one line of instruction. Only an invite counts — a link whose last path segment (or `code` parameter) is 4–12 letters and digits, or such a code on its own. Anything else shows "This is not a PU Taxi invite QR" and the camera keeps looking. With the camera refused: a message and "Open settings".
+- **Hidden without a backend:** `inviteFeatureEnabled` is true only while the mock backend is serving the app. Against the real API the button, the wallet card and the sign-up field do not appear, so no driver reaches a screen that can only fail.
+
+### Open
+- **What a driver earns for inviting a passenger.** The app shows one rule per kind of invited person, so it shows 10% here too. The copy deck said 1% of commission. Not confirmed.
+- **The invite code's format** (the mock uses six random characters) and **the link's domain** (the mock uses `putaxi.example`).
+- **Whether the invited person gets anything** for joining (Q-21).
+- **Self-invites** (same phone or device) should be refused by the server.
+- **The endpoints.** The app proposes `GET /taxi-driver/referral` (code, link, the two rates, invitees, rewards) and `GET /taxi-driver/referral/check-code?code=` (asked before the driver has a token). Neither exists.
+
+### Impact
+New: `screens/invite/` (`InviteLogic`, `ReferralDatasource`, `ReferralModel`, `invite_presentation.dart`, `my_qr_sheet.dart`, `rewards_view.dart`, `people_view.dart`, `scan_view.dart`, widgets), six icons in `assets/icon/ds/`, routes `inviteRewards` and `inviteScan`. Changed: `home/view.dart`, `register/*`, `auth_datasource.dart` (`invite_code`), `TTextField` (a `suffix`). Mock: `MockData.referral`, `MockData.inviters`, OTP `1111` opens the sign-up form. **New packages:** `qr_flutter` (draw the QR), `mobile_scanner` (read one), `share_plus` (share the link).
+
+## Decision DD-46: Rewards are paid into the wallet, and live under it
+
+**Settled by the user on 2026-10-01. Supersedes DD-43's "referral rewards stay a separate balance".**
+
+### Context
+The first build put "Your rewards" and "People you invited" behind the QR sheet. The user asked to move them to the wallet: rewards are money, and the wallet is where a driver looks for money.
+
+### Decision
+- **A reward is paid into the wallet balance.** There is no separate reward balance and nothing to transfer. Each reward is also a "Referral reward" row in the wallet's own transaction list.
+- **One screen, "Invite rewards", with two tabs** (swipeable, as DD-41): **Rewards** — where the rewards came from, the two rules, and every reward by day with who it came from; **People** — everyone who joined with the code, filtered by All / Drivers / Passengers, each with what they have earned the driver.
+- **It opens from the wallet** and from one line at the foot of the QR sheet ("៛5,160 earned · 5 invited") — the figure stays next to the QR because it is the reason to share it.
+- A trip reward does not show the commission it was taken from: what the platform earned on someone else's trip is not the driver's to see. A top-up reward does show the top-up.
+
+### Consequence to settle
+DD-43 kept reward money apart because it is the driver's to cash out, while a top-up is prepaid commission. In one balance the two are mixed, so a future withdraw has to say what may be withdrawn.
+
+## Decision DD-47: The wallet shows what the invites have earned
+
+**Settled by the user on 2026-10-01: option A, and keep the split on the rewards screen.**
+
+### Decision
+- **On the wallet, under the balance:** a card "Invite rewards earned" with the amount in green and "Already in your balance · 5 invited". It opens the rewards screen. It appears once the figure has loaded, and a failure to load it never takes the wallet down.
+- **The wording is deliberate.** Two money figures on one screen invite adding them up; the earned amount is inside the balance, and the caption says so.
+- **On the rewards screen:** the large "Total earned" card is gone. A small card keeps the split — from drivers, from passengers — and the line "Rewards are paid into your wallet balance."
+
+### Impact
+`InviteEarnedCard`, `RewardSplitCard` (`RewardSummaryCard` removed), `wallet/view.dart`. Keys: `INVITE_EARNED_LABEL`, `INVITE_EARNED_CAPTION`.

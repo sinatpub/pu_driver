@@ -27,6 +27,9 @@ import 'package:tara_driver_application/presentation/screens/history/widgets/his
 import 'package:tara_driver_application/presentation/screens/home/state.dart';
 import 'package:tara_driver_application/presentation/screens/home/widgets/driver_status_card.dart';
 import 'package:tara_driver_application/presentation/screens/home/widgets/location_state_view.dart';
+import 'package:tara_driver_application/presentation/screens/invite/scan_view.dart';
+import 'package:tara_driver_application/presentation/screens/invite/widgets/invite_code_field.dart';
+import 'package:tara_driver_application/presentation/screens/invite/widgets/invite_widgets.dart';
 import 'package:tara_driver_application/presentation/screens/login/logic.dart';
 import 'package:tara_driver_application/presentation/screens/login/view.dart';
 import 'package:tara_driver_application/presentation/screens/otp/logic.dart';
@@ -300,6 +303,96 @@ final Map<String, (Widget Function(), bool)> _surfaces =
                 icon: DsIcons.phone,
                 label: 'Smart: +855 70 427 213',
                 onTap: () {}),
+          ],
+        ),
+    false
+  ),
+  // DD-45: the invite QR sheet, the rewards and people screens, and the
+  // sign-up invite code — with the longest figures they are likely to hold.
+  'invite': (
+    () => Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Align(
+              alignment: Alignment.centerRight,
+              child: InviteFab(semanticLabel: 'My QR', onPressed: () {}),
+            ),
+            InviteQrCard(
+              data: 'https://putaxi.example/i/PU7K2MABCDEF',
+              code: 'PU7K2MABCDEF',
+              codeLabel: 'Invite code',
+              copyLabel: 'Copy code',
+              qrLabel: 'Your invite QR code',
+              qrSize: 120,
+              onCopy: () {},
+            ),
+            const InviteRules(
+              driverRule:
+                  'A driver joins: you get 1% of each top-up they make.',
+              passengerRule: 'A passenger joins: you get 10% of our commission '
+                  'on each trip they take.',
+            ),
+            InviteSummaryCard(
+              title: 'Invite rewards',
+              summary: '៛1,285,400 earned · 128 invited',
+              onTap: () {},
+            ),
+          ],
+        ),
+    false
+  ),
+  'invite rewards': (
+    () => Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            InviteEarnedCard(
+              label: 'Invite rewards earned',
+              amount: '៛1,285,400',
+              caption: 'Already in your balance · 128 invited',
+              onTap: () {},
+            ),
+            const RewardSplitCard(
+              driversLabel: 'From drivers',
+              driversAmount: '៛1,100,000',
+              passengersLabel: 'From passengers',
+              passengersAmount: '៛185,400',
+              note: 'Rewards are paid into your wallet balance.',
+            ),
+            const InviteDayHeader(label: 'Yesterday'),
+            const RewardTile(
+              name: 'Sokha Vann Chanthou Rithy',
+              caption: 'Top-up ៛1,000,000 · 09:14',
+              amount: '+៛10,000',
+              fromDriver: true,
+            ),
+            const InviteeTile(
+              name: 'Chanthou Ly Sreymom',
+              caption: 'Passenger · Joined 12 Sep',
+              earned: '+៛185,400',
+            ),
+            const InviteeTile(
+              name: 'Vuthy Nhem',
+              caption: 'Driver · Joined 30 Sep',
+              earned: 'No rewards yet',
+              hasEarned: false,
+            ),
+            InviteCodeField(
+              controller: TextEditingController(text: 'SOKHA88'),
+              status: InviteCodeStatus.invalid,
+              label: 'Invite code (optional)',
+              hint: 'Type or scan a code',
+              scanLabel: 'Scan invite QR',
+              errorText:
+                  'Code not recognised. Check it, or clear it to continue.',
+              onChanged: (_) {},
+              onScan: () {},
+            ),
+            const ScanOverlay(
+              hint: 'This is not a PU Taxi invite QR',
+              isWarning: true,
+            ),
           ],
         ),
     false

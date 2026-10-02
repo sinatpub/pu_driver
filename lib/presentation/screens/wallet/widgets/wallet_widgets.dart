@@ -165,6 +165,7 @@ class TransactionRow extends StatelessWidget {
   String get _icon => switch (kind) {
         WalletTxKind.tripEarning => DsIcons.car,
         WalletTxKind.commission => DsIcons.doc,
+        WalletTxKind.referralReward => DsIcons.gift,
         _ => DsIcons.wallet,
       };
 

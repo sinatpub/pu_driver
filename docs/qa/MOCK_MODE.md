@@ -75,8 +75,16 @@ scenario is the driver-side equivalent.
 | `LOCATION_ERROR` | GPS never returns a fix → Home's location error state | LOCATION_ERROR |
 
 Also available regardless of scenario:
-- OTP **`9999`** is rejected (wrong-code dialog). Any other code signs in as
+- OTP **`9999`** is rejected (wrong-code dialog). OTP **`1111`** is a new
+  phone number and opens the sign-up form. Any other code signs in as
   **Dara Sok** (Toyota Prius, white, 2AB-1234).
+- **Invite and rewards** (DD-45) exist in mock mode only — the real backend
+  has no referral endpoints. The QR button on the home map opens "My QR"
+  (code `PU7K2M`). The wallet shows what the invites have earned and opens
+  "Invite rewards": five invited people and their rewards, each of which is
+  also a "Referral reward" row in the wallet. On the sign-up
+  form the invite codes `SOKHA88` and `BOPHA21` are accepted; anything else
+  is "not recognised".
 
 ## The flow and its timings
 
@@ -167,9 +175,8 @@ The `PositionSource` and `RouteService` seams are ordinary code and can stay.
   steps (choosing pickup/destination, vehicle type, fare estimate before
   booking), payment-method *selection* (the driver only collects), rating or
   review, tips, and a remaining-distance or ETA readout during the trip.
-- **Registration** (`/register`) returns a signed-in approved driver.
-  Because mock OTP never reports a new driver, the register screen is only
-  reachable by navigating to it directly.
+- **Registration** (`/register`) returns a signed-in approved driver. The
+  form is reached with OTP `1111`.
 - **Push notifications (FCM)** are not mocked. The ride request comes through
   the socket path, which is what the app uses while in the foreground.
 - **App update prompt** is not simulated (the version endpoint matches the

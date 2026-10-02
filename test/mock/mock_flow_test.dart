@@ -455,4 +455,91 @@ void main() {
     expect(MockPlaces.nameNear(const LatLng(11.5697, 104.9211)),
         MockPlaces.pickup.name);
   });
+
+  group('invite and rewards (DD-45)', () {
+    late MockBackend backend;
+
+    setUp(() {
+      backend = MockBackend(
+        clock: () => DateTime(2026, 10, 1, 12),
+        settings: () => const MockSettings(),
+        scale: (_) => Duration.zero,
+        persist: false,
+      );
+    });
+    tearDown(() => backend.dispose());
+
+    test('the referral payload adds up', () async {
+      final response = await backend.handle(const MockRequest(
+          method: 'GET', path: '/taxi-driver/referral', authenticated: true));
+      final data = (response.data as Map)['data'] as Map<String, dynamic>;
+      final rewards = (data['rewards'] as List).cast<Map<String, dynamic>>();
+      final invitees = (data['invitees'] as List).cast<Map<String, dynamic>>();
+
+      expect(data['code'], MockData.inviteCode);
+      expect('${data['link']}', endsWith(MockData.inviteCode));
+      // What each person earned the driver is the sum of their rewards.
+      for (final invitee in invitees) {
+        final sum = rewards
+            .where((r) => r['invitee_id'] == invitee['id'])
+            .fold<int>(0, (total, r) => total + (r['amount'] as int));
+        expect(invitee['earned'], sum, reason: '${invitee['name']}');
+      }
+      // A driver reward is 1% of the top-up it came from.
+      for (final r in rewards.where((r) => r['invitee_role'] == 'driver')) {
+        expect(r['amount'], (r['base_amount'] as int) ~/ 100);
+      }
+    });
+
+    test('rewards are paid into the wallet (DD-46)', () async {
+      Future<Map<String, dynamic>> data(String path) async =>
+          ((await backend.handle(
+                  MockRequest(method: 'GET', path: path, authenticated: true)))
+              .data as Map)['data'] as Map<String, dynamic>;
+
+      final rewards = ((await data('/taxi-driver/referral'))['rewards'] as List)
+          .cast<Map<String, dynamic>>();
+      final wallet = await data('/taxi-driver/wallet');
+      final transactions =
+          (wallet['transactions'] as List).cast<Map<String, dynamic>>();
+      final paid = transactions
+          .where((tx) => tx['type_name'] == 'Referral Reward')
+          .toList();
+
+      // One wallet transaction per reward, for the same amount and time.
+      expect(paid.map((tx) => tx['amount']), rewards.map((r) => r['amount']));
+      expect(paid.map((tx) => tx['created_at']),
+          rewards.map((r) => r['created_at']));
+      // And the balance is the seeded 85,400 riel plus every reward.
+      expect(
+        wallet['balance'],
+        85400 + rewards.fold<int>(0, (sum, r) => sum + (r['amount'] as int)),
+      );
+    });
+
+    test('check-code knows its inviters and nobody else', () async {
+      Future<Map> check(String code) async =>
+          ((await backend.handle(MockRequest(
+                  method: 'GET',
+                  path: '/taxi-driver/referral/check-code',
+                  query: {'code': code})))
+              .data as Map)['data'] as Map;
+
+      expect(await check('sokha88'),
+          {'valid': true, 'inviter_name': 'Sokha Vann'});
+      expect((await check('NOPE99'))['valid'], isFalse);
+    });
+
+    test('OTP 1111 is a new driver: no token, no driver', () async {
+      final response = await backend.handle(const MockRequest(
+          method: 'POST',
+          path: '/taxi-driver/verify-phone-otp',
+          body: {'phone': '012345678', 'otp_code': '1111'}));
+      final body = response.data as Map;
+
+      expect(body['status'], isTrue);
+      expect((body['data'] as Map)['token'], isNull);
+      expect((body['data'] as Map)['driver'], isNull);
+    });
+  });
 }

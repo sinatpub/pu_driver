@@ -3,9 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:tara_driver_application/core/theme/tokens.dart';
 import 'package:tara_driver_application/presentation/screens/history/widgets/history_days.dart';
+import 'package:tara_driver_application/presentation/screens/invite/data/models/referral_model.dart';
+import 'package:tara_driver_application/presentation/screens/invite/invite_feature.dart';
+import 'package:tara_driver_application/presentation/screens/invite/invite_presentation.dart';
+import 'package:tara_driver_application/presentation/screens/invite/logic.dart';
+import 'package:tara_driver_application/presentation/screens/invite/state.dart';
+import 'package:tara_driver_application/presentation/screens/invite/widgets/invite_widgets.dart';
 import 'package:tara_driver_application/presentation/screens/wallet/data/models/wallet_model.dart';
 import 'package:tara_driver_application/presentation/screens/wallet/wallet_presentation.dart';
 import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
+import 'package:tara_driver_application/routes/app_routes.dart';
 
 import 'logic.dart';
 import 'state.dart';
@@ -40,11 +47,20 @@ class _WalletPageState extends State<WalletPage> {
   // if the route is left and re-entered (hit on device 2026-09-06 —
   // "A TextEditingController was used after being disposed").
   WalletLogic get logic => Get.find<WalletLogic>();
+  InviteLogic get invite => Get.find<InviteLogic>();
 
   @override
   void initState() {
     super.initState();
     logic.fetch();
+    if (inviteFeatureEnabled) invite.fetch();
+  }
+
+  Future<void> _refresh() async {
+    await Future.wait(<Future<void>>[
+      logic.fetch(),
+      if (inviteFeatureEnabled) invite.fetch(),
+    ]);
   }
 
   @override
@@ -56,7 +72,7 @@ class _WalletPageState extends State<WalletPage> {
       body: SafeArea(
         bottom: false,
         child: RefreshIndicator(
-          onRefresh: logic.fetch,
+          onRefresh: _refresh,
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(
@@ -114,6 +130,10 @@ class _WalletPageState extends State<WalletPage> {
                   message: 'WALLET_DEBT_MESSAGE'.tr(),
                 ),
               ],
+              // DD-46, DD-47: invite rewards are paid into this balance, so
+              // what they have earned is shown here, and opens the detail. Shown once they have loaded; a failure to
+              // load them never takes the wallet down with it.
+              if (inviteFeatureEnabled) _inviteCard(),
               const SizedBox(height: Insets.s24),
             ],
             // N-01: the backend returns `transactions` inside the wallet
@@ -123,6 +143,25 @@ class _WalletPageState extends State<WalletPage> {
           ],
         );
     }
+  }
+
+  Widget _inviteCard() {
+    if (invite.state.status.value != InviteStatus.loaded) {
+      return const SizedBox.shrink();
+    }
+    final ReferralModel referral =
+        invite.state.referral.value ?? const ReferralModel();
+    return Padding(
+      padding: const EdgeInsets.only(top: Insets.s8),
+      child: InviteEarnedCard(
+        label: 'INVITE_EARNED_LABEL'.tr(),
+        amount:
+            formatWalletMoney(totalEarned(referral.rewards), referral.currency),
+        caption: 'INVITE_EARNED_CAPTION'
+            .tr(args: <String>['${referral.invitees.length}']),
+        onTap: () => Get.toNamed(AppRoutes.inviteRewards),
+      ),
+    );
   }
 
   /// The kind's translated name, or the backend's own text when the kind is

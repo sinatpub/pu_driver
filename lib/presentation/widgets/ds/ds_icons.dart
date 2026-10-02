@@ -45,6 +45,14 @@ class DsIcons {
 
   // Forms.
   static const String camera = '$_base/camera.svg';
+
+  // Invite and rewards (DD-45).
+  static const String qr = '$_base/qr.svg';
+  static const String scan = '$_base/scan.svg';
+  static const String share = '$_base/share.svg';
+  static const String copy = '$_base/copy.svg';
+  static const String users = '$_base/users.svg';
+  static const String gift = '$_base/gift.svg';
 }
 
 /// Icon sizes (`02 §6`). The *tap target* is always [Sizes.touchTarget]; these

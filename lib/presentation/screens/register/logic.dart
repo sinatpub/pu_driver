@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -7,6 +8,10 @@ import 'package:tara_driver_application/core/helper/get_device_info.dart';
 import 'package:tara_driver_application/routes/app_routes.dart';
 import 'package:tara_driver_application/core/storage/get_storages.dart';
 import 'package:tara_driver_application/core/storage/set_storages.dart';
+import 'package:tara_driver_application/presentation/screens/invite/data/models/referral_model.dart';
+import 'package:tara_driver_application/presentation/screens/invite/data/repository/referral_repository.dart';
+import 'package:tara_driver_application/presentation/screens/invite/invite_presentation.dart';
+import 'package:tara_driver_application/presentation/screens/invite/widgets/invite_code_field.dart';
 import 'package:tara_driver_application/presentation/screens/login/data/repository/auth_repository.dart';
 import 'package:tara_driver_application/presentation/widgets/error_dialog_widget.dart';
 import 'package:tara_driver_application/taxi_single_ton/taxi.dart';
@@ -22,9 +27,14 @@ enum RegisterAttachment { license, cardId, profile, vehicle }
 /// `14` §3.6, absorbing the form state, the two image-picker methods and the
 /// navigation worker that lived in `_RegisterPageState`.
 class RegisterLogic extends GetxController {
-  RegisterLogic(this._repository);
+  RegisterLogic(this._repository, {ReferralRepository? referral})
+      : _referral = referral;
 
   final AuthRepository _repository;
+
+  /// DD-45: checks the optional invite code. Null where the invite feature
+  /// is not wired, in which case a code is never checked or sent.
+  final ReferralRepository? _referral;
   final DeviceInfoHelper _deviceInfo = DeviceInfoHelper();
   final ImagePicker _picker = ImagePicker();
 
@@ -33,6 +43,14 @@ class RegisterLogic extends GetxController {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController plateController = TextEditingController();
   final TextEditingController vehicleColorController = TextEditingController();
+  final TextEditingController inviteCodeController = TextEditingController();
+
+  /// How long typing must pause before the invite code is checked.
+  static const Duration inviteCheckDelay = Duration(milliseconds: 700);
+  Timer? _inviteDebounce;
+
+  /// Bumped on every edit, so a slow answer for an old code is dropped.
+  int _inviteCheckId = 0;
 
   @override
   void onInit() {
@@ -45,6 +63,8 @@ class RegisterLogic extends GetxController {
     nameController.dispose();
     plateController.dispose();
     vehicleColorController.dispose();
+    inviteCodeController.dispose();
+    _inviteDebounce?.cancel();
     super.onClose();
   }
 
@@ -89,7 +109,68 @@ class RegisterLogic extends GetxController {
     }
   }
 
+  /// The invite code field changed: forget the last answer, and check the
+  /// new text once typing pauses.
+  void onInviteCodeChanged(String text) {
+    _inviteDebounce?.cancel();
+    _inviteCheckId++;
+    state.inviteStatus.value = InviteCodeStatus.idle;
+    state.inviterName.value = null;
+    if (parseInviteCode(text) == null) return;
+    _inviteDebounce = Timer(inviteCheckDelay, verifyInviteCode);
+  }
+
+  /// A code read from the inviter's QR: fill the field and check it now.
+  Future<void> applyScannedCode(String code) {
+    inviteCodeController.text = code;
+    _inviteDebounce?.cancel();
+    return verifyInviteCode();
+  }
+
+  /// Asks the server whether the typed code is real. True when there is no
+  /// code to check, or the code is valid.
+  Future<bool> verifyInviteCode() async {
+    _inviteDebounce?.cancel();
+    final String text = inviteCodeController.text.trim();
+    if (text.isEmpty) {
+      state.inviteStatus.value = InviteCodeStatus.idle;
+      return true;
+    }
+    if (state.inviteStatus.value == InviteCodeStatus.valid) return true;
+
+    final String? code = parseInviteCode(text);
+    final ReferralRepository? referral = _referral;
+    if (code == null || referral == null) {
+      state.inviteStatus.value = InviteCodeStatus.invalid;
+      return false;
+    }
+
+    final int checkId = ++_inviteCheckId;
+    state.inviteStatus.value = InviteCodeStatus.checking;
+    final result = await referral.checkCode(code);
+    // The field was edited while the request was out.
+    if (checkId != _inviteCheckId) return false;
+    return result.when(
+      ok: (InviteCodeCheck check) {
+        state.inviterName.value = check.valid ? check.inviterName : null;
+        state.inviteStatus.value =
+            check.valid ? InviteCodeStatus.valid : InviteCodeStatus.invalid;
+        return check.valid;
+      },
+      err: (_) {
+        state.inviteStatus.value = InviteCodeStatus.failed;
+        return false;
+      },
+    );
+  }
+
   Future<void> submit() async {
+    // DD-45: an invite code can only be given at sign-up, so a code that is
+    // wrong must stop the form — silently dropping it would lose the invite
+    // for good. The field shows why; clearing it lets the driver continue.
+    if (!await verifyInviteCode()) return;
+    final String inviteCode = inviteCodeController.text.trim();
+
     state.status.value = RegisterStatus.loading;
     try {
       final platformInfo = await _deviceInfo.getDeviceInfo();
@@ -106,6 +187,7 @@ class RegisterLogic extends GetxController {
         cardImage: state.imageCardID.value!,
         profileImage: state.imageProfile.value!,
         driverLicenseImage: state.imageLicense.value!,
+        inviteCode: inviteCode.isEmpty ? null : inviteCode,
       );
       result.when(
         ok: (data) {

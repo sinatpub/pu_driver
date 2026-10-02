@@ -29,6 +29,7 @@ class AuthRepository {
     required File profileImage,
     required File vehicleImage,
     required File driverLicenseImage,
+    String? inviteCode,
   }) =>
       _datasource.register(
         fullName: fullName,
@@ -42,5 +43,6 @@ class AuthRepository {
         profileImage: profileImage,
         vehicleImage: vehicleImage,
         driverLicenseImage: driverLicenseImage,
+        inviteCode: inviteCode,
       );
 }

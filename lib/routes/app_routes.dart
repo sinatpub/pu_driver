@@ -15,4 +15,6 @@ class AppRoutes {
   static const mapHistoryDetail = '/map-history-detail';
   static const calculateFee = '/calculate-fee';
   static const booking = '/booking';
+  static const inviteRewards = '/invite-rewards';
+  static const inviteScan = '/invite-scan';
 }

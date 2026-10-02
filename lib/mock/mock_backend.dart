@@ -237,6 +237,10 @@ class MockBackend {
       return _historyPage(request);
     }
     if (path.endsWith('/taxi-driver/wallet')) return _wallet();
+    if (path.endsWith('/taxi-driver/referral')) return _referral();
+    if (path.endsWith('/taxi-driver/referral/check-code')) {
+      return _checkInviteCode(request);
+    }
     if (path.endsWith('/taxi-driver/announcements')) {
       return _announcements(request);
     }
@@ -286,6 +290,15 @@ class MockBackend {
   MockResponse _verifyOtp(MockRequest request) {
     if (request.body['otp_code']?.toString() == '9999') {
       return _ok({'status': false, 'message': 'OTP not correct', 'data': null});
+    }
+    // A phone number the server has not seen: no driver and no token, which
+    // sends the app to the sign-up form.
+    if (request.body['otp_code']?.toString() == '1111') {
+      return _ok({
+        'status': true,
+        'message': 'Driver not registered',
+        'data': {'token': null, 'driver': null},
+      });
     }
     return _ok(_authPayload());
   }
@@ -549,12 +562,52 @@ class MockBackend {
     });
   }
 
-  MockResponse _wallet() => _ok({
+  /// DD-46: an invite reward is paid into the wallet balance, so each one is
+  /// also a "Referral Reward" transaction. They are derived from the referral
+  /// fixture on every read, not stored — the two screens cannot disagree.
+  MockResponse _wallet() {
+    final rewards = (MockData.referral(now: _now())['rewards'] as List)
+        .cast<Map<String, dynamic>>();
+    var rewardTotal = 0;
+    final rewardTransactions = <Map<String, dynamic>>[];
+    for (final r in rewards) {
+      final amount = r['amount'] as int;
+      rewardTotal += amount;
+      rewardTransactions.add({
+        ...MockData.transaction(
+            id: 9000 + (r['id'] as int),
+            typeName: 'Referral Reward',
+            amount: amount,
+            at: _now()),
+        'created_at': r['created_at'],
+      });
+    }
+    return _ok({
+      'status': true,
+      'message': 'Success',
+      'data': MockData.wallet(
+          balance: _walletBalance + rewardTotal,
+          transactions: [...rewardTransactions, ..._transactions]),
+    });
+  }
+
+  // DD-45: the real backend has no referral endpoints yet; these two are
+  // the shape the app proposes.
+  MockResponse _referral() => _ok({
         'status': true,
         'message': 'Success',
-        'data': MockData.wallet(
-            balance: _walletBalance, transactions: _transactions),
+        'data': MockData.referral(now: _now()),
       });
+
+  MockResponse _checkInviteCode(MockRequest request) {
+    final code = '${request.query['code'] ?? ''}'.trim().toUpperCase();
+    final inviter = MockData.inviters[code];
+    return _ok({
+      'status': true,
+      'message': 'Success',
+      'data': {'valid': inviter != null, 'inviter_name': inviter},
+    });
+  }
 
   MockResponse _announcements(MockRequest request) {
     final page = int.tryParse('${request.query['page'] ?? 1}') ?? 1;

@@ -7,8 +7,11 @@ import 'package:tara_driver_application/core/theme/tokens.dart';
 import 'package:tara_driver_application/core/utils/pretty_logger.dart';
 import 'package:tara_driver_application/data/models/vehical_model.dart';
 import 'package:tara_driver_application/presentation/controllers/vehicle_controller.dart';
+import 'package:tara_driver_application/presentation/screens/invite/invite_feature.dart';
+import 'package:tara_driver_application/presentation/screens/invite/widgets/invite_code_field.dart';
 import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
 import 'package:tara_driver_application/presentation/widgets/x_dropdown_search.dart';
+import 'package:tara_driver_application/routes/app_routes.dart';
 
 import 'logic.dart';
 import 'state.dart';
@@ -229,8 +232,36 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
           ],
         ),
+        // DD-45: last, and optional — most drivers sign up without one.
+        if (inviteFeatureEnabled) ...<Widget>[
+          const SizedBox(height: Insets.s24),
+          InviteCodeField(
+            controller: logic.inviteCodeController,
+            status: state.inviteStatus.value,
+            enabled: !isLoading,
+            label: 'INVITE_CODE_OPTIONAL'.tr(),
+            hint: 'INVITE_CODE_HINT'.tr(),
+            scanLabel: 'INVITE_SCAN'.tr(),
+            note: 'INVITE_CODE_ONLY_NOW'.tr(),
+            appliedText: state.inviterName.value == null
+                ? 'INVITE_CODE_APPLIED_ANON'.tr()
+                : 'INVITE_CODE_APPLIED'
+                    .tr(args: <String>[state.inviterName.value!]),
+            errorText: state.inviteStatus.value == InviteCodeStatus.failed
+                ? 'INVITE_CODE_CHECK_FAILED'.tr()
+                : 'INVITE_CODE_INVALID'.tr(),
+            onChanged: logic.onInviteCodeChanged,
+            onScan: _scanInviteCode,
+          ),
+        ],
       ],
     );
+  }
+
+  Future<void> _scanInviteCode() async {
+    FocusScope.of(context).unfocus();
+    final Object? code = await Get.toNamed(AppRoutes.inviteScan);
+    if (code is String) await logic.applyScannedCode(code);
   }
 
   PhotoSlot _slot(

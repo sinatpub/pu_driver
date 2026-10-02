@@ -9,6 +9,9 @@ import 'package:tara_driver_application/presentation/screens/drawer/binding.dart
 import 'package:tara_driver_application/presentation/screens/drawer/view.dart';
 import 'package:tara_driver_application/presentation/screens/history/binding.dart';
 import 'package:tara_driver_application/presentation/screens/home/binding.dart';
+import 'package:tara_driver_application/presentation/screens/invite/binding.dart';
+import 'package:tara_driver_application/presentation/screens/invite/rewards_view.dart';
+import 'package:tara_driver_application/presentation/screens/invite/scan_view.dart';
 import 'package:tara_driver_application/presentation/screens/term_condition/binding.dart';
 import 'package:tara_driver_application/presentation/screens/wallet/binding.dart';
 import 'package:tara_driver_application/presentation/screens/login/binding.dart';
@@ -72,6 +75,7 @@ class AppPages {
         HistoryBinding(),
         TermConditionBinding(),
         WalletBinding(),
+        InviteBinding(),
       ],
     ),
     GetPage(
@@ -100,6 +104,18 @@ class AppPages {
       name: AppRoutes.booking,
       page: () => const BookingScreen(),
       binding: BookingBinding(),
+    ),
+    // DD-45, DD-46. The QR itself is a sheet over the home map; this is the
+    // rewards screen the wallet and the sheet open, and the scanner the
+    // sign-up form opens.
+    GetPage(
+      name: AppRoutes.inviteRewards,
+      page: () => const InviteRewardsPage(),
+      binding: InviteBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.inviteScan,
+      page: () => const InviteScanPage(),
     ),
   ];
 }

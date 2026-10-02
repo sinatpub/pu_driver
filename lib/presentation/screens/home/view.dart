@@ -8,6 +8,9 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:tara_driver_application/core/theme/tokens.dart';
 import 'package:tara_driver_application/presentation/screens/home/widgets/driver_status_card.dart';
 import 'package:tara_driver_application/presentation/screens/home/widgets/location_state_view.dart';
+import 'package:tara_driver_application/presentation/screens/invite/invite_feature.dart';
+import 'package:tara_driver_application/presentation/screens/invite/my_qr_sheet.dart';
+import 'package:tara_driver_application/presentation/screens/invite/widgets/invite_widgets.dart';
 import 'package:tara_driver_application/presentation/widgets/widge_update.dart';
 
 import 'logic.dart';
@@ -65,9 +68,29 @@ class _HomeScreenState extends State<HomeScreen> {
                     left: Insets.s16,
                     right: Insets.s16,
                     bottom: Insets.s16,
-                    child: const SafeArea(
+                    child: SafeArea(
                       top: false,
-                      child: DriverStatusCard(),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: <Widget>[
+                          // DD-45: the driver's invite QR, one tap from the
+                          // map. Above the status card, clear of Google's
+                          // logo (bottom left) and of the map's own buttons
+                          // (top right).
+                          if (inviteFeatureEnabled) ...<Widget>[
+                            InviteFab(
+                              semanticLabel: 'INVITE_MY_QR'.tr(),
+                              onPressed: () => showMyQrSheet(context),
+                            ),
+                            const SizedBox(height: Insets.s12),
+                          ],
+                          const SizedBox(
+                            width: double.infinity,
+                            child: DriverStatusCard(),
+                          ),
+                        ],
+                      ),
                     ),
                   )
                 : const SizedBox.shrink(),
@@ -104,8 +127,12 @@ class _HomeScreenState extends State<HomeScreen> {
         myLocationButtonEnabled: true,
         compassEnabled: true,
         trafficEnabled: true,
-        // C2: the only change to the map itself.
-        padding: const EdgeInsets.only(bottom: _statusCardReserve),
+        // DD-45: with the invite button showing, the map's own zoom buttons
+        // and Google's logo sit above its row instead of under it.
+        padding: EdgeInsets.only(
+          bottom: _statusCardReserve +
+              (inviteFeatureEnabled ? InviteFab.size + Insets.s12 : 0),
+        ),
         initialCameraPosition: CameraPosition(
           target: logic.state.currentLocation.value!,
           zoom: logic.state.currentZoom.value,

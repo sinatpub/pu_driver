@@ -18,6 +18,7 @@ class TTextField extends StatelessWidget {
     this.hint,
     this.errorText,
     this.prefix,
+    this.suffix,
     this.keyboardType,
     this.inputFormatters,
     this.enabled = true,
@@ -57,6 +58,10 @@ class TTextField extends StatelessWidget {
   /// [TTextField.phone]).
   final Widget? prefix;
 
+  /// Trailing content inside the field — an action that fills it, such as
+  /// the invite code's "scan" button.
+  final Widget? suffix;
+
   final TextInputType? keyboardType;
   final List<TextInputFormatter>? inputFormatters;
   final bool enabled;
@@ -82,7 +87,8 @@ class TTextField extends StatelessWidget {
 
     final Widget field = Container(
       constraints: const BoxConstraints(minHeight: Sizes.input),
-      padding: const EdgeInsets.symmetric(horizontal: 14),
+      // A suffix is a 48 px button: it brings its own inset.
+      padding: EdgeInsets.only(left: 14, right: suffix == null ? 14 : 4),
       decoration: BoxDecoration(
         color: enabled ? c.bgSurface : c.bgSunken,
         borderRadius: Radii.controlRadius,
@@ -132,6 +138,7 @@ class TTextField extends StatelessWidget {
               ),
             ),
           ),
+          if (suffix != null) suffix!,
         ],
       ),
     );
