@@ -47,7 +47,7 @@ Re-skin `pu_driver` into the prototype's map-first layout language, in light mod
 
 ## 4. Visual direction
 
-- **Surfaces:** light — a `#F2F2F5` page behind `#FFFFFF` cards, hairline dividers, and opaque white cards floating over the map.
+- **Surfaces:** light — a `#F7F7F9` page (DD-50; was `#F2F2F5`) behind `#FFFFFF` cards, hairline dividers, and opaque white cards floating over the map.
 - **Brand orange:**
   - `#FF4500` is the identity colour: logo, route line, active indicators.
   - Buttons use a deeper `#CC3700` fill so white labels pass AA (DD-02).

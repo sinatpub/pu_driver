@@ -33,7 +33,7 @@ Contrast ratios use the WCAG 2.1 relative-luminance formula and were measured in
 
 | Token | Value | Source | Status | Use · measured contrast |
 |---|---|---|---|---|
-| `bg.page` | `#F2F2F5` | `AppColors.light3` | CONFIRMED | Scaffold behind cards and lists |
+| `bg.page` | `#F7F7F9` | — (was `#F2F2F5`, `AppColors.light3`) | CONFIRMED (DD-50) | Scaffold behind cards and lists |
 | `bg.surface` | `#FFFFFF` | — | PROPOSED | Cards, sheets, dialogs, inputs, app bar |
 | `bg.raised` | `#EBEBF0` | `AppColors.light2` | CONFIRMED | Segmented and tab tracks, chip rests |
 | `bg.sunken` | `#E2E2E5` | `AppColors.light1` | CONFIRMED | Disabled fills |

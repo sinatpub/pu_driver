@@ -317,7 +317,9 @@ class TaarraaColors {
 
   /// The light palette. Values and their measured ratios: `02 §1.1`.
   static const TaarraaColors light = TaarraaColors(
-    bgPage: Color(0xFFF2F2F5),
+    // DD-50: was #F2F2F5, which read too deep behind the cards. Every text
+    // colour gains contrast on the lighter page (danger 4.46 → 4.65).
+    bgPage: Color(0xFFF7F7F9),
     bgSurface: Color(0xFFFFFFFF),
     bgRaised: Color(0xFFEBEBF0),
     bgSunken: Color(0xFFE2E2E5),
@@ -330,7 +332,7 @@ class TaarraaColors {
     textPrimary: Color(0xFF3A3A3C),
     // P3: was #6B7588 — 4.64 on white only, 4.15 on bg.page and 3.91 on
     // bg.raised, where most secondary text sits. #5C6474 clears 4.5 on every
-    // neutral fill (surface 5.95, page 5.32, raised 5.01, sunken 4.60).
+    // neutral fill (surface 5.95, page 5.56, raised 5.01, sunken 4.60).
     textSecondary: Color(0xFF5C6474),
     textDisabled: Color(0xFF6B7588),
     textOnAction: Color(0xFFFFFFFF),

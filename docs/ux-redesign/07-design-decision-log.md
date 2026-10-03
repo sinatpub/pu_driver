@@ -1272,3 +1272,22 @@ The sheet was run on an emulator with a hardware keyboard, so the on-screen keyb
 
 ### Impact
 `TransferAmountBody` (replaces `TransferConfirmBody`), `transfer_sheet.dart`, `InviteLogic.transferRewards(amount)`, `invite_presentation.dart` (`parseTransferAmount`, `transferAmountText`, `checkTransferAmount`). Mock: the endpoint validates the amount. Keys: `INVITE_TRANSFER_AVAILABLE`, `INVITE_TRANSFER_AMOUNT`, `INVITE_TRANSFER_REWARDS_LEFT`, `INVITE_TRANSFER_TOO_MUCH`, `INVITE_TRANSFER_BUTTON`; `INVITE_TRANSFER_CONFIRM_TITLE` removed.
+
+## Decision DD-50: A lighter page background
+
+**Settled by the user on 2026-10-03: option A.**
+
+### Context
+The page background, `bg.page` `#F2F2F5`, read too deep behind the white cards on every list screen.
+
+### Decision
+`bg.page` is `#F7F7F9`: the same cool grey, lighter. One token, so every screen with a page behind cards changes — wallet, history, trip detail, rewards, contact, sign-up. Map screens are unchanged: the map covers the page there.
+
+### Effect
+- Every text colour gains contrast on the page: secondary text 5.32 → 5.56, danger 4.46 → 4.65, brand text 4.57 → 4.77, warning 4.84 → 5.06, success 4.89 → 5.11.
+- White cards lift off the page less (1.12 → 1.07); their 1 px border separates them, as it already did.
+- Tab tracks and chip rests (`bg.raised` `#EBEBF0`) stand out a little more (1.06 → 1.11).
+
+### Impact
+`TaarraaColors.light.bgPage` in `core/theme/tokens.dart`; `02-design-system.md`, `01-design-direction.md`.
+
