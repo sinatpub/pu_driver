@@ -1,6 +1,6 @@
 import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/data/datasources/get_vehical_remote_data_source.dart';
-import 'package:tara_driver_application/data/models/vehical_model.dart';
+import 'package:pu_taxi_driver/data/datasources/get_vehical_remote_data_source.dart';
+import 'package:pu_taxi_driver/data/models/vehical_model.dart';
 
 enum VehicleStatus { initial, loading, loaded, error }
 

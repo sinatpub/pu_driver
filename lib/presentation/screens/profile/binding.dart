@@ -1,6 +1,6 @@
 import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/presentation/screens/profile/data/datasource/profile_datasource.dart';
-import 'package:tara_driver_application/presentation/screens/profile/data/repository/profile_repository.dart';
+import 'package:pu_taxi_driver/presentation/screens/profile/data/datasource/profile_datasource.dart';
+import 'package:pu_taxi_driver/presentation/screens/profile/data/repository/profile_repository.dart';
 
 import 'logic.dart';
 

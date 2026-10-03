@@ -3,7 +3,7 @@
 //     final detailNotificationModel = detailNotificationModelFromJson(jsonString);
 
 import 'dart:convert';
-import 'package:tara_driver_application/core/utils/json_list.dart';
+import 'package:pu_taxi_driver/core/utils/json_list.dart';
 
 DetailNotificationModel detailNotificationModelFromJson(String str) =>
     DetailNotificationModel.fromJson(json.decode(str));

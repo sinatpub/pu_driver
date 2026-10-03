@@ -1,16 +1,16 @@
 import 'dart:async';
 
-import 'package:tara_driver_application/app/alert_widget.dart';
-import 'package:tara_driver_application/mock/mock_backend.dart';
-import 'package:tara_driver_application/mock/mock_mode.dart';
-import 'package:tara_driver_application/routes/app_routes.dart';
-import 'package:tara_driver_application/core/utils/pretty_logger.dart';
-import 'package:tara_driver_application/presentation/screens/booking/data/new_ride_payload_parser.dart';
+import 'package:pu_taxi_driver/app/alert_widget.dart';
+import 'package:pu_taxi_driver/mock/mock_backend.dart';
+import 'package:pu_taxi_driver/mock/mock_mode.dart';
+import 'package:pu_taxi_driver/routes/app_routes.dart';
+import 'package:pu_taxi_driver/core/utils/pretty_logger.dart';
+import 'package:pu_taxi_driver/presentation/screens/booking/data/new_ride_payload_parser.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:socket_io_client/socket_io_client.dart' as io;
-import 'package:tara_driver_application/taxi_single_ton/taxi.dart';
+import 'package:pu_taxi_driver/taxi_single_ton/taxi.dart';
 
 // F-01 (docs/12) — socket event names. `passangerCancelDrive` (typo'd,
 // docs/02 finding #15) never matched the wire event name and was dead;

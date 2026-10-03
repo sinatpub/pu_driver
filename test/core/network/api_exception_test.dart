@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tara_driver_application/core/network/api_exception.dart';
+import 'package:pu_taxi_driver/core/network/api_exception.dart';
 
 DioException _badResponse(int status, {dynamic data}) {
   final options = RequestOptions(path: '/taxi-driver/profile');

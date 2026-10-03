@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:typed_data';
-import 'package:tara_driver_application/core/utils/app_constant.dart';
-import 'package:tara_driver_application/core/utils/load_custom_marker.dart';
-import 'package:tara_driver_application/data/datasources/update_driver_location_api.dart';
+import 'package:pu_taxi_driver/core/utils/app_constant.dart';
+import 'package:pu_taxi_driver/core/utils/load_custom_marker.dart';
+import 'package:pu_taxi_driver/data/datasources/update_driver_location_api.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';

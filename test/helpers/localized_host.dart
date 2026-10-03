@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:tara_driver_application/core/theme/app_theme.dart';
+import 'package:pu_taxi_driver/core/theme/app_theme.dart';
 
 /// Loads `assets/translations/<locale>.json` straight from disk.
 ///

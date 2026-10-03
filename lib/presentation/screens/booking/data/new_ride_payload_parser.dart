@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:tara_driver_application/routes/route_arguments.dart';
+import 'package:pu_taxi_driver/routes/route_arguments.dart';
 
 /// D-05 (docs/12) — parses the payload for a new ride request. The driver
 /// socket's `newRide` event and the `service_booking` FCM push carry the

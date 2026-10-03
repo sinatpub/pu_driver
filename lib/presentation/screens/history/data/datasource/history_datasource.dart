@@ -1,6 +1,6 @@
-import 'package:tara_driver_application/core/network/api_client.dart';
-import 'package:tara_driver_application/core/network/result.dart';
-import 'package:tara_driver_application/presentation/screens/history/data/models/history_driver_info_model.dart';
+import 'package:pu_taxi_driver/core/network/api_client.dart';
+import 'package:pu_taxi_driver/core/network/result.dart';
+import 'package:pu_taxi_driver/presentation/screens/history/data/models/history_driver_info_model.dart';
 
 class HistoryDatasource {
   HistoryDatasource({ApiClient? apiClient})

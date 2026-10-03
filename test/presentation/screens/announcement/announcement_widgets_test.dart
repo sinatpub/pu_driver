@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tara_driver_application/core/theme/app_theme.dart';
-import 'package:tara_driver_application/core/theme/tokens.dart';
-import 'package:tara_driver_application/presentation/screens/announcement/widgets/news_card.dart';
-import 'package:tara_driver_application/presentation/screens/announcement_detail/view.dart';
-import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
+import 'package:pu_taxi_driver/core/theme/app_theme.dart';
+import 'package:pu_taxi_driver/core/theme/tokens.dart';
+import 'package:pu_taxi_driver/presentation/screens/announcement/widgets/news_card.dart';
+import 'package:pu_taxi_driver/presentation/screens/announcement_detail/view.dart';
+import 'package:pu_taxi_driver/presentation/widgets/ds/ds.dart';
 
 import '../../../helpers/localized_host.dart';
 

@@ -1,5 +1,5 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:tara_driver_application/mock/mock_geo.dart';
+import 'package:pu_taxi_driver/mock/mock_geo.dart';
 
 /// Static mock data: places in Phnom Penh, the driver account, the
 /// passenger, vehicle types, and the shape of every JSON payload the mock

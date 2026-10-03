@@ -1,8 +1,8 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:tara_driver_application/mock/mock_fixtures.dart';
-import 'package:tara_driver_application/mock/mock_geo.dart';
-import 'package:tara_driver_application/mock/mock_timings.dart';
-import 'package:tara_driver_application/services/route_service.dart';
+import 'package:pu_taxi_driver/mock/mock_fixtures.dart';
+import 'package:pu_taxi_driver/mock/mock_geo.dart';
+import 'package:pu_taxi_driver/mock/mock_timings.dart';
+import 'package:pu_taxi_driver/services/route_service.dart';
 
 /// Stands in for Google Directions: the same deterministic route the
 /// simulated GPS drives along, so the polyline and the car line up.

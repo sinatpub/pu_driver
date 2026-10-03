@@ -1,11 +1,11 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/app/logic.dart';
-import 'package:tara_driver_application/app/state.dart';
-import 'package:tara_driver_application/core/theme/tokens.dart';
-import 'package:tara_driver_application/presentation/screens/contact_us/logic.dart';
-import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
+import 'package:pu_taxi_driver/app/logic.dart';
+import 'package:pu_taxi_driver/app/state.dart';
+import 'package:pu_taxi_driver/core/theme/tokens.dart';
+import 'package:pu_taxi_driver/presentation/screens/contact_us/logic.dart';
+import 'package:pu_taxi_driver/presentation/widgets/ds/ds.dart';
 
 /// UX-redesign C1 — the approval gate over the shell body.
 ///

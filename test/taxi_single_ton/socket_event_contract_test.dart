@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tara_driver_application/services/socket_service.dart';
+import 'package:pu_taxi_driver/services/socket_service.dart';
 
 /// Characterization tests for the driver half of the Socket.IO wire contract
 /// (`.agent/TODO.md` Recommended #2; mandatory under `.agent/RULES.md` because

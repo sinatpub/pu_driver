@@ -1,8 +1,8 @@
-import 'package:tara_driver_application/core/config/app_config.dart';
+import 'package:pu_taxi_driver/core/config/app_config.dart';
 import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:tara_driver_application/core/network/api_client.dart';
-import 'package:tara_driver_application/services/session_service.dart';
+import 'package:pu_taxi_driver/core/network/api_client.dart';
+import 'package:pu_taxi_driver/services/session_service.dart';
 
 /// A development-only shortcut past OTP verification, so the screens *behind*
 /// login (drawer, home, trip) can be exercised on an emulator without a real

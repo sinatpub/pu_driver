@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tara_driver_application/core/contracts/booking_status.dart';
+import 'package:pu_taxi_driver/core/contracts/booking_status.dart';
 
 void main() {
   test('the assumed mapping matches docs/05 §2 (Q-1, client-owner-supplied)',

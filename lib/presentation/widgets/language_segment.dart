@@ -1,8 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/presentation/repository/language_data.dart';
-import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
+import 'package:pu_taxi_driver/presentation/repository/language_data.dart';
+import 'package:pu_taxi_driver/presentation/widgets/ds/ds.dart';
 
 /// UX-redesign C1 — the language control, inline instead of a bottom sheet.
 ///

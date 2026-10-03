@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:tara_driver_application/core/theme/tokens.dart';
-import 'package:tara_driver_application/presentation/widgets/ds/ds_icons.dart';
-import 'package:tara_driver_application/presentation/widgets/ds/t_button.dart';
+import 'package:pu_taxi_driver/core/theme/tokens.dart';
+import 'package:pu_taxi_driver/presentation/widgets/ds/ds_icons.dart';
+import 'package:pu_taxi_driver/presentation/widgets/ds/t_button.dart';
 
 /// UX-redesign F3 — the loading, empty and error states every list owes its
 /// reader (`02 §11`, `04 § A`).

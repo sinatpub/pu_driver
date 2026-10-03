@@ -1,5 +1,5 @@
 import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/data/models/register_model.dart';
+import 'package:pu_taxi_driver/data/models/register_model.dart';
 
 enum OtpStatus { initial, loading, loaded, newDriver, fail }
 

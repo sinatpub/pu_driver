@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tara_driver_application/core/theme/app_theme.dart';
-import 'package:tara_driver_application/presentation/widgets/count_down_widget.dart';
-import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
-import 'package:tara_driver_application/presentation/widgets/ds/t_motion.dart';
-import 'package:tara_driver_application/presentation/widgets/shake_widget.dart';
-import 'package:tara_driver_application/routes/transitions.dart';
+import 'package:pu_taxi_driver/core/theme/app_theme.dart';
+import 'package:pu_taxi_driver/presentation/widgets/count_down_widget.dart';
+import 'package:pu_taxi_driver/presentation/widgets/ds/ds.dart';
+import 'package:pu_taxi_driver/presentation/widgets/ds/t_motion.dart';
+import 'package:pu_taxi_driver/presentation/widgets/shake_widget.dart';
+import 'package:pu_taxi_driver/routes/transitions.dart';
 
 import '../../../helpers/localized_host.dart';
 

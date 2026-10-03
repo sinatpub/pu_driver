@@ -1,6 +1,6 @@
-import 'package:tara_driver_application/core/network/result.dart';
-import 'package:tara_driver_application/presentation/screens/invite/data/datasource/referral_datasource.dart';
-import 'package:tara_driver_application/presentation/screens/invite/data/models/referral_model.dart';
+import 'package:pu_taxi_driver/core/network/result.dart';
+import 'package:pu_taxi_driver/presentation/screens/invite/data/datasource/referral_datasource.dart';
+import 'package:pu_taxi_driver/presentation/screens/invite/data/models/referral_model.dart';
 
 class ReferralRepository {
   ReferralRepository(this._datasource);

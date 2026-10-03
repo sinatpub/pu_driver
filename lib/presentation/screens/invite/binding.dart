@@ -1,6 +1,6 @@
 import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/presentation/screens/invite/data/datasource/referral_datasource.dart';
-import 'package:tara_driver_application/presentation/screens/invite/data/repository/referral_repository.dart';
+import 'package:pu_taxi_driver/presentation/screens/invite/data/datasource/referral_datasource.dart';
+import 'package:pu_taxi_driver/presentation/screens/invite/data/repository/referral_repository.dart';
 
 import 'logic.dart';
 

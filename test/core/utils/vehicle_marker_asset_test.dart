@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tara_driver_application/core/utils/load_custom_marker.dart';
+import 'package:pu_taxi_driver/core/utils/load_custom_marker.dart';
 
 /// The home map crashed a profile/release build on its first GPS fix: the
 /// vehicle type was still 0, the marker asset path was "", and Google Maps

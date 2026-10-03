@@ -1,4 +1,4 @@
-import 'package:tara_driver_application/core/config/app_config.dart';
+import 'package:pu_taxi_driver/core/config/app_config.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// F-07 (docs/12). `String.fromEnvironment` has no way to express "absent" —

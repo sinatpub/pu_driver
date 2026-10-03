@@ -1,11 +1,11 @@
 import 'package:dotted_line/dotted_line.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:tara_driver_application/core/helper/address_parts.dart';
-import 'package:tara_driver_application/core/theme/tokens.dart';
-import 'package:tara_driver_application/presentation/screens/booking/widgets/passenger_row.dart';
-import 'package:tara_driver_application/presentation/screens/booking/widgets/trip_timeline.dart';
-import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
+import 'package:pu_taxi_driver/core/helper/address_parts.dart';
+import 'package:pu_taxi_driver/core/theme/tokens.dart';
+import 'package:pu_taxi_driver/presentation/screens/booking/widgets/passenger_row.dart';
+import 'package:pu_taxi_driver/presentation/screens/booking/widgets/trip_timeline.dart';
+import 'package:pu_taxi_driver/presentation/widgets/ds/ds.dart';
 
 /// UX-redesign C6, reworked by DD-39 — the payment screen's pieces.
 ///

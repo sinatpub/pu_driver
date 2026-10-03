@@ -1,5 +1,5 @@
 import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/data/models/current_driver_info_model.dart';
+import 'package:pu_taxi_driver/data/models/current_driver_info_model.dart';
 
 /// D-03 (`12`) — the backend's `driver.status` field on
 /// `get-current-drive-info`: 0 = pending, 1 = approved, 2 = rejected

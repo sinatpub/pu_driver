@@ -1,5 +1,5 @@
-import 'package:tara_driver_application/core/utils/json_field.dart';
-import 'package:tara_driver_application/data/models/vehical_model.dart';
+import 'package:pu_taxi_driver/core/utils/json_field.dart';
+import 'package:pu_taxi_driver/data/models/vehical_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// The policy: **fail loudly on money, degrade on display.**

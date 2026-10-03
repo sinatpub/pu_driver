@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tara_driver_application/core/utils/fare_estimate.dart';
+import 'package:pu_taxi_driver/core/utils/fare_estimate.dart';
 
 void main() {
   group('estimateFare', () {

@@ -1,15 +1,15 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:tara_driver_application/core/network/api_client.dart';
-import 'package:tara_driver_application/core/network/api_exception.dart';
-import 'package:tara_driver_application/core/network/result.dart';
-import 'package:tara_driver_application/core/storage/key_storages.dart';
-import 'package:tara_driver_application/presentation/screens/login/data/datasource/auth_datasource.dart';
-import 'package:tara_driver_application/presentation/screens/login/data/models/phone_model.dart';
-import 'package:tara_driver_application/presentation/screens/login/data/repository/auth_repository.dart';
-import 'package:tara_driver_application/presentation/screens/login/logic.dart';
-import 'package:tara_driver_application/presentation/screens/login/state.dart';
+import 'package:pu_taxi_driver/core/network/api_client.dart';
+import 'package:pu_taxi_driver/core/network/api_exception.dart';
+import 'package:pu_taxi_driver/core/network/result.dart';
+import 'package:pu_taxi_driver/core/storage/key_storages.dart';
+import 'package:pu_taxi_driver/presentation/screens/login/data/datasource/auth_datasource.dart';
+import 'package:pu_taxi_driver/presentation/screens/login/data/models/phone_model.dart';
+import 'package:pu_taxi_driver/presentation/screens/login/data/repository/auth_repository.dart';
+import 'package:pu_taxi_driver/presentation/screens/login/logic.dart';
+import 'package:pu_taxi_driver/presentation/screens/login/state.dart';
 
 /// The driver app has **no password login**. Auth is
 /// `POST /taxi-driver/login-phone` (phone only) → `verify-phone-otp`

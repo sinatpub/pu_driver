@@ -3,12 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/routes/app_routes.dart';
-import 'package:tara_driver_application/core/storage/set_storages.dart';
-import 'package:tara_driver_application/core/utils/debug_auth_bypass.dart';
-import 'package:tara_driver_application/presentation/screens/login/data/models/phone_model.dart';
-import 'package:tara_driver_application/presentation/screens/login/data/repository/auth_repository.dart';
-import 'package:tara_driver_application/presentation/widgets/error_dialog_widget.dart';
+import 'package:pu_taxi_driver/routes/app_routes.dart';
+import 'package:pu_taxi_driver/core/storage/set_storages.dart';
+import 'package:pu_taxi_driver/core/utils/debug_auth_bypass.dart';
+import 'package:pu_taxi_driver/presentation/screens/login/data/models/phone_model.dart';
+import 'package:pu_taxi_driver/presentation/screens/login/data/repository/auth_repository.dart';
+import 'package:pu_taxi_driver/presentation/widgets/error_dialog_widget.dart';
 
 import 'state.dart';
 import 'package:easy_localization/easy_localization.dart';

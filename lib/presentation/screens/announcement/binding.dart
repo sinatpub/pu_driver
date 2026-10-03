@@ -1,6 +1,6 @@
 import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/presentation/screens/announcement/data/datasource/notification_datasource.dart';
-import 'package:tara_driver_application/presentation/screens/announcement/data/repository/notification_repository.dart';
+import 'package:pu_taxi_driver/presentation/screens/announcement/data/datasource/notification_datasource.dart';
+import 'package:pu_taxi_driver/presentation/screens/announcement/data/repository/notification_repository.dart';
 
 import 'logic.dart';
 

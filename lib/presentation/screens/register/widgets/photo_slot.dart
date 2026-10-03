@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:tara_driver_application/core/theme/tokens.dart';
-import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
+import 'package:pu_taxi_driver/core/theme/tokens.dart';
+import 'package:pu_taxi_driver/presentation/widgets/ds/ds.dart';
 
 /// One document photo on the registration form (`04 § B` PhotoSlotGrid,
 /// `.photo-slot` HTML:132-133). Replaces `CardUploadAttachment` with the same

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tara_driver_application/presentation/screens/announcement/data/models/notifcation_model.dart';
+import 'package:pu_taxi_driver/presentation/screens/announcement/data/models/notifcation_model.dart';
 
 /// Same defect as the wallet's (N-01): these models parsed their lists with
 /// `List<T>.from(json["key"].map(...))`, so an absent or null key was a

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tara_driver_application/core/theme/app_theme.dart';
-import 'package:tara_driver_application/presentation/screens/home/state.dart';
-import 'package:tara_driver_application/presentation/screens/home/widgets/driver_status_card.dart';
-import 'package:tara_driver_application/presentation/screens/home/widgets/location_state_view.dart';
+import 'package:pu_taxi_driver/core/theme/app_theme.dart';
+import 'package:pu_taxi_driver/presentation/screens/home/state.dart';
+import 'package:pu_taxi_driver/presentation/screens/home/widgets/driver_status_card.dart';
+import 'package:pu_taxi_driver/presentation/screens/home/widgets/location_state_view.dart';
 
 /// UX-redesign C2 — the home tab's two state-driven overlays.
 ///

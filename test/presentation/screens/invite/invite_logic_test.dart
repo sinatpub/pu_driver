@@ -2,14 +2,14 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tara_driver_application/core/network/api_client.dart';
-import 'package:tara_driver_application/core/network/api_exception.dart';
-import 'package:tara_driver_application/core/network/result.dart';
-import 'package:tara_driver_application/presentation/screens/invite/data/datasource/referral_datasource.dart';
-import 'package:tara_driver_application/presentation/screens/invite/data/models/referral_model.dart';
-import 'package:tara_driver_application/presentation/screens/invite/data/repository/referral_repository.dart';
-import 'package:tara_driver_application/presentation/screens/invite/logic.dart';
-import 'package:tara_driver_application/presentation/screens/invite/state.dart';
+import 'package:pu_taxi_driver/core/network/api_client.dart';
+import 'package:pu_taxi_driver/core/network/api_exception.dart';
+import 'package:pu_taxi_driver/core/network/result.dart';
+import 'package:pu_taxi_driver/presentation/screens/invite/data/datasource/referral_datasource.dart';
+import 'package:pu_taxi_driver/presentation/screens/invite/data/models/referral_model.dart';
+import 'package:pu_taxi_driver/presentation/screens/invite/data/repository/referral_repository.dart';
+import 'package:pu_taxi_driver/presentation/screens/invite/logic.dart';
+import 'package:pu_taxi_driver/presentation/screens/invite/state.dart';
 
 /// DD-48 — moving rewards into the wallet balance. It is the driver's money:
 /// one confirmed transfer must be one request, and the screen must end up

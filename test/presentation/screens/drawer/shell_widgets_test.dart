@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tara_driver_application/app/state.dart';
-import 'package:tara_driver_application/core/theme/app_theme.dart';
-import 'package:tara_driver_application/presentation/screens/drawer/widgets/approval_gate.dart';
-import 'package:tara_driver_application/presentation/screens/drawer/widgets/online_status_pill.dart';
+import 'package:pu_taxi_driver/app/state.dart';
+import 'package:pu_taxi_driver/core/theme/app_theme.dart';
+import 'package:pu_taxi_driver/presentation/screens/drawer/widgets/approval_gate.dart';
+import 'package:pu_taxi_driver/presentation/screens/drawer/widgets/online_status_pill.dart';
 
 /// UX-redesign C1 — the shell's two state-driven controls.
 ///

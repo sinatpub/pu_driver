@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tara_driver_application/core/helper/address_parts.dart';
-import 'package:tara_driver_application/core/theme/app_theme.dart';
-import 'package:tara_driver_application/core/theme/tokens.dart';
-import 'package:tara_driver_application/presentation/screens/booking/domain/trip_state_machine.dart';
-import 'package:tara_driver_application/presentation/screens/booking/widgets/passenger_row.dart';
-import 'package:tara_driver_application/presentation/screens/booking/widgets/show_distand_and_price_widget.dart';
-import 'package:tara_driver_application/presentation/screens/booking/widgets/trip_action_bar.dart';
-import 'package:tara_driver_application/presentation/screens/booking/widgets/trip_header.dart';
-import 'package:tara_driver_application/presentation/screens/booking/widgets/trip_timeline.dart';
-import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
+import 'package:pu_taxi_driver/core/helper/address_parts.dart';
+import 'package:pu_taxi_driver/core/theme/app_theme.dart';
+import 'package:pu_taxi_driver/core/theme/tokens.dart';
+import 'package:pu_taxi_driver/presentation/screens/booking/domain/trip_state_machine.dart';
+import 'package:pu_taxi_driver/presentation/screens/booking/widgets/passenger_row.dart';
+import 'package:pu_taxi_driver/presentation/screens/booking/widgets/show_distand_and_price_widget.dart';
+import 'package:pu_taxi_driver/presentation/screens/booking/widgets/trip_action_bar.dart';
+import 'package:pu_taxi_driver/presentation/screens/booking/widgets/trip_header.dart';
+import 'package:pu_taxi_driver/presentation/screens/booking/widgets/trip_timeline.dart';
+import 'package:pu_taxi_driver/presentation/widgets/ds/ds.dart';
 
 import '../../../helpers/localized_host.dart';
 

@@ -1,4 +1,4 @@
-import 'package:tara_driver_application/mock/mock_mode.dart';
+import 'package:pu_taxi_driver/mock/mock_mode.dart';
 
 /// Whether the invite QR, the rewards screens and the sign-up invite code are
 /// shown (DD-45).

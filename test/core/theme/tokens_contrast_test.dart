@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tara_driver_application/core/theme/tokens.dart';
+import 'package:pu_taxi_driver/core/theme/tokens.dart';
 
 /// UX-redesign F1 — pins the contrast floors the light palette was built to.
 ///

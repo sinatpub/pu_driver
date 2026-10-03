@@ -1,12 +1,12 @@
 import 'dart:async';
 
 import 'package:geolocator/geolocator.dart';
-import 'package:tara_driver_application/mock/mock_backend.dart';
-import 'package:tara_driver_application/mock/mock_geo.dart';
-import 'package:tara_driver_application/mock/mock_mode.dart';
-import 'package:tara_driver_application/mock/mock_timings.dart';
+import 'package:pu_taxi_driver/mock/mock_backend.dart';
+import 'package:pu_taxi_driver/mock/mock_geo.dart';
+import 'package:pu_taxi_driver/mock/mock_mode.dart';
+import 'package:pu_taxi_driver/mock/mock_timings.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:tara_driver_application/services/location_service.dart';
+import 'package:pu_taxi_driver/services/location_service.dart';
 
 /// Simulated GPS for [LocationService]. The car's position comes from
 /// [MockBackend.driverFix] — parked while idle, driving to the pickup after

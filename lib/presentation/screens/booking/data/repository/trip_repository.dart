@@ -1,7 +1,7 @@
-import 'package:tara_driver_application/core/network/result.dart';
-import 'package:tara_driver_application/data/models/complete_driver_model.dart';
-import 'package:tara_driver_application/data/models/confirm_booking_model.dart';
-import 'package:tara_driver_application/presentation/screens/booking/data/datasource/trip_datasource.dart';
+import 'package:pu_taxi_driver/core/network/result.dart';
+import 'package:pu_taxi_driver/data/models/complete_driver_model.dart';
+import 'package:pu_taxi_driver/data/models/confirm_booking_model.dart';
+import 'package:pu_taxi_driver/presentation/screens/booking/data/datasource/trip_datasource.dart';
 
 class TripRepository {
   TripRepository(this._datasource);

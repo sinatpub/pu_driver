@@ -4,13 +4,13 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:tara_driver_application/core/theme/tokens.dart';
-import 'package:tara_driver_application/presentation/screens/calculate_fee/widgets/receipt_card.dart';
-import 'package:tara_driver_application/presentation/screens/contact_us/logic.dart';
-import 'package:tara_driver_application/presentation/screens/contact_us/state.dart';
-import 'package:tara_driver_application/presentation/screens/contact_us/view.dart';
-import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
-import 'package:tara_driver_application/routes/route_arguments.dart';
+import 'package:pu_taxi_driver/core/theme/tokens.dart';
+import 'package:pu_taxi_driver/presentation/screens/calculate_fee/widgets/receipt_card.dart';
+import 'package:pu_taxi_driver/presentation/screens/contact_us/logic.dart';
+import 'package:pu_taxi_driver/presentation/screens/contact_us/state.dart';
+import 'package:pu_taxi_driver/presentation/screens/contact_us/view.dart';
+import 'package:pu_taxi_driver/presentation/widgets/ds/ds.dart';
+import 'package:pu_taxi_driver/routes/route_arguments.dart';
 
 import 'logic.dart';
 

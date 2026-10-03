@@ -1,7 +1,7 @@
 import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/routes/route_arguments.dart';
-import 'package:tara_driver_application/presentation/screens/calculate_fee/data/datasource/payment_datasource.dart';
-import 'package:tara_driver_application/presentation/screens/calculate_fee/data/repository/payment_repository.dart';
+import 'package:pu_taxi_driver/routes/route_arguments.dart';
+import 'package:pu_taxi_driver/presentation/screens/calculate_fee/data/datasource/payment_datasource.dart';
+import 'package:pu_taxi_driver/presentation/screens/calculate_fee/data/repository/payment_repository.dart';
 
 import 'logic.dart';
 

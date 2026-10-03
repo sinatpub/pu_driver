@@ -1,4 +1,4 @@
-import 'package:tara_driver_application/core/config/app_config.dart';
+import 'package:pu_taxi_driver/core/config/app_config.dart';
 
 enum ClientMethod { POST, GET, PATCH, DELETE }
 

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tara_driver_application/core/utils/app_constant.dart';
+import 'package:pu_taxi_driver/core/utils/app_constant.dart';
 
 /// F-07 (`12`): both URLs are `String.fromEnvironment` so a build can point
 /// them anywhere with `--dart-define`, while an ordinary build keeps whatever

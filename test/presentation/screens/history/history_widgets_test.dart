@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tara_driver_application/presentation/screens/history/data/models/history_driver_info_model.dart';
-import 'package:tara_driver_application/presentation/screens/history/widgets/history_card_widget.dart';
-import 'package:tara_driver_application/presentation/screens/history/widgets/history_days.dart';
-import 'package:tara_driver_application/presentation/screens/history_detail/contact_window.dart';
-import 'package:tara_driver_application/presentation/screens/history_detail/logic.dart';
-import 'package:tara_driver_application/presentation/screens/history_detail/view.dart';
-import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
+import 'package:pu_taxi_driver/presentation/screens/history/data/models/history_driver_info_model.dart';
+import 'package:pu_taxi_driver/presentation/screens/history/widgets/history_card_widget.dart';
+import 'package:pu_taxi_driver/presentation/screens/history/widgets/history_days.dart';
+import 'package:pu_taxi_driver/presentation/screens/history_detail/contact_window.dart';
+import 'package:pu_taxi_driver/presentation/screens/history_detail/logic.dart';
+import 'package:pu_taxi_driver/presentation/screens/history_detail/view.dart';
+import 'package:pu_taxi_driver/presentation/widgets/ds/ds.dart';
 
-import 'package:tara_driver_application/routes/route_arguments.dart';
+import 'package:pu_taxi_driver/routes/route_arguments.dart';
 
 import '../../../helpers/localized_host.dart';
 

@@ -1,10 +1,10 @@
 import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/routes/route_arguments.dart';
-import 'package:tara_driver_application/data/datasources/get_vehical_remote_data_source.dart';
-import 'package:tara_driver_application/presentation/screens/booking/data/datasource/trip_datasource.dart';
-import 'package:tara_driver_application/presentation/screens/booking/data/repository/trip_repository.dart';
-import 'package:tara_driver_application/presentation/screens/booking/domain/trip_state_machine.dart';
-import 'package:tara_driver_application/presentation/controllers/vehicle_controller.dart';
+import 'package:pu_taxi_driver/routes/route_arguments.dart';
+import 'package:pu_taxi_driver/data/datasources/get_vehical_remote_data_source.dart';
+import 'package:pu_taxi_driver/presentation/screens/booking/data/datasource/trip_datasource.dart';
+import 'package:pu_taxi_driver/presentation/screens/booking/data/repository/trip_repository.dart';
+import 'package:pu_taxi_driver/presentation/screens/booking/domain/trip_state_machine.dart';
+import 'package:pu_taxi_driver/presentation/controllers/vehicle_controller.dart';
 
 import 'logic.dart';
 

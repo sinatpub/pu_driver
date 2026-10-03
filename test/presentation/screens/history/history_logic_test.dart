@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tara_driver_application/core/network/result.dart';
-import 'package:tara_driver_application/presentation/screens/history/data/models/history_driver_info_model.dart';
-import 'package:tara_driver_application/presentation/screens/history/data/repository/history_repository.dart';
-import 'package:tara_driver_application/presentation/screens/history/logic.dart';
+import 'package:pu_taxi_driver/core/network/result.dart';
+import 'package:pu_taxi_driver/presentation/screens/history/data/models/history_driver_info_model.dart';
+import 'package:pu_taxi_driver/presentation/screens/history/data/repository/history_repository.dart';
+import 'package:pu_taxi_driver/presentation/screens/history/logic.dart';
 
 /// DD-41 — each tab keeps its own list; nothing is refetched on a switch.
 class _FakeRepository implements HistoryRepository {

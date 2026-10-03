@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:geolocator/geolocator.dart';
-import 'package:tara_driver_application/data/datasources/update_driver_location_api.dart';
+import 'package:pu_taxi_driver/data/datasources/update_driver_location_api.dart';
 
 /// Where positions come from. [GeolocatorPositionSource] in every normal
 /// build; the QA mock build swaps in a simulated one (`lib/mock/`).

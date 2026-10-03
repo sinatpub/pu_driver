@@ -3,8 +3,8 @@
 // transitive dependency and is not declared in pubspec.yaml; declaring it
 // would need a docs/13 entry per .agent/RULES.md.
 import 'package:easy_localization/easy_localization.dart';
-import 'package:tara_driver_application/core/utils/money.dart';
-import 'package:tara_driver_application/presentation/screens/wallet/data/models/wallet_model.dart';
+import 'package:pu_taxi_driver/core/utils/money.dart';
+import 'package:pu_taxi_driver/presentation/screens/wallet/data/models/wallet_model.dart';
 
 /// N-01 (docs/12) — presenting the wallet the backend already returns.
 ///

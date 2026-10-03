@@ -4,12 +4,12 @@ import 'dart:ui' show Offset;
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:tara_driver_application/core/theme/tokens.dart';
-import 'package:tara_driver_application/core/utils/load_custom_marker.dart';
-import 'package:tara_driver_application/presentation/screens/history_detail/contact_window.dart'
+import 'package:pu_taxi_driver/core/theme/tokens.dart';
+import 'package:pu_taxi_driver/core/utils/load_custom_marker.dart';
+import 'package:pu_taxi_driver/presentation/screens/history_detail/contact_window.dart'
     as contact_window;
-import 'package:tara_driver_application/routes/route_arguments.dart';
-import 'package:tara_driver_application/services/route_service.dart';
+import 'package:pu_taxi_driver/routes/route_arguments.dart';
+import 'package:pu_taxi_driver/services/route_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'state.dart';

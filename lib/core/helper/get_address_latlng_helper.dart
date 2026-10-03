@@ -1,8 +1,8 @@
 import 'package:geocoding/geocoding.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:tara_driver_application/mock/mock_fixtures.dart';
-import 'package:tara_driver_application/mock/mock_mode.dart';
+import 'package:pu_taxi_driver/mock/mock_fixtures.dart';
+import 'package:pu_taxi_driver/mock/mock_mode.dart';
 
 Future<String> getAddressFromLatLng(double latitude, double longitude) async {
   // QA mock mode: the simulated trip's landmarks have fixed names, so the

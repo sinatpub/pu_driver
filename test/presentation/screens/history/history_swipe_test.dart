@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/core/network/result.dart';
-import 'package:tara_driver_application/presentation/screens/history/data/models/history_driver_info_model.dart';
-import 'package:tara_driver_application/presentation/screens/history/data/repository/history_repository.dart';
-import 'package:tara_driver_application/presentation/screens/history/logic.dart';
-import 'package:tara_driver_application/presentation/screens/history/view.dart';
+import 'package:pu_taxi_driver/core/network/result.dart';
+import 'package:pu_taxi_driver/presentation/screens/history/data/models/history_driver_info_model.dart';
+import 'package:pu_taxi_driver/presentation/screens/history/data/repository/history_repository.dart';
+import 'package:pu_taxi_driver/presentation/screens/history/logic.dart';
+import 'package:pu_taxi_driver/presentation/screens/history/view.dart';
 
 import '../../../helpers/localized_host.dart';
 

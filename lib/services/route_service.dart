@@ -1,8 +1,8 @@
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:tara_driver_application/core/utils/app_constant.dart';
-import 'package:tara_driver_application/core/utils/calculate_distance.dart';
-import 'package:tara_driver_application/core/utils/pretty_logger.dart';
+import 'package:pu_taxi_driver/core/utils/app_constant.dart';
+import 'package:pu_taxi_driver/core/utils/calculate_distance.dart';
+import 'package:pu_taxi_driver/core/utils/pretty_logger.dart';
 
 /// One driving route with the figures the Directions response carries
 /// alongside it. The ride-request sheet shows [durationSeconds] and

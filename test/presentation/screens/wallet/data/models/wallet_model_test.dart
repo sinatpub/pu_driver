@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tara_driver_application/presentation/screens/wallet/data/models/wallet_model.dart';
+import 'package:pu_taxi_driver/presentation/screens/wallet/data/models/wallet_model.dart';
 
 /// N-01 (docs/12) — the wallet read path, which had no tests at all.
 void main() {

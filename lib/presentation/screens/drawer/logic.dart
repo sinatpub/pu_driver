@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:get/get.dart' hide Trans;
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
-import 'package:tara_driver_application/app/logic.dart';
+import 'package:pu_taxi_driver/app/logic.dart';
 
 import 'state.dart';
 

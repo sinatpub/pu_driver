@@ -1,4 +1,4 @@
-# tara_driver_application
+# pu_taxi_driver
 
 Driver app for the Taarraa taxi platform. Currently mid-migration from BLoC to GetX — see
 `../.agent/` in the parent `pu_taxi_system/` repo for the modernization plan, architecture

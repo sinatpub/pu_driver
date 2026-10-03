@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:tara_driver_application/core/theme/tokens.dart';
-import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
+import 'package:pu_taxi_driver/core/theme/tokens.dart';
+import 'package:pu_taxi_driver/presentation/widgets/ds/ds.dart';
 
 /// UX-redesign C4 — the live in-trip meter that replaced the old
 /// `ShowDistandWidget` at the head of the trip sheet.

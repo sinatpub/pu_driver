@@ -1,5 +1,5 @@
-import 'package:tara_driver_application/core/network/result.dart';
-import 'package:tara_driver_application/presentation/screens/calculate_fee/data/datasource/payment_datasource.dart';
+import 'package:pu_taxi_driver/core/network/result.dart';
+import 'package:pu_taxi_driver/presentation/screens/calculate_fee/data/datasource/payment_datasource.dart';
 
 class PaymentRepository {
   PaymentRepository(this._datasource);

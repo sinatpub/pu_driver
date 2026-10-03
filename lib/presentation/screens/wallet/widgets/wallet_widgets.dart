@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:tara_driver_application/core/theme/tokens.dart';
-import 'package:tara_driver_application/presentation/screens/wallet/wallet_presentation.dart';
-import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
+import 'package:pu_taxi_driver/core/theme/tokens.dart';
+import 'package:pu_taxi_driver/presentation/screens/wallet/wallet_presentation.dart';
+import 'package:pu_taxi_driver/presentation/widgets/ds/ds.dart';
 
 /// The wallet's pieces (`03 S11`, `DD-04`), reworked by DD-43 around the
 /// agreed model: one balance, the platform's commission rate as a note, a

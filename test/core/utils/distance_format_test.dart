@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tara_driver_application/core/utils/clock_format.dart';
-import 'package:tara_driver_application/core/utils/distance_format.dart';
+import 'package:pu_taxi_driver/core/utils/clock_format.dart';
+import 'package:pu_taxi_driver/core/utils/distance_format.dart';
 
 import '../../helpers/localized_host.dart';
 

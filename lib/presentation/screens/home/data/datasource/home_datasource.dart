@@ -1,7 +1,7 @@
-import 'package:tara_driver_application/core/network/api_client.dart';
-import 'package:tara_driver_application/core/network/result.dart';
-import 'package:tara_driver_application/data/models/current_driver_info_model.dart';
-import 'package:tara_driver_application/data/models/set_status_model.dart';
+import 'package:pu_taxi_driver/core/network/api_client.dart';
+import 'package:pu_taxi_driver/core/network/result.dart';
+import 'package:pu_taxi_driver/data/models/current_driver_info_model.dart';
+import 'package:pu_taxi_driver/data/models/set_status_model.dart';
 
 class HomeDatasource {
   HomeDatasource({ApiClient? apiClient})

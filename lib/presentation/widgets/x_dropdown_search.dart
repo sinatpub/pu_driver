@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 
-import 'package:tara_driver_application/core/theme/tokens.dart';
-import 'package:tara_driver_application/presentation/widgets/ds/ds_icons.dart';
+import 'package:pu_taxi_driver/core/theme/tokens.dart';
+import 'package:pu_taxi_driver/presentation/widgets/ds/ds_icons.dart';
 
 class DropdownSelection<T> {
   final int? index;

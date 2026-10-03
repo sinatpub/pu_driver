@@ -10,7 +10,7 @@
 
 | Fact | Value | Source |
 |---|---|---|
-| Dart package name | `tara_driver_application` | `pu_driver/pubspec.yaml:1` |
+| Dart package name | `tara_driver_application` (renamed `pu_taxi_driver` on 2026-10-03) | `pu_driver/pubspec.yaml:1` |
 | Description | "The Tara Taxi Driver App helps drivers get ride requests, navigate with live maps, manage trips, and track earnings…" | `pu_driver/pubspec.yaml:2` |
 | Version | `1.1.9+1191` | `pu_driver/pubspec.yaml:6` |
 | Dart SDK constraint | `>=3.4.3 <4.0.0` | `pu_driver/pubspec.yaml:9` |

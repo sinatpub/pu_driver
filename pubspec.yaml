@@ -1,5 +1,5 @@
-name: tara_driver_application
-description: "The Tara Taxi Driver App helps drivers get ride requests, navigate with live maps, manage trips, and track earnings—all in one simple and easy-to-use app."
+name: pu_taxi_driver
+description: "The Pu Taxi Driver App helps drivers get ride requests, navigate with live maps, manage trips, and track earnings—all in one simple and easy-to-use app."
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 

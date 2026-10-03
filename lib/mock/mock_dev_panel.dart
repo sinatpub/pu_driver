@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:tara_driver_application/mock/mock_backend.dart';
-import 'package:tara_driver_application/mock/mock_mode.dart';
-import 'package:tara_driver_application/services/navigation_service.dart';
+import 'package:pu_taxi_driver/mock/mock_backend.dart';
+import 'package:pu_taxi_driver/mock/mock_mode.dart';
+import 'package:pu_taxi_driver/services/navigation_service.dart';
 
 /// Wraps the app in a QA mock build with a small "MOCK" tab on the left edge,
 /// visible on every screen so a mock session is never mistaken for a real

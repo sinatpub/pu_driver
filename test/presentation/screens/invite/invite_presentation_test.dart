@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tara_driver_application/presentation/screens/invite/data/models/referral_model.dart';
-import 'package:tara_driver_application/presentation/screens/invite/invite_presentation.dart';
+import 'package:pu_taxi_driver/presentation/screens/invite/data/models/referral_model.dart';
+import 'package:pu_taxi_driver/presentation/screens/invite/invite_presentation.dart';
 
 /// DD-45 — the invite and reward rules. Rewards are the driver's money, so
 /// the sums and the ordering are pinned here.

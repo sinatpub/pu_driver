@@ -1,9 +1,9 @@
 import 'dart:io';
 
-import 'package:tara_driver_application/core/network/result.dart';
-import 'package:tara_driver_application/data/models/register_model.dart';
-import 'package:tara_driver_application/presentation/screens/login/data/datasource/auth_datasource.dart';
-import 'package:tara_driver_application/presentation/screens/login/data/models/phone_model.dart';
+import 'package:pu_taxi_driver/core/network/result.dart';
+import 'package:pu_taxi_driver/data/models/register_model.dart';
+import 'package:pu_taxi_driver/presentation/screens/login/data/datasource/auth_datasource.dart';
+import 'package:pu_taxi_driver/presentation/screens/login/data/models/phone_model.dart';
 
 class AuthRepository {
   AuthRepository(this._datasource);

@@ -1,7 +1,7 @@
 /// UX-redesign F2/F3 — the shared design-system components.
 ///
 /// One import for a screen that needs several:
-/// `import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';`
+/// `import 'package:pu_taxi_driver/presentation/widgets/ds/ds.dart';`
 ///
 /// Specs: `docs/ux-redesign/04-component-specification.md § A` (behaviour and
 /// inputs) and `docs/ux-redesign/02-design-system.md §7–§13` (visuals).

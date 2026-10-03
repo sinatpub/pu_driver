@@ -2,10 +2,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/core/theme/tokens.dart';
-import 'package:tara_driver_application/core/utils/phone_formatter.dart';
-import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
-import 'package:tara_driver_application/presentation/widgets/language_segment.dart';
+import 'package:pu_taxi_driver/core/theme/tokens.dart';
+import 'package:pu_taxi_driver/core/utils/phone_formatter.dart';
+import 'package:pu_taxi_driver/presentation/widgets/ds/ds.dart';
+import 'package:pu_taxi_driver/presentation/widgets/language_segment.dart';
 
 import 'logic.dart';
 import 'state.dart';

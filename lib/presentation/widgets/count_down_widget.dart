@@ -1,8 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/core/theme/tokens.dart';
-import 'package:tara_driver_application/routes/app_routes.dart';
+import 'package:pu_taxi_driver/core/theme/tokens.dart';
+import 'package:pu_taxi_driver/routes/app_routes.dart';
 
 /// How long the driver has to decide on a ride request.
 ///

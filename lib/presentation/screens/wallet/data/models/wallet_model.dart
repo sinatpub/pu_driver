@@ -4,7 +4,7 @@
 
 import 'dart:convert';
 
-import 'package:tara_driver_application/core/utils/money.dart';
+import 'package:pu_taxi_driver/core/utils/money.dart';
 
 WalletModel walletModelFromJson(String str) =>
     WalletModel.fromJson(json.decode(str));

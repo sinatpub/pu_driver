@@ -1,6 +1,6 @@
-import 'package:tara_driver_application/core/network/api_client.dart';
-import 'package:tara_driver_application/core/network/result.dart';
-import 'package:tara_driver_application/presentation/screens/home/data/models/version_app_model.dart';
+import 'package:pu_taxi_driver/core/network/api_client.dart';
+import 'package:pu_taxi_driver/core/network/result.dart';
+import 'package:pu_taxi_driver/presentation/screens/home/data/models/version_app_model.dart';
 
 class VersionCheckDatasource {
   VersionCheckDatasource({ApiClient? apiClient})

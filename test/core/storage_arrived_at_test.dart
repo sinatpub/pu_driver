@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:tara_driver_application/core/storage/get_storages.dart';
-import 'package:tara_driver_application/core/storage/remove_storage.dart';
-import 'package:tara_driver_application/core/storage/set_storages.dart';
+import 'package:pu_taxi_driver/core/storage/get_storages.dart';
+import 'package:pu_taxi_driver/core/storage/remove_storage.dart';
+import 'package:pu_taxi_driver/core/storage/set_storages.dart';
 
 /// DD-37 — the at-pickup waiting timer survives an app restart.
 void main() {

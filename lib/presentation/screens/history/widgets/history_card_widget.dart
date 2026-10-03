@@ -1,18 +1,18 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/app/funtion_convert.dart';
-import 'package:tara_driver_application/core/contracts/booking_status.dart';
-import 'package:tara_driver_application/core/helper/address_parts.dart';
-import 'package:tara_driver_application/core/theme/tokens.dart';
-import 'package:tara_driver_application/core/utils/clock_format.dart';
-import 'package:tara_driver_application/core/utils/distance_format.dart';
-import 'package:tara_driver_application/presentation/screens/calculate_fee/widgets/receipt_card.dart';
-import 'package:tara_driver_application/presentation/screens/history/data/models/history_driver_info_model.dart';
-import 'package:tara_driver_application/presentation/screens/history/widgets/history_days.dart';
-import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
-import 'package:tara_driver_application/routes/app_routes.dart';
-import 'package:tara_driver_application/routes/route_arguments.dart';
+import 'package:pu_taxi_driver/app/funtion_convert.dart';
+import 'package:pu_taxi_driver/core/contracts/booking_status.dart';
+import 'package:pu_taxi_driver/core/helper/address_parts.dart';
+import 'package:pu_taxi_driver/core/theme/tokens.dart';
+import 'package:pu_taxi_driver/core/utils/clock_format.dart';
+import 'package:pu_taxi_driver/core/utils/distance_format.dart';
+import 'package:pu_taxi_driver/presentation/screens/calculate_fee/widgets/receipt_card.dart';
+import 'package:pu_taxi_driver/presentation/screens/history/data/models/history_driver_info_model.dart';
+import 'package:pu_taxi_driver/presentation/screens/history/widgets/history_days.dart';
+import 'package:pu_taxi_driver/presentation/widgets/ds/ds.dart';
+import 'package:pu_taxi_driver/routes/app_routes.dart';
+import 'package:pu_taxi_driver/routes/route_arguments.dart';
 
 /// One trip in the riding-history list.
 ///

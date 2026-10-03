@@ -1,8 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/presentation/screens/drawer/logic.dart';
-import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
+import 'package:pu_taxi_driver/presentation/screens/drawer/logic.dart';
+import 'package:pu_taxi_driver/presentation/widgets/ds/ds.dart';
 
 import '../../../widgets/ds/t_motion.dart';
 

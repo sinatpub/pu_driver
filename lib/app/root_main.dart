@@ -1,17 +1,17 @@
-import 'package:tara_driver_application/routes/app_pages.dart';
-import 'package:tara_driver_application/routes/app_routes.dart';
-import 'package:tara_driver_application/core/theme/app_theme.dart';
-import 'package:tara_driver_application/mock/mock_dev_panel.dart';
-import 'package:tara_driver_application/mock/mock_mode.dart';
-import 'package:tara_driver_application/services/navigation_service.dart';
+import 'package:pu_taxi_driver/routes/app_pages.dart';
+import 'package:pu_taxi_driver/routes/app_routes.dart';
+import 'package:pu_taxi_driver/core/theme/app_theme.dart';
+import 'package:pu_taxi_driver/mock/mock_dev_panel.dart';
+import 'package:pu_taxi_driver/mock/mock_mode.dart';
+import 'package:pu_taxi_driver/services/navigation_service.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:keyboard_dismisser/keyboard_dismisser.dart';
 import 'package:flutter/foundation.dart';
-import 'package:tara_driver_application/presentation/widgets/ds/t_motion.dart';
-import 'package:tara_driver_application/routes/transitions.dart';
+import 'package:pu_taxi_driver/presentation/widgets/ds/t_motion.dart';
+import 'package:pu_taxi_driver/routes/transitions.dart';
 
 class Root extends StatelessWidget {
   const Root({super.key});

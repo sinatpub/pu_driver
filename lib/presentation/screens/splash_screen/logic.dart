@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/app/funtion_convert.dart';
-import 'package:tara_driver_application/routes/app_routes.dart';
-import 'package:tara_driver_application/services/session_service.dart';
-import 'package:tara_driver_application/taxi_single_ton/taxi.dart';
+import 'package:pu_taxi_driver/app/funtion_convert.dart';
+import 'package:pu_taxi_driver/routes/app_routes.dart';
+import 'package:pu_taxi_driver/services/session_service.dart';
+import 'package:pu_taxi_driver/taxi_single_ton/taxi.dart';
 
 import 'state.dart';
 

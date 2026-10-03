@@ -1,4 +1,4 @@
-import 'package:tara_driver_application/core/utils/money.dart';
+import 'package:pu_taxi_driver/core/utils/money.dart';
 
 /// The driver's invite code, what it earns, and who it brought in (DD-45).
 ///

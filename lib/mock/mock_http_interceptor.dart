@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:tara_driver_application/mock/mock_backend.dart';
-import 'package:tara_driver_application/mock/mock_mode.dart';
-import 'package:tara_driver_application/mock/mock_timings.dart';
+import 'package:pu_taxi_driver/mock/mock_backend.dart';
+import 'package:pu_taxi_driver/mock/mock_mode.dart';
+import 'package:pu_taxi_driver/mock/mock_timings.dart';
 
 /// Answers requests on the shared Dio client (`BaseHttpClient.dio`) from
 /// [MockBackend] instead of the network. Both HTTP stacks in the app —

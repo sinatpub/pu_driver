@@ -1,7 +1,7 @@
 import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/core/pagination/paginated_controller.dart';
-import 'package:tara_driver_application/presentation/screens/history/data/models/history_driver_info_model.dart';
-import 'package:tara_driver_application/presentation/screens/history/data/repository/history_repository.dart';
+import 'package:pu_taxi_driver/core/pagination/paginated_controller.dart';
+import 'package:pu_taxi_driver/presentation/screens/history/data/models/history_driver_info_model.dart';
+import 'package:pu_taxi_driver/presentation/screens/history/data/repository/history_repository.dart';
 
 import 'state.dart';
 

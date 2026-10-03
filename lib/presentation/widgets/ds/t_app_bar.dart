@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:tara_driver_application/core/theme/tokens.dart';
-import 'package:tara_driver_application/presentation/widgets/ds/ds_icons.dart';
-import 'package:tara_driver_application/presentation/widgets/ds/t_button.dart';
+import 'package:pu_taxi_driver/core/theme/tokens.dart';
+import 'package:pu_taxi_driver/presentation/widgets/ds/ds_icons.dart';
+import 'package:pu_taxi_driver/presentation/widgets/ds/t_button.dart';
 
 /// App bar for a pushed screen: back, a title, a hairline below (`02 §10`).
 ///

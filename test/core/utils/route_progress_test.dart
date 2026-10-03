@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:tara_driver_application/core/utils/route_progress.dart';
+import 'package:pu_taxi_driver/core/utils/route_progress.dart';
 
 /// DD-36 — following the driver along the pickup route on the phone.
 void main() {

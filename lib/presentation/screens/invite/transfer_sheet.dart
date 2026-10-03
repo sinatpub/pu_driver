@@ -3,12 +3,12 @@ import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/core/utils/money.dart';
-import 'package:tara_driver_application/presentation/screens/invite/data/models/referral_model.dart';
-import 'package:tara_driver_application/presentation/screens/invite/invite_presentation.dart';
-import 'package:tara_driver_application/presentation/screens/wallet/logic.dart';
-import 'package:tara_driver_application/presentation/screens/wallet/wallet_presentation.dart';
-import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
+import 'package:pu_taxi_driver/core/utils/money.dart';
+import 'package:pu_taxi_driver/presentation/screens/invite/data/models/referral_model.dart';
+import 'package:pu_taxi_driver/presentation/screens/invite/invite_presentation.dart';
+import 'package:pu_taxi_driver/presentation/screens/wallet/logic.dart';
+import 'package:pu_taxi_driver/presentation/screens/wallet/wallet_presentation.dart';
+import 'package:pu_taxi_driver/presentation/widgets/ds/ds.dart';
 
 import 'logic.dart';
 import 'widgets/invite_widgets.dart';

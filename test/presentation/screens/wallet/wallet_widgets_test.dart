@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tara_driver_application/core/theme/app_theme.dart';
-import 'package:tara_driver_application/core/theme/tokens.dart';
-import 'package:tara_driver_application/presentation/screens/wallet/wallet_presentation.dart';
-import 'package:tara_driver_application/presentation/screens/wallet/widgets/wallet_widgets.dart';
-import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
+import 'package:pu_taxi_driver/core/theme/app_theme.dart';
+import 'package:pu_taxi_driver/core/theme/tokens.dart';
+import 'package:pu_taxi_driver/presentation/screens/wallet/wallet_presentation.dart';
+import 'package:pu_taxi_driver/presentation/screens/wallet/widgets/wallet_widgets.dart';
+import 'package:pu_taxi_driver/presentation/widgets/ds/ds.dart';
 
 /// The wallet's pieces after DD-43 (`03 S11`, `DD-04`).
 ///

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:tara_driver_application/core/theme/tokens.dart';
+import 'package:pu_taxi_driver/core/theme/tokens.dart';
 
 /// UX-redesign F2 — the design-system icon set.
 ///

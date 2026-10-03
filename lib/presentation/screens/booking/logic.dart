@@ -1,8 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/presentation/screens/booking/data/repository/trip_repository.dart';
-import 'package:tara_driver_application/presentation/screens/booking/domain/trip_state_machine.dart';
-import 'package:tara_driver_application/taxi_single_ton/taxi.dart';
+import 'package:pu_taxi_driver/presentation/screens/booking/data/repository/trip_repository.dart';
+import 'package:pu_taxi_driver/presentation/screens/booking/domain/trip_state_machine.dart';
+import 'package:pu_taxi_driver/taxi_single_ton/taxi.dart';
 
 import 'state.dart';
 

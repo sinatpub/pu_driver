@@ -1,9 +1,9 @@
 import 'dart:math';
 
 import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/presentation/screens/invite/data/models/referral_model.dart';
-import 'package:tara_driver_application/presentation/screens/invite/data/repository/referral_repository.dart';
-import 'package:tara_driver_application/presentation/screens/invite/invite_presentation.dart';
+import 'package:pu_taxi_driver/presentation/screens/invite/data/models/referral_model.dart';
+import 'package:pu_taxi_driver/presentation/screens/invite/data/repository/referral_repository.dart';
+import 'package:pu_taxi_driver/presentation/screens/invite/invite_presentation.dart';
 
 import 'state.dart';
 

@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tara_driver_application/presentation/screens/booking/data/new_ride_payload_parser.dart';
+import 'package:pu_taxi_driver/presentation/screens/booking/data/new_ride_payload_parser.dart';
 
 Map<String, dynamic> _socketShapedPayload({
   Object? bookingId = 501,

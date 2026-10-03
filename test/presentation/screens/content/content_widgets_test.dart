@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tara_driver_application/core/theme/app_theme.dart';
-import 'package:tara_driver_application/core/theme/tokens.dart';
-import 'package:tara_driver_application/presentation/screens/contact_us/logic.dart';
-import 'package:tara_driver_application/presentation/screens/contact_us/view.dart';
-import 'package:tara_driver_application/presentation/screens/term_condition/state.dart';
-import 'package:tara_driver_application/presentation/screens/term_condition/view.dart';
-import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
+import 'package:pu_taxi_driver/core/theme/app_theme.dart';
+import 'package:pu_taxi_driver/core/theme/tokens.dart';
+import 'package:pu_taxi_driver/presentation/screens/contact_us/logic.dart';
+import 'package:pu_taxi_driver/presentation/screens/contact_us/view.dart';
+import 'package:pu_taxi_driver/presentation/screens/term_condition/state.dart';
+import 'package:pu_taxi_driver/presentation/screens/term_condition/view.dart';
+import 'package:pu_taxi_driver/presentation/widgets/ds/ds.dart';
 
 /// UX-redesign S3 — Terms rows, Contact rows and the shared `TAppBar`
 /// (`03 S14/S15`). Launching the dialer and mail client is device-verified.

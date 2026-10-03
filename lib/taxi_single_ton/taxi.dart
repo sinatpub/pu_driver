@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'package:permission_handler/permission_handler.dart' as permission;
-import 'package:tara_driver_application/core/storage/set_storages.dart';
-import 'package:tara_driver_application/data/datasources/set_status_api.dart';
-import 'package:tara_driver_application/data/models/register_model.dart';
+import 'package:pu_taxi_driver/core/storage/set_storages.dart';
+import 'package:pu_taxi_driver/data/datasources/set_status_api.dart';
+import 'package:pu_taxi_driver/data/models/register_model.dart';
 import 'package:flutter/services.dart';
 import 'package:location/location.dart';
-import 'package:tara_driver_application/core/helper/local_notification_helper.dart';
-import 'package:tara_driver_application/core/utils/pretty_logger.dart';
+import 'package:pu_taxi_driver/core/helper/local_notification_helper.dart';
+import 'package:pu_taxi_driver/core/utils/pretty_logger.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart' as geoLocator;
 import 'package:logger/logger.dart';

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tara_driver_application/core/theme/tokens.dart';
+import 'package:pu_taxi_driver/core/theme/tokens.dart';
 
 /// UX-redesign F2 — the content primitives every screen composes from
 /// (`02 §9`, `04 § A`): an avatar, the two row types, and a money value.

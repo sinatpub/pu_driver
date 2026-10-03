@@ -1,9 +1,9 @@
 // DateFormat comes via easy_localization's re-export, as in
 // `wallet_presentation.dart`.
 import 'package:easy_localization/easy_localization.dart';
-import 'package:tara_driver_application/presentation/screens/history/widgets/history_days.dart';
-import 'package:tara_driver_application/presentation/screens/invite/data/models/referral_model.dart';
-import 'package:tara_driver_application/presentation/screens/wallet/wallet_presentation.dart'
+import 'package:pu_taxi_driver/presentation/screens/history/widgets/history_days.dart';
+import 'package:pu_taxi_driver/presentation/screens/invite/data/models/referral_model.dart';
+import 'package:pu_taxi_driver/presentation/screens/wallet/wallet_presentation.dart'
     show isWholeUnitCurrency;
 
 /// DD-45 — the rules of the invite and rewards screens.

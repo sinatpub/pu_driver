@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:tara_driver_application/core/theme/app_theme.dart';
-import 'package:tara_driver_application/core/theme/tokens.dart';
-import 'package:tara_driver_application/presentation/screens/invite/widgets/invite_code_field.dart';
-import 'package:tara_driver_application/presentation/screens/invite/widgets/invite_widgets.dart';
-import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
+import 'package:pu_taxi_driver/core/theme/app_theme.dart';
+import 'package:pu_taxi_driver/core/theme/tokens.dart';
+import 'package:pu_taxi_driver/presentation/screens/invite/widgets/invite_code_field.dart';
+import 'package:pu_taxi_driver/presentation/screens/invite/widgets/invite_widgets.dart';
+import 'package:pu_taxi_driver/presentation/widgets/ds/ds.dart';
 
 /// The invite screens' pieces (DD-45). The views themselves reach for GetX
 /// and are not pumped; the rules are in `invite_presentation_test.dart`.

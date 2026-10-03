@@ -4,12 +4,12 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:tara_driver_application/core/contracts/booking_status.dart';
-import 'package:tara_driver_application/core/utils/fare_estimate.dart';
-import 'package:tara_driver_application/mock/mock_fixtures.dart';
-import 'package:tara_driver_application/mock/mock_geo.dart';
-import 'package:tara_driver_application/mock/mock_mode.dart';
-import 'package:tara_driver_application/mock/mock_timings.dart';
+import 'package:pu_taxi_driver/core/contracts/booking_status.dart';
+import 'package:pu_taxi_driver/core/utils/fare_estimate.dart';
+import 'package:pu_taxi_driver/mock/mock_fixtures.dart';
+import 'package:pu_taxi_driver/mock/mock_geo.dart';
+import 'package:pu_taxi_driver/mock/mock_mode.dart';
+import 'package:pu_taxi_driver/mock/mock_timings.dart';
 
 /// A request as the mock backend sees it — transport-neutral, so the backend
 /// is testable without Dio.

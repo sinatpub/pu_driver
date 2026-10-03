@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;
-import 'package:tara_driver_application/presentation/widgets/ds/t_motion.dart';
+import 'package:pu_taxi_driver/presentation/widgets/ds/t_motion.dart';
 
 /// UX-redesign P1 — the route transition (`02 §15`): fade + 10 px rise over
 /// [Motion.screen], fade only under reduced motion.

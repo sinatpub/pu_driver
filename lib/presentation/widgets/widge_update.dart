@@ -1,9 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:tara_driver_application/core/theme/tokens.dart';
-import 'package:tara_driver_application/core/utils/app_constant.dart';
-import 'package:tara_driver_application/core/utils/check_platform_device.dart';
-import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
+import 'package:pu_taxi_driver/core/theme/tokens.dart';
+import 'package:pu_taxi_driver/core/utils/app_constant.dart';
+import 'package:pu_taxi_driver/core/utils/check_platform_device.dart';
+import 'package:pu_taxi_driver/presentation/widgets/ds/ds.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// The blocking "you must update" card, shown over the home map when the

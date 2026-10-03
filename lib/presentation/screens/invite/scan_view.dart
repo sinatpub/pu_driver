@@ -2,9 +2,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:tara_driver_application/core/theme/tokens.dart';
-import 'package:tara_driver_application/presentation/screens/invite/invite_presentation.dart';
-import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
+import 'package:pu_taxi_driver/core/theme/tokens.dart';
+import 'package:pu_taxi_driver/presentation/screens/invite/invite_presentation.dart';
+import 'package:pu_taxi_driver/presentation/widgets/ds/ds.dart';
 
 /// Scans an invite QR at sign-up (DD-45) and pops with the invite code it
 /// held, as a `String`. Popping without one means the person backed out.

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tara_driver_application/core/utils/money.dart';
+import 'package:pu_taxi_driver/core/utils/money.dart';
 
 /// N-01 (docs/12). Every monetary field on WalletModel is `dynamic` because
 /// the backend is inconsistent about it. This is the single coercion point,

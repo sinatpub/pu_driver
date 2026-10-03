@@ -1,6 +1,6 @@
-import 'package:tara_driver_application/core/network/api_client.dart';
-import 'package:tara_driver_application/core/network/result.dart';
-import 'package:tara_driver_application/presentation/screens/invite/data/models/referral_model.dart';
+import 'package:pu_taxi_driver/core/network/api_client.dart';
+import 'package:pu_taxi_driver/core/network/result.dart';
+import 'package:pu_taxi_driver/presentation/screens/invite/data/models/referral_model.dart';
 
 /// DD-45, DD-48. **None of these endpoints exists on the real backend yet** — the paths are
 /// the app's proposal and only the mock backend answers them. See

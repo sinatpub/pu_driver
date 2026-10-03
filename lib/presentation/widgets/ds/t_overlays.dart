@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:tara_driver_application/core/theme/tokens.dart';
-import 'package:tara_driver_application/presentation/widgets/ds/ds_icons.dart';
-import 'package:tara_driver_application/presentation/widgets/ds/t_motion.dart';
+import 'package:pu_taxi_driver/core/theme/tokens.dart';
+import 'package:pu_taxi_driver/presentation/widgets/ds/ds_icons.dart';
+import 'package:pu_taxi_driver/presentation/widgets/ds/t_motion.dart';
 
 /// UX-redesign F3 — sheets, toasts and banners (`02 §10`, `§11`).
 

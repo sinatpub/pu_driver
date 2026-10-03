@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tara_driver_application/core/utils/clock_format.dart';
+import 'package:pu_taxi_driver/core/utils/clock_format.dart';
 
 void main() {
   test('minutes and seconds under an hour', () {

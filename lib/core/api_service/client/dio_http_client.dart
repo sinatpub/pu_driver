@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
-import 'package:tara_driver_application/core/utils/app_constant.dart';
-import 'package:tara_driver_application/mock/mock_http_interceptor.dart';
-import 'package:tara_driver_application/mock/mock_mode.dart';
+import 'package:pu_taxi_driver/core/utils/app_constant.dart';
+import 'package:pu_taxi_driver/mock/mock_http_interceptor.dart';
+import 'package:pu_taxi_driver/mock/mock_mode.dart';
 
 class BaseHttpClient {
   static late final Dio dio;

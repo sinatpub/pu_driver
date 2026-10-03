@@ -1,16 +1,16 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tara_driver_application/core/network/api_client.dart';
-import 'package:tara_driver_application/core/network/api_exception.dart';
-import 'package:tara_driver_application/core/network/result.dart';
-import 'package:tara_driver_application/data/models/confirm_booking_model.dart';
-import 'package:tara_driver_application/data/models/complete_driver_model.dart'
+import 'package:pu_taxi_driver/core/network/api_client.dart';
+import 'package:pu_taxi_driver/core/network/api_exception.dart';
+import 'package:pu_taxi_driver/core/network/result.dart';
+import 'package:pu_taxi_driver/data/models/confirm_booking_model.dart';
+import 'package:pu_taxi_driver/data/models/complete_driver_model.dart'
     as complete_model;
-import 'package:tara_driver_application/presentation/screens/booking/data/datasource/trip_datasource.dart';
-import 'package:tara_driver_application/presentation/screens/booking/data/repository/trip_repository.dart';
-import 'package:tara_driver_application/presentation/screens/booking/domain/trip_state_machine.dart';
-import 'package:tara_driver_application/presentation/screens/booking/logic.dart';
-import 'package:tara_driver_application/presentation/screens/booking/state.dart';
+import 'package:pu_taxi_driver/presentation/screens/booking/data/datasource/trip_datasource.dart';
+import 'package:pu_taxi_driver/presentation/screens/booking/data/repository/trip_repository.dart';
+import 'package:pu_taxi_driver/presentation/screens/booking/domain/trip_state_machine.dart';
+import 'package:pu_taxi_driver/presentation/screens/booking/logic.dart';
+import 'package:pu_taxi_driver/presentation/screens/booking/state.dart';
 
 const _apiError = ApiException(type: ApiErrorType.unknown, message: 'boom');
 

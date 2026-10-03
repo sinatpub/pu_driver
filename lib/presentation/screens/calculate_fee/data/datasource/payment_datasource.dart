@@ -1,5 +1,5 @@
-import 'package:tara_driver_application/core/network/api_client.dart';
-import 'package:tara_driver_application/core/network/result.dart';
+import 'package:pu_taxi_driver/core/network/api_client.dart';
+import 'package:pu_taxi_driver/core/network/result.dart';
 
 class PaymentDatasource {
   PaymentDatasource({ApiClient? apiClient})

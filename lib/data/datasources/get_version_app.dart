@@ -1,5 +1,5 @@
-import 'package:tara_driver_application/core/api_service/base_api_service.dart';
-import 'package:tara_driver_application/data/models/version_app_model.dart';
+import 'package:pu_taxi_driver/core/api_service/base_api_service.dart';
+import 'package:pu_taxi_driver/data/models/version_app_model.dart';
 
 class GetVersionAppApi {
   Future<VersionAppModel> getDriverWalletApi() async {

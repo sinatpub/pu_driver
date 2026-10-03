@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
-import 'package:tara_driver_application/core/api_service/client/dio_http_client.dart';
-import 'package:tara_driver_application/services/session_service.dart';
+import 'package:pu_taxi_driver/core/api_service/client/dio_http_client.dart';
+import 'package:pu_taxi_driver/services/session_service.dart';
 
 import 'api_exception.dart';
 import 'result.dart';

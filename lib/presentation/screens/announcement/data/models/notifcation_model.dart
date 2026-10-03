@@ -3,7 +3,7 @@
 //     final notificationMode = notificationModeFromJson(jsonString);
 
 import 'dart:convert';
-import 'package:tara_driver_application/core/utils/json_list.dart';
+import 'package:pu_taxi_driver/core/utils/json_list.dart';
 
 NotificationModel notificationModeFromJson(String str) =>
     NotificationModel.fromJson(json.decode(str));

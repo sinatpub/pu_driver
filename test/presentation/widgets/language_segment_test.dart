@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:tara_driver_application/core/theme/app_theme.dart';
-import 'package:tara_driver_application/presentation/widgets/language_segment.dart';
+import 'package:pu_taxi_driver/core/theme/app_theme.dart';
+import 'package:pu_taxi_driver/presentation/widgets/language_segment.dart';
 
 class _Page extends StatelessWidget {
   const _Page();

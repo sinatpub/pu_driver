@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tara_driver_application/presentation/screens/booking/domain/trip_state_machine.dart';
+import 'package:pu_taxi_driver/presentation/screens/booking/domain/trip_state_machine.dart';
 
 void main() {
   group('TripStateMachine', () {

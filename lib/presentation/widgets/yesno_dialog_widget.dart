@@ -1,6 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
+import 'package:pu_taxi_driver/presentation/widgets/ds/ds.dart';
 
 /// Confirm-or-not dialog. Used by the driver's cancel-request flow and by
 /// logout (`app/alert_widget.dart`).

@@ -8,14 +8,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:tara_driver_application/app/funtion_convert.dart';
-import 'package:tara_driver_application/core/utils/fare_estimate.dart';
-import 'package:tara_driver_application/presentation/screens/booking/domain/trip_state_machine.dart';
-import 'package:tara_driver_application/presentation/screens/booking/state.dart';
-import 'package:tara_driver_application/presentation/screens/booking/widgets/ride_request_bottom_pop_widget.dart';
-import 'package:tara_driver_application/presentation/screens/booking/widgets/trip_header.dart';
-import 'package:tara_driver_application/presentation/screens/home/state.dart';
-import 'package:tara_driver_application/services/location_service.dart';
+import 'package:pu_taxi_driver/app/funtion_convert.dart';
+import 'package:pu_taxi_driver/core/utils/fare_estimate.dart';
+import 'package:pu_taxi_driver/presentation/screens/booking/domain/trip_state_machine.dart';
+import 'package:pu_taxi_driver/presentation/screens/booking/state.dart';
+import 'package:pu_taxi_driver/presentation/screens/booking/widgets/ride_request_bottom_pop_widget.dart';
+import 'package:pu_taxi_driver/presentation/screens/booking/widgets/trip_header.dart';
+import 'package:pu_taxi_driver/presentation/screens/home/state.dart';
+import 'package:pu_taxi_driver/services/location_service.dart';
 
 import '../helpers/localized_host.dart';
 

@@ -19,11 +19,11 @@ library;
 
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:tara_driver_application/mock/mock_backend.dart';
-import 'package:tara_driver_application/mock/mock_location_source.dart';
-import 'package:tara_driver_application/mock/mock_route_provider.dart';
-import 'package:tara_driver_application/services/location_service.dart';
-import 'package:tara_driver_application/services/route_service.dart';
+import 'package:pu_taxi_driver/mock/mock_backend.dart';
+import 'package:pu_taxi_driver/mock/mock_location_source.dart';
+import 'package:pu_taxi_driver/mock/mock_route_provider.dart';
+import 'package:pu_taxi_driver/services/location_service.dart';
+import 'package:pu_taxi_driver/services/route_service.dart';
 
 /// Which backend behaviour to simulate. Driver-side equivalents of the
 /// passenger-flow scenarios in the QA brief — see `docs/qa/MOCK_MODE.md`.

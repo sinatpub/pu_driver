@@ -1,13 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tara_driver_application/core/network/api_client.dart';
-import 'package:tara_driver_application/core/network/api_exception.dart';
-import 'package:tara_driver_application/core/network/result.dart';
-import 'package:tara_driver_application/presentation/screens/wallet/data/datasource/wallet_datasource.dart';
-import 'package:tara_driver_application/presentation/screens/wallet/data/models/wallet_model.dart';
-import 'package:tara_driver_application/presentation/screens/wallet/data/repository/wallet_repository.dart';
-import 'package:tara_driver_application/presentation/screens/wallet/logic.dart';
-import 'package:tara_driver_application/presentation/screens/wallet/state.dart';
+import 'package:pu_taxi_driver/core/network/api_client.dart';
+import 'package:pu_taxi_driver/core/network/api_exception.dart';
+import 'package:pu_taxi_driver/core/network/result.dart';
+import 'package:pu_taxi_driver/presentation/screens/wallet/data/datasource/wallet_datasource.dart';
+import 'package:pu_taxi_driver/presentation/screens/wallet/data/models/wallet_model.dart';
+import 'package:pu_taxi_driver/presentation/screens/wallet/data/repository/wallet_repository.dart';
+import 'package:pu_taxi_driver/presentation/screens/wallet/logic.dart';
+import 'package:pu_taxi_driver/presentation/screens/wallet/state.dart';
 
 /// The silent refresh used after a reward transfer (DD-48): the driver is
 /// looking at the balance, so it must not blink away or turn into an error.
