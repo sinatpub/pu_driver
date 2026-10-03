@@ -263,9 +263,13 @@ final Map<String, (Widget Function(), bool)> _surfaces =
               amount: '៛1,285,400',
               note: 'Platform commission: 10% of each trip',
             ),
-            const WalletDebtCard(
+            WalletDebtCard(
               title: 'You owe ៛5,000',
               message: 'Unpaid commission from cash trips. Top up to clear it.',
+              hint: 'You have ៛5,160 in invite rewards. Transfer it to pay '
+                  'this.',
+              actionLabel: 'Transfer to balance',
+              onAction: () {},
             ),
             const TransactionRow(
               title: 'Referral reward',
@@ -347,25 +351,57 @@ final Map<String, (Widget Function(), bool)> _surfaces =
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            InviteEarnedCard(
-              label: 'Invite rewards earned',
+            RewardBalanceCard(
+              label: 'Invite rewards',
               amount: '៛1,285,400',
-              caption: 'Already in your balance · 128 invited',
+              caption: 'Not in your balance yet · 128 invited',
+              transferLabel: 'Transfer to balance',
+              onTransfer: () {},
               onTap: () {},
+              figures: const <(String, String)>[
+                ('Total earned', '៛1,285,400'),
+                ('Transferred to balance', '៛1,100,000'),
+              ],
             ),
             const RewardSplitCard(
               driversLabel: 'From drivers',
               driversAmount: '៛1,100,000',
               passengersLabel: 'From passengers',
               passengersAmount: '៛185,400',
-              note: 'Rewards are paid into your wallet balance.',
+            ),
+            TransferAmountBody(
+              availableText: 'Reward balance: ៛1,285,400',
+              amountLabel: 'Amount',
+              symbol: '៛',
+              allLabel: 'All',
+              allValue: '1285400',
+              wholeUnits: true,
+              parse: (String text) => num.tryParse(text),
+              errorFor: (_) => null,
+              linesFor: (_) => const <String>[
+                '៛5,000 pays what you owe. ៛160 goes to your balance.',
+                'Balance after: ៛1,285,400',
+                'Rewards left: ៛1,280,240',
+              ],
+              confirmLabelFor: (_) => 'Transfer ៛1,285,400',
+              warning: 'This cannot be moved back.',
+              cancelLabel: 'Cancel',
+              onConfirm: (_) {},
+              onCancel: () {},
             ),
             const InviteDayHeader(label: 'Yesterday'),
             const RewardTile(
               name: 'Sokha Vann Chanthou Rithy',
               caption: 'Top-up ៛1,000,000 · 09:14',
               amount: '+៛10,000',
-              fromDriver: true,
+              icon: DsIcons.car,
+            ),
+            const RewardTile(
+              name: 'Transferred to balance',
+              caption: '12:00',
+              amount: '−៛1,100,000',
+              icon: DsIcons.wallet,
+              moneyIn: false,
             ),
             const InviteeTile(
               name: 'Chanthou Ly Sreymom',

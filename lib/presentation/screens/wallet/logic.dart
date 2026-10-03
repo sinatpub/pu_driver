@@ -16,15 +16,21 @@ class WalletLogic extends GetxController {
   final WalletRepository _repository;
   final WalletState state = WalletState();
 
-  Future<void> fetch() async {
-    state.status.value = WalletStatus.loading;
+  /// [silent] refreshes a wallet that is already on screen without swapping
+  /// it for the skeleton, and keeps it if the refresh fails — used after a
+  /// reward transfer (DD-48), where the driver is looking at the balance.
+  Future<void> fetch({bool silent = false}) async {
+    final bool keep = silent && state.status.value == WalletStatus.loaded;
+    if (!keep) state.status.value = WalletStatus.loading;
     final result = await _repository.getWallet();
     result.when(
       ok: (data) {
         state.wallet.value = data;
         state.status.value = WalletStatus.loaded;
       },
-      err: (_) => state.status.value = WalletStatus.error,
+      err: (_) {
+        if (!keep) state.status.value = WalletStatus.error;
+      },
     );
   }
 

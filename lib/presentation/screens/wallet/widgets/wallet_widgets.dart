@@ -81,11 +81,24 @@ class WalletBalanceCard extends StatelessWidget {
 
 /// Shown only when the driver owes the platform: how much, and why.
 class WalletDebtCard extends StatelessWidget {
-  const WalletDebtCard({super.key, required this.title, required this.message});
+  const WalletDebtCard({
+    super.key,
+    required this.title,
+    required this.message,
+    this.hint,
+    this.actionLabel,
+    this.onAction,
+  });
 
   /// "You owe ៛5,000".
   final String title;
   final String message;
+
+  /// DD-48: "You have ៛5,160 in invite rewards. Transfer it to pay this." —
+  /// shown with [actionLabel] when the driver has rewards to move.
+  final String? hint;
+  final String? actionLabel;
+  final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
@@ -120,6 +133,25 @@ class WalletDebtCard extends StatelessWidget {
                   message,
                   style: context.texts.caption.copyWith(color: c.warning),
                 ),
+                if (hint != null && hint!.isNotEmpty) ...<Widget>[
+                  const SizedBox(height: Insets.s4),
+                  Text(
+                    hint!,
+                    style: context.texts.caption.copyWith(
+                      color: c.warning,
+                      fontFeatures: _tabular,
+                    ),
+                  ),
+                ],
+                if (actionLabel != null && onAction != null) ...<Widget>[
+                  const SizedBox(height: Insets.s8),
+                  TButton(
+                    label: actionLabel!,
+                    variant: TButtonVariant.secondary,
+                    size: TButtonSize.small,
+                    onPressed: onAction,
+                  ),
+                ],
               ],
             ),
           ),
@@ -165,7 +197,9 @@ class TransactionRow extends StatelessWidget {
   String get _icon => switch (kind) {
         WalletTxKind.tripEarning => DsIcons.car,
         WalletTxKind.commission => DsIcons.doc,
-        WalletTxKind.referralReward => DsIcons.gift,
+        WalletTxKind.referralReward ||
+        WalletTxKind.rewardTransfer =>
+          DsIcons.gift,
         _ => DsIcons.wallet,
       };
 

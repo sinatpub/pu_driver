@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:get/get.dart' hide Trans;
 import 'package:tara_driver_application/presentation/screens/invite/data/models/referral_model.dart';
 import 'package:tara_driver_application/presentation/screens/invite/data/repository/referral_repository.dart';
@@ -32,6 +34,37 @@ class InviteLogic extends GetxController {
     );
   }
 
+  /// Moves [amount] of the reward balance into the wallet balance (DD-48,
+  /// DD-49).
+  ///
+  /// Returns what the server moved, or null when it failed or one is already
+  /// out. The referral is fetched again on success, so the reward balance
+  /// and the history on screen are the server's. One request id serves the
+  /// attempt, so a retry the network layer makes is not a second transfer.
+  Future<num?> transferRewards(num amount) async {
+    if (state.transferring.value) return null;
+    state.transferring.value = true;
+    try {
+      final result = await _repository.transferRewards(
+        amount: amount,
+        requestId: _newRequestId(),
+      );
+      final num? moved = result.when(
+        ok: (RewardTransferResult r) => r.transferred ?? amount,
+        err: (_) => null,
+      );
+      if (moved != null) await fetch();
+      return moved;
+    } finally {
+      state.transferring.value = false;
+    }
+  }
+
+  static final Random _random = Random();
+
+  static String _newRequestId() =>
+      '${DateTime.now().microsecondsSinceEpoch}-${_random.nextInt(1 << 32)}';
+
   void selectPeopleFilter(InviteeRole? role) => state.peopleFilter.value = role;
 
   List<Invitee> get visibleInvitees => inviteesOf(
@@ -39,7 +72,9 @@ class InviteLogic extends GetxController {
         state.peopleFilter.value,
       );
 
-  List<ReferralReward> get rewards => sortedRewards(
+  /// Rewards and transfers, newest first.
+  List<RewardEntry> get history => rewardEntries(
         state.referral.value?.rewards ?? const <ReferralReward>[],
+        state.referral.value?.transfers ?? const <RewardTransfer>[],
       );
 }

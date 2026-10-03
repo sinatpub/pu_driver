@@ -296,7 +296,13 @@ class MockData {
   /// The invite screen's payload: the code, the two reward rates, the people
   /// who joined with it and what each has earned the driver. Every amount is
   /// derived from a rate, so the totals on screen add up.
-  static Map<String, dynamic> referral({required DateTime now}) {
+  ///
+  /// [transfers] are the moves into the wallet balance so far (DD-48);
+  /// `reward_balance` is what was earned less what was moved.
+  static Map<String, dynamic> referral({
+    required DateTime now,
+    List<Map<String, dynamic>> transfers = const [],
+  }) {
     const driverRate = 1; // % of an invited driver's top-up
     const passengerRate =
         10; // % of the commission on an invited passenger's trip
@@ -375,6 +381,10 @@ class MockData {
         invitee(5, 'passenger', 1),
       ],
       'rewards': rewards,
+      'transfers': transfers,
+      'reward_balance':
+          rewards.fold<int>(0, (sum, r) => sum + (r['amount'] as int)) -
+              transfers.fold<int>(0, (sum, t) => sum + (t['amount'] as int)),
     };
   }
 

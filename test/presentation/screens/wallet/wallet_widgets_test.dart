@@ -77,6 +77,32 @@ void main() {
       final Text title = t.widget<Text>(find.text('You owe ៛5,000'));
       expect(title.style!.color, context.colors.warning);
       expect(title.style!.color, isNot(context.colors.danger));
+      // No rewards to move: no hint, no button.
+      expect(find.byType(TButton), findsNothing);
+    });
+
+    testWidgets('with rewards to move, offers the transfer (DD-48)',
+        (WidgetTester t) async {
+      int taps = 0;
+      await t.pumpWidget(
+        _host(
+          WalletDebtCard(
+            title: 'You owe ៛5,000',
+            message: 'Unpaid commission from cash trips. Top up to clear it.',
+            hint: 'You have ៛5,160 in invite rewards. Transfer it to pay this.',
+            actionLabel: 'Transfer to balance',
+            onAction: () => taps++,
+          ),
+        ),
+      );
+
+      expect(
+        find.text(
+            'You have ៛5,160 in invite rewards. Transfer it to pay this.'),
+        findsOneWidget,
+      );
+      await t.tap(find.text('Transfer to balance'));
+      expect(taps, 1);
     });
   });
 

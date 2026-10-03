@@ -101,31 +101,189 @@ void main() {
     expect(taps, 1);
   });
 
-  testWidgets('InviteEarnedCard: the amount in green, and it opens on tap',
-      (WidgetTester t) async {
-    int taps = 0;
-    await t.pumpWidget(
-      _host(
-        InviteEarnedCard(
-          label: 'Invite rewards earned',
+  group('RewardBalanceCard (DD-48)', () {
+    Widget card({
+      VoidCallback? onTransfer,
+      VoidCallback? onTap,
+      bool transferring = false,
+      List<(String, String)> figures = const <(String, String)>[],
+    }) =>
+        RewardBalanceCard(
+          label: 'Invite rewards',
           amount: '៛5,160',
-          caption: 'Already in your balance · 5 invited',
-          onTap: () => taps++,
-        ),
-      ),
-    );
-    final BuildContext context = t.element(find.byType(InviteEarnedCard));
+          caption: 'Not in your balance yet · 5 invited',
+          transferLabel: 'Transfer to balance',
+          onTransfer: onTransfer,
+          onTap: onTap,
+          transferring: transferring,
+          figures: figures,
+        );
 
-    expect(t.widget<Text>(find.text('៛5,160')).style!.color,
-        context.colors.success);
-    // Says the money is not on top of the balance.
-    expect(find.text('Already in your balance · 5 invited'), findsOneWidget);
-    await t.tap(find.text('៛5,160'));
-    expect(taps, 1);
+    testWidgets('the amount in green, and it says the money is not usable yet',
+        (WidgetTester t) async {
+      await t.pumpWidget(_host(card(onTransfer: () {})));
+      final BuildContext context = t.element(find.byType(RewardBalanceCard));
+
+      expect(t.widget<Text>(find.text('៛5,160')).style!.color,
+          context.colors.success);
+      expect(find.text('Not in your balance yet · 5 invited'), findsOneWidget);
+    });
+
+    testWidgets('the button transfers; the rest of the card opens the screen',
+        (WidgetTester t) async {
+      int transfers = 0;
+      int opens = 0;
+      await t.pumpWidget(
+          _host(card(onTransfer: () => transfers++, onTap: () => opens++)));
+
+      await t.tap(find.text('Transfer to balance'));
+      expect((transfers, opens), (1, 0));
+      await t.tap(find.text('៛5,160'));
+      expect((transfers, opens), (1, 1));
+    });
+
+    testWidgets('nothing to transfer: no button', (WidgetTester t) async {
+      await t.pumpWidget(_host(card(onTransfer: null)));
+
+      expect(find.text('Transfer to balance'), findsNothing);
+    });
+
+    testWidgets('a transfer in flight cannot be started again',
+        (WidgetTester t) async {
+      int transfers = 0;
+      await t.pumpWidget(
+          _host(card(onTransfer: () => transfers++, transferring: true)));
+
+      await t.tap(find.byType(TButton), warnIfMissed: false);
+      expect(transfers, 0);
+    });
+
+    testWidgets('figures under the button on the rewards screen',
+        (WidgetTester t) async {
+      await t.pumpWidget(_host(card(figures: const <(String, String)>[
+        ('Total earned', '៛8,660'),
+        ('Transferred to balance', '៛3,500'),
+      ])));
+
+      expect(find.text('៛8,660'), findsOneWidget);
+      expect(find.text('Transferred to balance'), findsOneWidget);
+    });
   });
 
-  testWidgets('RewardSplitCard shows both shares and where rewards are paid',
-      (WidgetTester t) async {
+  group('TransferAmountBody (DD-49)', () {
+    Widget sheet({
+      ValueChanged<num>? onConfirm,
+      VoidCallback? onCancel,
+      num available = 5160,
+    }) =>
+        TransferAmountBody(
+          availableText: 'Reward balance: ៛5,160',
+          amountLabel: 'Amount',
+          symbol: '៛',
+          allLabel: 'All',
+          allValue: '$available',
+          wholeUnits: true,
+          parse: (String text) {
+            final int? v = int.tryParse(text);
+            return v == null || v <= 0 ? null : v;
+          },
+          errorFor: (num amount) =>
+              amount > available ? 'You have ៛5,160 to transfer.' : null,
+          linesFor: (num amount) => <String>[
+            'Balance after: ${85400 + amount}',
+            'Rewards left: ${available - amount}',
+          ],
+          confirmLabelFor: (num? amount) =>
+              amount == null ? 'Transfer' : 'Transfer $amount',
+          warning: 'This cannot be moved back.',
+          cancelLabel: 'Cancel',
+          onConfirm: onConfirm ?? (_) {},
+          onCancel: onCancel ?? () {},
+        );
+
+    TButton confirmButton(WidgetTester t) => t
+        .widgetList<TButton>(find.byType(TButton))
+        .firstWhere((TButton b) => b.label.startsWith('Transfer'));
+
+    testWidgets("starts empty with the button off: the amount is the driver's",
+        (WidgetTester t) async {
+      num? confirmed;
+      await t.pumpWidget(_host(sheet(onConfirm: (num a) => confirmed = a)));
+
+      expect(t.widget<TextField>(find.byType(TextField)).controller!.text, '');
+      expect(confirmButton(t).onPressed, isNull);
+      expect(find.text('This cannot be moved back.'), findsOneWidget);
+      await t.tap(find.text('Transfer'), warnIfMissed: false);
+      expect(confirmed, isNull);
+    });
+
+    testWidgets('a typed amount shows where it goes and confirms that amount',
+        (WidgetTester t) async {
+      num? confirmed;
+      await t.pumpWidget(_host(sheet(onConfirm: (num a) => confirmed = a)));
+
+      await t.enterText(find.byType(TextField), '2000');
+      await t.pump();
+
+      expect(find.text('Balance after: 87400'), findsOneWidget);
+      expect(find.text('Rewards left: 3160'), findsOneWidget);
+      await t.tap(find.text('Transfer 2000'));
+      expect(confirmed, 2000);
+    });
+
+    testWidgets('"All" fills in the whole reward balance',
+        (WidgetTester t) async {
+      num? confirmed;
+      await t.pumpWidget(_host(sheet(onConfirm: (num a) => confirmed = a)));
+
+      await t.tap(find.text('All'));
+      await t.pump();
+
+      expect(
+          t.widget<TextField>(find.byType(TextField)).controller!.text, '5160');
+      expect(find.text('Rewards left: 0'), findsOneWidget);
+      await t.tap(find.text('Transfer 5160'));
+      expect(confirmed, 5160);
+    });
+
+    testWidgets('more than the balance: an error, and the button stays off',
+        (WidgetTester t) async {
+      num? confirmed;
+      await t.pumpWidget(_host(sheet(onConfirm: (num a) => confirmed = a)));
+
+      await t.enterText(find.byType(TextField), '9000');
+      await t.pump();
+
+      expect(find.text('You have ៛5,160 to transfer.'), findsOneWidget);
+      expect(find.textContaining('Balance after'), findsNothing);
+      expect(confirmButton(t).onPressed, isNull);
+      await t.tap(find.text('Transfer'), warnIfMissed: false);
+      expect(confirmed, isNull);
+    });
+
+    testWidgets('riel takes digits only', (WidgetTester t) async {
+      await t.pumpWidget(_host(sheet()));
+
+      await t.enterText(find.byType(TextField), '2,0a0.5');
+      expect(
+          t.widget<TextField>(find.byType(TextField)).controller!.text, '2005');
+    });
+
+    testWidgets('cancel leaves without an amount', (WidgetTester t) async {
+      int cancels = 0;
+      num? confirmed;
+      await t.pumpWidget(_host(sheet(
+        onConfirm: (num a) => confirmed = a,
+        onCancel: () => cancels++,
+      )));
+
+      await t.tap(find.text('Cancel'));
+      expect(cancels, 1);
+      expect(confirmed, isNull);
+    });
+  });
+
+  testWidgets('RewardSplitCard shows both shares', (WidgetTester t) async {
     await t.pumpWidget(
       _host(
         const RewardSplitCard(
@@ -133,15 +291,12 @@ void main() {
           driversAmount: '៛4,500',
           passengersLabel: 'From passengers',
           passengersAmount: '៛660',
-          note: 'Rewards are paid into your wallet balance.',
         ),
       ),
     );
 
     expect(find.text('៛4,500'), findsOneWidget);
     expect(find.text('៛660'), findsOneWidget);
-    expect(find.text('Rewards are paid into your wallet balance.'),
-        findsOneWidget);
   });
 
   testWidgets('RewardTile: an em dash for a missing name',
@@ -152,13 +307,32 @@ void main() {
           name: null,
           caption: 'Trip · 08:14',
           amount: '+៛120',
-          fromDriver: false,
+          icon: DsIcons.users,
         ),
       ),
     );
 
     expect(find.text('—'), findsOneWidget);
     expect(find.text('+៛120'), findsOneWidget);
+  });
+
+  testWidgets('RewardTile: a transfer out is neutral, not green',
+      (WidgetTester t) async {
+    await t.pumpWidget(
+      _host(
+        const RewardTile(
+          name: 'Transferred to balance',
+          caption: '12:00',
+          amount: '−៛5,160',
+          icon: DsIcons.wallet,
+          moneyIn: false,
+        ),
+      ),
+    );
+    final BuildContext context = t.element(find.byType(RewardTile));
+
+    expect(t.widget<Text>(find.text('−៛5,160')).style!.color,
+        context.colors.textPrimary);
   });
 
   testWidgets('InviteeTile greys out "no rewards yet"', (WidgetTester t) async {

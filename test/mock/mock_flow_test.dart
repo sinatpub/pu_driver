@@ -491,30 +491,98 @@ void main() {
       }
     });
 
-    test('rewards are paid into the wallet (DD-46)', () async {
-      Future<Map<String, dynamic>> data(String path) async =>
-          ((await backend.handle(
-                  MockRequest(method: 'GET', path: path, authenticated: true)))
-              .data as Map)['data'] as Map<String, dynamic>;
+    Future<Map<String, dynamic>> data(String path) async =>
+        ((await backend.handle(
+                MockRequest(method: 'GET', path: path, authenticated: true)))
+            .data as Map)['data'] as Map<String, dynamic>;
 
-      final rewards = ((await data('/taxi-driver/referral'))['rewards'] as List)
-          .cast<Map<String, dynamic>>();
+    Future<MockResponse> transfer(String requestId, Object? amount) =>
+        backend.handle(MockRequest(
+            method: 'POST',
+            path: '/taxi-driver/referral/transfer',
+            body: {'request_id': requestId, 'amount': amount},
+            authenticated: true));
+
+    test('rewards are a pot of their own until transferred (DD-48)', () async {
+      final referral = await data('/taxi-driver/referral');
       final wallet = await data('/taxi-driver/wallet');
-      final transactions =
-          (wallet['transactions'] as List).cast<Map<String, dynamic>>();
-      final paid = transactions
-          .where((tx) => tx['type_name'] == 'Referral Reward')
-          .toList();
+      final earned = (referral['rewards'] as List)
+          .fold<int>(0, (sum, r) => sum + ((r as Map)['amount'] as int));
 
-      // One wallet transaction per reward, for the same amount and time.
-      expect(paid.map((tx) => tx['amount']), rewards.map((r) => r['amount']));
-      expect(paid.map((tx) => tx['created_at']),
-          rewards.map((r) => r['created_at']));
-      // And the balance is the seeded 85,400 riel plus every reward.
+      expect(referral['reward_balance'], earned);
+      expect(referral['transfers'], isEmpty);
+      // Not in the wallet: the seeded balance, and no reward rows.
+      expect(wallet['balance'], 85400);
       expect(
-        wallet['balance'],
-        85400 + rewards.fold<int>(0, (sum, r) => sum + (r['amount'] as int)),
+        (wallet['transactions'] as List)
+            .where((tx) => '${(tx as Map)['type_name']}'.contains('Reward')),
+        isEmpty,
       );
+    });
+
+    test('a transfer moves the typed amount and leaves the rest (DD-49)',
+        () async {
+      final before = await data('/taxi-driver/referral');
+      final available = before['reward_balance'] as int;
+
+      final response = await transfer('req-1', 2000);
+      expect(response.statusCode, 200);
+      expect(((response.data as Map)['data'] as Map)['transferred'], 2000);
+
+      final referral = await data('/taxi-driver/referral');
+      final wallet = await data('/taxi-driver/wallet');
+      expect(referral['reward_balance'], available - 2000);
+      expect((referral['transfers'] as List).single['amount'], 2000);
+      expect(wallet['balance'], 85400 + 2000);
+      final last = (wallet['transactions'] as List).last as Map;
+      expect(last['type_name'], 'Reward Transfer');
+      expect(last['amount'], 2000);
+    });
+
+    test('the whole balance can be moved, in one go or in parts', () async {
+      final available =
+          (await data('/taxi-driver/referral'))['reward_balance'] as int;
+
+      await transfer('req-1', 2000);
+      final rest = await transfer('req-2', available - 2000);
+
+      expect(rest.statusCode, 200);
+      expect((await data('/taxi-driver/referral'))['reward_balance'], 0);
+      expect((await data('/taxi-driver/wallet'))['balance'], 85400 + available);
+    });
+
+    test('the same request sent twice moves the money once', () async {
+      await transfer('req-1', 2000);
+      final again = await transfer('req-1', 2000);
+
+      expect(again.statusCode, 200);
+      expect(((again.data as Map)['data'] as Map)['transferred'], 2000);
+      expect((await data('/taxi-driver/wallet'))['balance'], 85400 + 2000);
+      expect(
+        ((await data('/taxi-driver/referral'))['transfers'] as List).length,
+        1,
+      );
+    });
+
+    test('an amount that cannot be moved is refused, and nothing moves',
+        () async {
+      final available =
+          (await data('/taxi-driver/referral'))['reward_balance'] as int;
+
+      for (final Object? bad in <Object?>[
+        available + 1,
+        0,
+        -100,
+        12.5,
+        null,
+        'abc'
+      ]) {
+        final response = await transfer('req-$bad', bad);
+        expect(response.isSuccess, isFalse, reason: 'amount $bad');
+      }
+      expect((await data('/taxi-driver/wallet'))['balance'], 85400);
+      expect(
+          (await data('/taxi-driver/referral'))['reward_balance'], available);
     });
 
     test('check-code knows its inviters and nobody else', () async {

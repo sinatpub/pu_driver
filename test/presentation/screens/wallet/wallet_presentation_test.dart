@@ -188,6 +188,10 @@ void main() {
       expect(WalletTxKind.of('Commission'), WalletTxKind.commission);
       expect(WalletTxKind.of('Withdraw'), WalletTxKind.withdraw);
       expect(WalletTxKind.of('Referral Reward'), WalletTxKind.referralReward);
+      // DD-48: "Reward Transfer" holds both words; it is the transfer.
+      expect(WalletTxKind.of('Reward Transfer'), WalletTxKind.rewardTransfer);
+      expect(walletTxDirection(WalletTxKind.rewardTransfer, 5160),
+          WalletTxDirection.moneyIn);
     });
 
     test('a name it does not know is unknown, with no label of its own', () {

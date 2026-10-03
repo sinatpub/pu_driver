@@ -82,22 +82,141 @@ void main() {
     });
   });
 
-  group('rewards list', () {
-    test('newest first, with an undated one last', () {
+  const List<RewardTransfer> transfers = <RewardTransfer>[
+    RewardTransfer(id: 1, amount: 2500, createdAt: '2026-09-25 10:00:00'),
+    RewardTransfer(id: 2, amount: 1000, createdAt: '2026-09-30 12:00:00'),
+  ];
+
+  group('reward balance (DD-48)', () {
+    test('what was moved to the wallet', () {
+      expect(totalTransferred(transfers), 3500);
+      expect(totalTransferred(const <RewardTransfer>[]), 0);
+    });
+
+    test('the server\'s figure when it sends one', () {
       expect(
-        sortedRewards(rewards).map((ReferralReward r) => r.id),
-        <int>[2, 5, 1, 3, 4],
+        rewardBalance(const ReferralModel(
+            rewardBalance: 42, rewards: rewards, transfers: transfers)),
+        42,
       );
     });
 
-    test('a header before the first reward of each day', () {
-      final List<RewardRow> rows = rewardRows(sortedRewards(rewards));
+    test('else earned less moved, and never below zero', () {
+      expect(
+        rewardBalance(
+            const ReferralModel(rewards: rewards, transfers: transfers)),
+        210,
+      );
+      expect(
+        rewardBalance(const ReferralModel(transfers: transfers)),
+        0,
+      );
+      expect(rewardBalance(const ReferralModel(rewardBalance: -5)), 0);
+      expect(rewardBalance(null), 0);
+    });
+  });
+
+  group('transferPreview (DD-48)', () {
+    test('no debt: all of it reaches the balance', () {
+      final TransferPreview p =
+          transferPreview(amount: 5160, balance: 85400, debt: null);
+      expect(p.toDebt, 0);
+      expect(p.toBalance, 5160);
+      expect(p.debtLeft, 0);
+      expect(p.balanceAfter, 90560);
+    });
+
+    test('a debt smaller than the transfer is paid first', () {
+      final TransferPreview p =
+          transferPreview(amount: 5160, balance: 0, debt: 5000);
+      expect(p.toDebt, 5000);
+      expect(p.toBalance, 160);
+      expect(p.debtLeft, 0);
+      expect(p.balanceAfter, 160);
+    });
+
+    test('a debt larger than the transfer takes all of it', () {
+      final TransferPreview p =
+          transferPreview(amount: 5160, balance: 0, debt: 8000);
+      expect(p.toDebt, 5160);
+      expect(p.toBalance, 0);
+      expect(p.debtLeft, 2840);
+      expect(p.balanceAfter, 0);
+    });
+
+    test('an unknown balance stays unknown', () {
+      expect(
+        transferPreview(amount: 5160, balance: null, debt: null).balanceAfter,
+        isNull,
+      );
+    });
+  });
+
+  group('the typed transfer amount (DD-49)', () {
+    test('riel: whole numbers above zero only', () {
+      expect(parseTransferAmount('2000', 'KHR'), 2000);
+      expect(parseTransferAmount(' 2,000 ', 'KHR'), 2000);
+      expect(parseTransferAmount('', 'KHR'), isNull);
+      expect(parseTransferAmount('0', 'KHR'), isNull);
+      expect(parseTransferAmount('-5', 'KHR'), isNull);
+      expect(parseTransferAmount('12.5', 'KHR'), isNull);
+      expect(parseTransferAmount('abc', 'KHR'), isNull);
+    });
+
+    test('other currencies: up to two decimals', () {
+      expect(parseTransferAmount('12.5', 'USD'), 12.5);
+      expect(parseTransferAmount('12.50', 'USD'), 12.5);
+      expect(parseTransferAmount('0.01', 'USD'), 0.01);
+      expect(parseTransferAmount('12.505', 'USD'), isNull);
+    });
+
+    test('"All" fills in text that parses back to the same amount', () {
+      expect(transferAmountText(5160, 'KHR'), '5160');
+      expect(transferAmountText(12.5, 'USD'), '12.50');
+      expect(
+        parseTransferAmount(transferAmountText(5160, 'KHR'), 'KHR'),
+        5160,
+      );
+    });
+
+    test('nothing typed waits; more than the balance is refused', () {
+      expect(checkTransferAmount(null, 5160), TransferAmountCheck.empty);
+      expect(checkTransferAmount(0, 5160), TransferAmountCheck.empty);
+      expect(checkTransferAmount(1, 5160), TransferAmountCheck.ok);
+      expect(checkTransferAmount(5160, 5160), TransferAmountCheck.ok);
+      expect(checkTransferAmount(5161, 5160), TransferAmountCheck.tooMuch);
+    });
+
+    test('a part transfer adds only that part to the balance', () {
+      final TransferPreview p =
+          transferPreview(amount: 2000, balance: 85400, debt: null);
+      expect(p.toBalance, 2000);
+      expect(p.balanceAfter, 87400);
+    });
+  });
+
+  group('reward history', () {
+    String label(RewardEntry e) => switch (e) {
+          EarnedEntry(:final ReferralReward reward) => 'r${reward.id}',
+          TransferEntry(:final RewardTransfer transfer) => 't${transfer.id}',
+        };
+
+    test('rewards and transfers together, newest first, undated last', () {
+      expect(
+        rewardEntries(rewards, transfers).map(label),
+        <String>['r2', 'r5', 't2', 'r1', 't1', 'r3', 'r4'],
+      );
+    });
+
+    test('a header before the first entry of each day', () {
+      final List<RewardRow> rows =
+          rewardRows(rewardEntries(rewards, const <RewardTransfer>[]));
       expect(
         rows.map((RewardRow r) => switch (r) {
               RewardDayHeader(:final DateTime day) => 'day ${day.day}',
-              RewardItemRow(:final ReferralReward reward) => '${reward.id}',
+              RewardItemRow(:final RewardEntry entry) => label(entry),
             }),
-        <String>['day 1', '2', 'day 30', '5', '1', 'day 23', '3', '4'],
+        <String>['day 1', 'r2', 'day 30', 'r5', 'r1', 'day 23', 'r3', 'r4'],
       );
     });
   });
@@ -150,6 +269,8 @@ void main() {
       expect(m.invitees.single.name, 'Sokha');
       expect(m.rewards.single.amount, 1000);
       expect(m.rewards.single.baseAmount, 100000);
+      expect(m.rewardBalance, isNull);
+      expect(m.transfers, isEmpty);
     });
 
     test('an empty or malformed payload is an empty model, not a throw', () {

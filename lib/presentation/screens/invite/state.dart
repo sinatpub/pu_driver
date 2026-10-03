@@ -10,4 +10,8 @@ class InviteState {
 
   /// The "People you invited" filter; null means everyone.
   final Rxn<InviteeRole> peopleFilter = Rxn<InviteeRole>();
+
+  /// True while a transfer to the wallet balance is out (DD-48). The buttons
+  /// that start one are disabled, so it cannot be sent twice.
+  final RxBool transferring = false.obs;
 }

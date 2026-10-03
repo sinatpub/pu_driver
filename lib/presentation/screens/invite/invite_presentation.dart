@@ -3,6 +3,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:tara_driver_application/presentation/screens/history/widgets/history_days.dart';
 import 'package:tara_driver_application/presentation/screens/invite/data/models/referral_model.dart';
+import 'package:tara_driver_application/presentation/screens/wallet/wallet_presentation.dart'
+    show isWholeUnitCurrency;
 
 /// DD-45 — the rules of the invite and rewards screens.
 ///
@@ -87,10 +89,141 @@ List<Invitee> inviteesOf(List<Invitee> invitees, InviteeRole? role) {
   return list;
 }
 
-/// Rewards, newest first.
-List<ReferralReward> sortedRewards(List<ReferralReward> rewards) {
-  final List<ReferralReward> list = <ReferralReward>[...rewards];
-  _sortNewestFirst(list, (ReferralReward r) => parseHistoryTime(r.createdAt));
+/// Everything moved into the wallet balance so far.
+num totalTransferred(List<RewardTransfer> transfers) {
+  num sum = 0;
+  for (final RewardTransfer t in transfers) {
+    sum += t.amount ?? 0;
+  }
+  return sum;
+}
+
+/// What the driver can transfer now (DD-48): the server's `reward_balance`,
+/// or, when it does not send one, what was earned less what was moved. Never
+/// below zero.
+num rewardBalance(ReferralModel? referral) {
+  if (referral == null) return 0;
+  final num value = referral.rewardBalance ??
+      totalEarned(referral.rewards) - totalTransferred(referral.transfers);
+  return value < 0 ? 0 : value;
+}
+
+/// Where a transfer of [amount] goes (DD-48). The wallet pays what the
+/// driver owes first (DD-43), so with a debt only the rest reaches the
+/// balance.
+class TransferPreview {
+  const TransferPreview({
+    required this.toDebt,
+    required this.toBalance,
+    required this.debtLeft,
+    required this.balanceAfter,
+  });
+
+  /// The part that pays unpaid commission. Zero with no debt.
+  final num toDebt;
+
+  /// The part that becomes usable balance.
+  final num toBalance;
+
+  /// What is still owed after the transfer.
+  final num debtLeft;
+
+  /// The wallet balance after the transfer; null when the balance is not
+  /// known (the wallet has not loaded).
+  final num? balanceAfter;
+}
+
+TransferPreview transferPreview({
+  required num amount,
+  required num? balance,
+  required num? debt,
+}) {
+  final num owed = debt != null && debt > 0 ? debt : 0;
+  final num toDebt = amount < owed ? amount : owed;
+  final num toBalance = amount - toDebt;
+  return TransferPreview(
+    toDebt: toDebt,
+    toBalance: toBalance,
+    debtLeft: owed - toDebt,
+    balanceAfter: balance == null ? null : balance + toBalance,
+  );
+}
+
+/// The amount the driver typed (DD-49), or null when it is not one: empty,
+/// not a number, zero or less, or finer than the currency goes — riel has no
+/// fraction, other currencies have two decimals.
+num? parseTransferAmount(String text, String? currency) {
+  final String cleaned = text.trim().replaceAll(',', '');
+  if (cleaned.isEmpty) return null;
+  final num? value = num.tryParse(cleaned);
+  if (value == null || value <= 0) return null;
+  if (isWholeUnitCurrency(currency)) {
+    return value == value.roundToDouble() ? value.round() : null;
+  }
+  final num cents = value * 100;
+  if ((cents - cents.round()).abs() > 1e-6) return null;
+  return cents.round() / 100;
+}
+
+/// [amount] as the amount field holds it — "5160", "12.50": no symbol and no
+/// grouping, so it parses back to the same number. What "All" fills in.
+String transferAmountText(num amount, String? currency) =>
+    isWholeUnitCurrency(currency)
+        ? amount.round().toString()
+        : amount.toStringAsFixed(2);
+
+/// Whether [amount] can be transferred out of [available].
+enum TransferAmountCheck {
+  ok,
+
+  /// Nothing usable typed yet. Not an error to show — the button waits.
+  empty,
+
+  /// More than the reward balance holds.
+  tooMuch,
+}
+
+TransferAmountCheck checkTransferAmount(num? amount, num available) {
+  if (amount == null || amount <= 0) return TransferAmountCheck.empty;
+  if (amount > available) return TransferAmountCheck.tooMuch;
+  return TransferAmountCheck.ok;
+}
+
+/// One line of the reward history: a reward earned, or a transfer out.
+sealed class RewardEntry {
+  const RewardEntry();
+
+  DateTime? get at;
+}
+
+class EarnedEntry extends RewardEntry {
+  const EarnedEntry(this.reward);
+
+  final ReferralReward reward;
+
+  @override
+  DateTime? get at => parseHistoryTime(reward.createdAt);
+}
+
+class TransferEntry extends RewardEntry {
+  const TransferEntry(this.transfer);
+
+  final RewardTransfer transfer;
+
+  @override
+  DateTime? get at => parseHistoryTime(transfer.createdAt);
+}
+
+/// Rewards and transfers in one list, newest first.
+List<RewardEntry> rewardEntries(
+  List<ReferralReward> rewards,
+  List<RewardTransfer> transfers,
+) {
+  final List<RewardEntry> list = <RewardEntry>[
+    for (final RewardTransfer t in transfers) TransferEntry(t),
+    for (final ReferralReward r in rewards) EarnedEntry(r),
+  ];
+  _sortNewestFirst(list, (RewardEntry e) => e.at);
   return list;
 }
 
@@ -111,7 +244,7 @@ void _sortNewestFirst<T>(List<T> list, DateTime? Function(T) dateOf) {
   });
 }
 
-/// One line of the reward list: a day header or a reward.
+/// One line of the reward list: a day header or an entry.
 sealed class RewardRow {
   const RewardRow();
 }
@@ -124,18 +257,18 @@ class RewardDayHeader extends RewardRow {
 }
 
 class RewardItemRow extends RewardRow {
-  const RewardItemRow(this.reward);
+  const RewardItemRow(this.entry);
 
-  final ReferralReward reward;
+  final RewardEntry entry;
 }
 
-/// [rewards] (already sorted) with a [RewardDayHeader] before the first one
+/// [entries] (already sorted) with a [RewardDayHeader] before the first one
 /// of each day — the same grouping as the wallet and the riding history.
-List<RewardRow> rewardRows(List<ReferralReward> rewards) {
+List<RewardRow> rewardRows(List<RewardEntry> entries) {
   final List<RewardRow> rows = <RewardRow>[];
   DateTime? current;
-  for (final ReferralReward r in rewards) {
-    final DateTime? at = parseHistoryTime(r.createdAt);
+  for (final RewardEntry e in entries) {
+    final DateTime? at = e.at;
     if (at != null) {
       final DateTime day = DateTime(at.year, at.month, at.day);
       if (day != current) {
@@ -143,7 +276,7 @@ List<RewardRow> rewardRows(List<ReferralReward> rewards) {
         current = day;
       }
     }
-    rows.add(RewardItemRow(r));
+    rows.add(RewardItemRow(e));
   }
   return rows;
 }

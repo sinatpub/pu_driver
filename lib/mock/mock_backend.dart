@@ -180,6 +180,11 @@ class MockBackend {
   final List<Map<String, dynamic>> _transactions = [];
   final List<Map<String, dynamic>> _history = [];
 
+  /// DD-48: rewards the driver moved into the wallet balance, and the
+  /// request ids that did it (request id → amount moved).
+  final List<Map<String, dynamic>> _rewardTransfers = [];
+  final Map<String, int> _transferRequests = {};
+
   Timer? _dispatchTimer;
   Timer? _expiryTimer;
   Timer? _passengerCancelTimer;
@@ -238,6 +243,9 @@ class MockBackend {
     }
     if (path.endsWith('/taxi-driver/wallet')) return _wallet();
     if (path.endsWith('/taxi-driver/referral')) return _referral();
+    if (path.endsWith('/taxi-driver/referral/transfer')) {
+      return _transferRewards(request);
+    }
     if (path.endsWith('/taxi-driver/referral/check-code')) {
       return _checkInviteCode(request);
     }
@@ -562,42 +570,70 @@ class MockBackend {
     });
   }
 
-  /// DD-46: an invite reward is paid into the wallet balance, so each one is
-  /// also a "Referral Reward" transaction. They are derived from the referral
-  /// fixture on every read, not stored — the two screens cannot disagree.
-  MockResponse _wallet() {
-    final rewards = (MockData.referral(now: _now())['rewards'] as List)
-        .cast<Map<String, dynamic>>();
-    var rewardTotal = 0;
-    final rewardTransactions = <Map<String, dynamic>>[];
-    for (final r in rewards) {
-      final amount = r['amount'] as int;
-      rewardTotal += amount;
-      rewardTransactions.add({
-        ...MockData.transaction(
-            id: 9000 + (r['id'] as int),
-            typeName: 'Referral Reward',
-            amount: amount,
-            at: _now()),
-        'created_at': r['created_at'],
+  MockResponse _wallet() => _ok({
+        'status': true,
+        'message': 'Success',
+        'data': MockData.wallet(
+            balance: _walletBalance, transactions: _transactions),
       });
-    }
-    return _ok({
-      'status': true,
-      'message': 'Success',
-      'data': MockData.wallet(
-          balance: _walletBalance + rewardTotal,
-          transactions: [...rewardTransactions, ..._transactions]),
-    });
-  }
 
-  // DD-45: the real backend has no referral endpoints yet; these two are
+  // DD-45, DD-48: the real backend has no referral endpoints yet; these are
   // the shape the app proposes.
   MockResponse _referral() => _ok({
         'status': true,
         'message': 'Success',
-        'data': MockData.referral(now: _now()),
+        'data': MockData.referral(now: _now(), transfers: _rewardTransfers),
       });
+
+  /// DD-48, DD-49: moves the asked amount from the reward balance into the
+  /// wallet balance. An amount that is not above zero, or is more than the
+  /// reward balance, is refused. A request id seen before is answered again
+  /// without moving anything twice.
+  MockResponse _transferRewards(MockRequest request) {
+    final requestId = '${request.body['request_id'] ?? ''}';
+    final available = MockData.referral(
+        now: _now(), transfers: _rewardTransfers)['reward_balance'] as int;
+    final repeated = _transferRequests[requestId];
+    if (repeated != null) {
+      return _ok({
+        'status': true,
+        'message': 'Already transferred',
+        'data': {'transferred': repeated, 'reward_balance': available},
+      });
+    }
+    final asked = num.tryParse('${request.body['amount'] ?? ''}');
+    if (asked == null || asked <= 0 || asked != asked.roundToDouble()) {
+      return const MockResponse(
+          422, {'status': false, 'message': 'Invalid amount'});
+    }
+    final amount = asked.round();
+    if (amount > available) {
+      return const MockResponse(
+          422, {'status': false, 'message': 'More than the reward balance'});
+    }
+    _rewardTransfers.add({
+      'id': _rewardTransfers.length + 1,
+      'amount': amount,
+      'created_at': MockData.timestamp(_now()),
+    });
+    if (requestId.isNotEmpty) _transferRequests[requestId] = amount;
+    _walletBalance += amount;
+    _transactions.add(MockData.transaction(
+        id: _transactions.length + 1,
+        typeName: 'Reward Transfer',
+        amount: amount,
+        at: _now()));
+    _changed();
+    return _ok({
+      'status': true,
+      'message': 'Transferred',
+      'data': {
+        'transferred': amount,
+        'reward_balance': available - amount,
+        'wallet_balance': _walletBalance,
+      },
+    });
+  }
 
   MockResponse _checkInviteCode(MockRequest request) {
     final code = '${request.query['code'] ?? ''}'.trim().toUpperCase();
@@ -942,6 +978,8 @@ class MockBackend {
   void _seedHistoryAndWallet() {
     _history.clear();
     _transactions.clear();
+    _rewardTransfers.clear();
+    _transferRequests.clear();
     final now = _now();
     var seedId = 980001;
     MockRide past({
@@ -1061,6 +1099,7 @@ class MockBackend {
           'walletBalance': _walletBalance,
           'transactions': _transactions,
           'history': _history,
+          'rewardTransfers': _rewardTransfers,
         }));
   }
 
@@ -1088,6 +1127,11 @@ class MockBackend {
       _history
         ..clear()
         ..addAll((json['history'] as List).cast<Map<String, dynamic>>());
+      // Absent in a state saved before DD-48.
+      _rewardTransfers
+        ..clear()
+        ..addAll((json['rewardTransfers'] as List? ?? const [])
+            .cast<Map<String, dynamic>>());
     } catch (e) {
       debugPrint('[MockBackend] discarding unreadable saved state: $e');
       resetAll();

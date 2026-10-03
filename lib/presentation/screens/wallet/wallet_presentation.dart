@@ -68,6 +68,9 @@ enum WalletTxKind {
   commission,
   withdraw,
   referralReward,
+
+  /// Invite rewards moved into the balance by the driver (DD-48).
+  rewardTransfer,
   unknown;
 
   static WalletTxKind of(String? typeName) {
@@ -76,6 +79,8 @@ enum WalletTxKind {
     if (name.contains('topup')) return WalletTxKind.topUp;
     if (name.contains('commission')) return WalletTxKind.commission;
     if (name.contains('withdraw')) return WalletTxKind.withdraw;
+    // Before "reward": "Reward Transfer" contains both words.
+    if (name.contains('transfer')) return WalletTxKind.rewardTransfer;
     if (name.contains('referral') || name.contains('reward')) {
       return WalletTxKind.referralReward;
     }
@@ -91,6 +96,7 @@ enum WalletTxKind {
         WalletTxKind.commission => 'WALLET_TX_COMMISSION',
         WalletTxKind.withdraw => 'WALLET_TX_WITHDRAW',
         WalletTxKind.referralReward => 'WALLET_TX_REFERRAL_REWARD',
+        WalletTxKind.rewardTransfer => 'WALLET_TX_REWARD_TRANSFER',
         WalletTxKind.unknown => null,
       };
 }
@@ -111,7 +117,8 @@ WalletTxDirection walletTxDirection(WalletTxKind kind, dynamic amount) {
       WalletTxDirection.moneyOut,
     WalletTxKind.topUp ||
     WalletTxKind.tripEarning ||
-    WalletTxKind.referralReward =>
+    WalletTxKind.referralReward ||
+    WalletTxKind.rewardTransfer =>
       WalletTxDirection.moneyIn,
     WalletTxKind.unknown => WalletTxDirection.unknown,
   };

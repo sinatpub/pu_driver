@@ -1113,7 +1113,7 @@ The wallet showed two money cards — "Wallet 85,400 ៛" and "Commission fare 1
 - **Wallet or card trip:** the platform holds the fare; the wallet gets the fare as "Trip earning +" and the commission as "Commission −", two rows.
 - **Top-up:** money the driver adds to cover commission.
 - **`debted` is unpaid commission the driver owes.** The balance does not go below zero; a shortfall is debt. A top-up or a wallet-trip earning pays debt first. Past a limit the platform sets, the driver stops receiving requests until they top up.
-- *(Superseded by DD-46: rewards are paid into the wallet balance.)* **Referral rewards** (the flowchart) stay a separate balance with "Transfer to wallet" and withdraw — reward money is the driver's to cash out, top-up money is prepaid commission. Not built: no backend (DD-22, Q-4).
+- *(DD-46 paid rewards straight into the balance; DD-48 went back to a separate reward balance with a transfer, and settled that there is no cash withdrawal.)* **Referral rewards** (the flowchart) stay a separate balance with "Transfer to wallet" and withdraw — reward money is the driver's to cash out, top-up money is prepaid commission. Not built: no backend (DD-22, Q-4).
 
 ### Decision (this app, now)
 - **One balance card:** "Balance", the amount, and under it "Platform commission: 10% of each trip" when the rate is reported. The "Commission fare" money card is gone.
@@ -1181,6 +1181,8 @@ New: `screens/invite/` (`InviteLogic`, `ReferralDatasource`, `ReferralModel`, `i
 
 ## Decision DD-46: Rewards are paid into the wallet, and live under it
 
+**Partly superseded by DD-48 (2026-10-02): rewards are a balance of their own again, moved to the wallet by the driver. The single "Invite rewards" screen with two tabs, opened from the wallet and the QR sheet, stands.**
+
 **Settled by the user on 2026-10-01. Supersedes DD-43's "referral rewards stay a separate balance".**
 
 ### Context
@@ -1197,6 +1199,8 @@ DD-43 kept reward money apart because it is the driver's to cash out, while a to
 
 ## Decision DD-47: The wallet shows what the invites have earned
 
+**Superseded by DD-48 (2026-10-02) for the wallet card: it now shows the reward balance, with a transfer button. The split on the rewards screen stands.**
+
 **Settled by the user on 2026-10-01: option A, and keep the split on the rewards screen.**
 
 ### Decision
@@ -1206,3 +1210,65 @@ DD-43 kept reward money apart because it is the driver's to cash out, while a to
 
 ### Impact
 `InviteEarnedCard`, `RewardSplitCard` (`RewardSummaryCard` removed), `wallet/view.dart`. Keys: `INVITE_EARNED_LABEL`, `INVITE_EARNED_CAPTION`.
+
+## Decision DD-48: Rewards are their own balance, moved to the wallet by the driver
+
+**Amended by DD-49 (2026-10-02): the driver types the amount; it is no longer always the whole reward balance, and the app does send the amount. The rest of this entry stands.**
+
+**Settled by the user on 2026-10-02: transfer all, no cash withdrawal, no minimum. Supersedes DD-46's "paid into the wallet balance" and DD-47's wallet card.**
+
+### Context
+DD-46 paid each reward straight into the wallet balance. The user asked for the two to be kept apart: the balance is working money — top-ups in, commission out — and a reward is prize money from the people the driver invited. Only money in the balance can be used, so the driver moves rewards into it.
+
+### Decision
+- **Two pots.** The wallet balance, and a reward balance. A reward goes into the reward balance. It pays no commission until it is transferred.
+- **Transfer is all of it, one way.** One button, "Transfer to balance", and a confirm sheet. No amount to type: rewards have no other use. **No cash withdrawal, no minimum.** A transfer cannot be moved back, and the sheet says so.
+- **The confirm sheet** says the amount, the balance afterwards (when the wallet has loaded), and — if the driver owes commission — how much of the transfer pays that first (DD-43's pay-debt-first rule): "៛5,000 pays what you owe. ៛160 goes to your balance."
+- **On the wallet:** under the balance, a card "Invite rewards" with the reward balance in green, "Not in your balance yet · 5 invited", and the button. The card opens the rewards screen. With nothing to transfer the button is gone and the caption says so.
+- **Wallet history:** one "Reward transfer" row per transfer. The single rewards are no longer wallet rows — they are in the reward history — so nothing is counted twice.
+- **Rewards tab:** the reward balance with the same button, then "Total earned" and "Transferred to balance", the split by drivers and passengers (DD-47), the rules, and a history of rewards (+, green) and transfers (−, neutral).
+- **Debt warning:** when the driver owes commission and has rewards, the warning adds "You have ៛5,160 in invite rewards. Transfer it to pay this." and the button.
+- **After a transfer** the rewards are fetched again and the wallet is refreshed in place (no skeleton), so both show the server's figures. A toast says what moved.
+
+### Safety
+- The app sends **no amount**: the server moves the reward balance as it stands, so the app cannot ask for more than exists. The toast shows what the server says it moved.
+- Each confirmed transfer carries a **request id**; the server must treat a repeat of the same id as the same transfer. The button is also disabled while one is out.
+
+### Needs from the backend
+- `reward_balance` and `transfers` on `GET /taxi-driver/referral`.
+- `POST /taxi-driver/referral/transfer` with `request_id`, returning `transferred`. Idempotent on `request_id`; refuses when there is nothing to move; pays debt first.
+- A wallet transaction type for the transfer (the app matches "transfer" in `type_name` until type codes exist).
+
+### Not visible in mock mode
+The mock wallet never owes (`debted: 0`), so the debt line on the sheet and the hint on the warning are covered by tests only.
+
+### Impact
+`RewardBalanceCard` (replaces `InviteEarnedCard`), `TransferConfirmBody`, `transfer_sheet.dart` (`confirmRewardTransfer`), `InviteLogic.transferRewards`, `ReferralModel.rewardBalance` / `transfers`, `invite_presentation.dart` (`rewardBalance`, `transferPreview`, `rewardEntries`), `WalletTxKind.rewardTransfer`, `WalletDebtCard` (hint and action), `WalletLogic.fetch(silent:)`. Mock: the transfer endpoint, persisted transfers; the wallet no longer derives reward rows. Keys: `INVITE_TRANSFER*`, `INVITE_NOT_IN_BALANCE`, `INVITE_NOTHING_TO_TRANSFER`, `INVITE_REWARD_BALANCE`, `INVITE_TOTAL_EARNED`, `INVITE_TRANSFERRED`, `WALLET_TX_REWARD_TRANSFER`, `WALLET_DEBT_REWARD_HINT`.
+
+## Decision DD-49: The driver types the amount to transfer
+
+**Settled by the user on 2026-10-02, after seeing both sheets side by side: option B. Amends DD-48's "transfer is all of it".**
+
+### Context
+DD-48 moved the whole reward balance in one step. The user wants the transfer to be the driver's own act down to the amount: nothing about it decided for them.
+
+### Decision
+- **The sheet "Transfer to balance":** the reward balance, an "Amount" field, the result, and the buttons.
+- **The field starts empty**, with the keyboard up. "All" fills in the whole reward balance. Riel takes digits only; other currencies take two decimals.
+- **While the amount is good**, the sheet shows "Balance after", "Rewards left", and the debt line when the driver owes (DD-48), and the button names the amount: "Transfer ៛2,000".
+- **The button is off** until the amount is above zero and no more than the reward balance. More than the balance shows "You have ៛5,160 to transfer." under the field. Nothing typed shows no error — the button just waits.
+- **No minimum, no maximum** other than the reward balance. What is not transferred stays in rewards.
+- Everything else is DD-48: one way, debt paid first, a toast with what moved, the wallet refreshed in place.
+
+### Safety
+- The app now **sends the amount**. The check on screen is a convenience; the server is the judge — it must refuse an amount that is not above zero, is finer than the currency goes, or is more than the reward balance it holds.
+- The request id, the disabled button while a transfer is out, and the refetch afterwards are unchanged.
+
+### Needs from the backend
+`POST /taxi-driver/referral/transfer` takes `amount` and `request_id`, returns `transferred` and the new `reward_balance`.
+
+### Not checked
+The sheet was run on an emulator with a hardware keyboard, so the on-screen keyboard did not open; the sheet pads itself by the keyboard's height, but that needs a look on a phone.
+
+### Impact
+`TransferAmountBody` (replaces `TransferConfirmBody`), `transfer_sheet.dart`, `InviteLogic.transferRewards(amount)`, `invite_presentation.dart` (`parseTransferAmount`, `transferAmountText`, `checkTransferAmount`). Mock: the endpoint validates the amount. Keys: `INVITE_TRANSFER_AVAILABLE`, `INVITE_TRANSFER_AMOUNT`, `INVITE_TRANSFER_REWARDS_LEFT`, `INVITE_TRANSFER_TOO_MUCH`, `INVITE_TRANSFER_BUTTON`; `INVITE_TRANSFER_CONFIRM_TITLE` removed.

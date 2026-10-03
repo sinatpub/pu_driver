@@ -80,9 +80,11 @@ Also available regardless of scenario:
   **Dara Sok** (Toyota Prius, white, 2AB-1234).
 - **Invite and rewards** (DD-45) exist in mock mode only — the real backend
   has no referral endpoints. The QR button on the home map opens "My QR"
-  (code `PU7K2M`). The wallet shows what the invites have earned and opens
-  "Invite rewards": five invited people and their rewards, each of which is
-  also a "Referral reward" row in the wallet. On the sign-up
+  (code `PU7K2M`). The wallet shows the reward balance (៛5,160 from five
+  invited people) with "Transfer to balance" (DD-48), and opens "Invite
+  rewards". The driver types the amount (DD-49); a transfer moves it into the
+  wallet balance and is saved with the rest of the mock state; **Reset all mock data** brings the reward
+  balance back. On the sign-up
   form the invite codes `SOKHA88` and `BOPHA21` are accepted; anything else
   is "not recognised".
 

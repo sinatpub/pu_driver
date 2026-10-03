@@ -12,8 +12,10 @@ class ReferralModel {
     this.currency,
     this.driverTopUpRate,
     this.passengerCommissionRate,
+    this.rewardBalance,
     this.invitees = const <Invitee>[],
     this.rewards = const <ReferralReward>[],
+    this.transfers = const <RewardTransfer>[],
   });
 
   factory ReferralModel.fromJson(dynamic json) {
@@ -28,6 +30,7 @@ class ReferralModel {
       currency: map['currency']?.toString(),
       driverTopUpRate: parseMoney(map['driver_top_up_rate']),
       passengerCommissionRate: parseMoney(map['passenger_commission_rate']),
+      rewardBalance: parseMoney(map['reward_balance']),
       invitees: <Invitee>[
         for (final dynamic item
             in map['invitees'] as List? ?? const <dynamic>[])
@@ -36,6 +39,11 @@ class ReferralModel {
       rewards: <ReferralReward>[
         for (final dynamic item in map['rewards'] as List? ?? const <dynamic>[])
           if (item is Map<String, dynamic>) ReferralReward.fromJson(item),
+      ],
+      transfers: <RewardTransfer>[
+        for (final dynamic item
+            in map['transfers'] as List? ?? const <dynamic>[])
+          if (item is Map<String, dynamic>) RewardTransfer.fromJson(item),
       ],
     );
   }
@@ -54,8 +62,48 @@ class ReferralModel {
   /// paid to the inviter.
   final num? passengerCommissionRate;
 
+  /// Rewards earned and not yet moved to the wallet balance (DD-48). Null
+  /// when the server does not report it; see `rewardBalance()` in
+  /// `invite_presentation.dart` for what is shown then.
+  final num? rewardBalance;
+
   final List<Invitee> invitees;
   final List<ReferralReward> rewards;
+
+  /// Every move of rewards into the wallet balance.
+  final List<RewardTransfer> transfers;
+}
+
+/// One move of the reward balance into the wallet balance (DD-48).
+class RewardTransfer {
+  const RewardTransfer({this.id, this.amount, this.createdAt});
+
+  factory RewardTransfer.fromJson(Map<String, dynamic> json) => RewardTransfer(
+        id: json['id'],
+        amount: parseMoney(json['amount']),
+        createdAt: json['created_at']?.toString(),
+      );
+
+  final dynamic id;
+  final num? amount;
+  final String? createdAt;
+}
+
+/// What the server did with a transfer request.
+class RewardTransferResult {
+  const RewardTransferResult({this.transferred});
+
+  factory RewardTransferResult.fromJson(dynamic json) {
+    final Map<String, dynamic> root =
+        json is Map<String, dynamic> ? json : const <String, dynamic>{};
+    final dynamic data = root['data'];
+    final Map<String, dynamic> map =
+        data is Map<String, dynamic> ? data : const <String, dynamic>{};
+    return RewardTransferResult(transferred: parseMoney(map['transferred']));
+  }
+
+  /// How much the server says it moved.
+  final num? transferred;
 }
 
 /// Someone who signed up with the driver's code.

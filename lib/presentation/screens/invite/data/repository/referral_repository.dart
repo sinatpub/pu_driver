@@ -9,6 +9,12 @@ class ReferralRepository {
 
   Future<Result<ReferralModel>> getReferral() => _datasource.getReferral();
 
+  Future<Result<RewardTransferResult>> transferRewards({
+    required num amount,
+    required String requestId,
+  }) =>
+      _datasource.transferRewards(amount: amount, requestId: requestId);
+
   Future<Result<InviteCodeCheck>> checkCode(String code) =>
       _datasource.checkCode(code);
 }

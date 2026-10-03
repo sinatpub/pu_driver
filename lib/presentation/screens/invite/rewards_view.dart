@@ -11,18 +11,19 @@ import 'package:tara_driver_application/presentation/widgets/ds/ds.dart';
 import 'logic.dart';
 import 'people_view.dart';
 import 'state.dart';
+import 'transfer_sheet.dart';
 import 'widgets/invite_widgets.dart';
 
-/// "Invite rewards" (DD-45, DD-46): one screen, two tabs.
+/// "Invite rewards" (DD-45, DD-46, DD-48): one screen, two tabs.
 ///
-/// **Rewards** — where the rewards came from (the total itself is on the
-/// wallet, DD-47), the rules, and every reward by day. **People** — who joined
-/// with the driver's code.
+/// **Rewards** — the reward balance and the button that moves it into the
+/// wallet balance, where the rewards came from, the rules, and the history:
+/// every reward, and every transfer out. **People** — who joined with the
+/// driver's code.
 ///
-/// Opened from the wallet's invite card and from the QR sheet. A reward is
-/// paid into the wallet balance, so it also shows in the wallet's own list as
-/// a "Referral reward"; this screen adds who it came from. There is nothing
-/// to withdraw or move here — the money is already in the wallet.
+/// Opened from the wallet's reward card and from the QR sheet. Rewards are a
+/// pot of their own (DD-48): they pay no commission until the driver
+/// transfers them to the balance. There is no cash withdrawal.
 ///
 /// The tabs are pages, as on the riding history (DD-41): swipe between them,
 /// or tap a tab.
@@ -101,7 +102,9 @@ class _InviteRewardsPageState extends State<InviteRewardsPage> {
               children: <Widget>[
                 _page((ReferralModel referral) => RewardsBody(
                       referral: referral,
-                      rewards: logic.rewards,
+                      history: logic.history,
+                      transferring: logic.state.transferring.value,
+                      onTransfer: () => confirmRewardTransfer(context),
                     )),
                 _page((ReferralModel referral) => PeopleBody(
                       currency: referral.currency,
@@ -159,12 +162,20 @@ class _InviteRewardsPageState extends State<InviteRewardsPage> {
 
 /// The "Rewards" tab, loaded.
 class RewardsBody extends StatelessWidget {
-  const RewardsBody({super.key, required this.referral, required this.rewards});
+  const RewardsBody({
+    super.key,
+    required this.referral,
+    required this.history,
+    required this.transferring,
+    required this.onTransfer,
+  });
 
   final ReferralModel referral;
 
-  /// Newest first.
-  final List<ReferralReward> rewards;
+  /// Rewards and transfers, newest first.
+  final List<RewardEntry> history;
+  final bool transferring;
+  final VoidCallback onTransfer;
 
   String _caption(ReferralReward r, String? currency) {
     final DateTime? at = parseHistoryTime(r.createdAt);
@@ -177,6 +188,37 @@ class RewardsBody extends StatelessWidget {
     return <String>[what, if (at != null) historyTime(at)].join(' · ');
   }
 
+  Widget _tile(RewardEntry entry, String? currency) {
+    switch (entry) {
+      case EarnedEntry(:final ReferralReward reward):
+        return RewardTile(
+          name: reward.inviteeName,
+          caption: _caption(reward, currency),
+          amount: formatSignedWalletMoney(
+            reward.amount,
+            currency,
+            WalletTxDirection.moneyIn,
+          ),
+          icon: InviteeRole.of(reward.role) == InviteeRole.driver
+              ? DsIcons.car
+              : DsIcons.users,
+        );
+      case TransferEntry(:final RewardTransfer transfer):
+        final DateTime? at = entry.at;
+        return RewardTile(
+          name: 'INVITE_TRANSFERRED'.tr(),
+          caption: at == null ? '' : historyTime(at),
+          amount: formatSignedWalletMoney(
+            transfer.amount,
+            currency,
+            WalletTxDirection.moneyOut,
+          ),
+          icon: DsIcons.wallet,
+          moneyIn: false,
+        );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final TaarraaColors c = context.colors;
@@ -186,23 +228,43 @@ class RewardsBody extends StatelessWidget {
     final String? driverRate = commissionRateText(referral.driverTopUpRate);
     final String? passengerRate =
         commissionRateText(referral.passengerCommissionRate);
+    final num available = rewardBalance(referral);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        // DD-47: the total is on the wallet; here is where it came from.
+        // DD-48: what can be moved to the wallet now, and the button.
+        RewardBalanceCard(
+          label: 'INVITE_REWARD_BALANCE'.tr(),
+          amount: formatWalletMoney(available, currency),
+          caption: 'INVITE_TRANSFER_TO_USE'.tr(),
+          transferLabel: 'INVITE_TRANSFER'.tr(),
+          transferring: transferring,
+          onTransfer: available > 0 ? onTransfer : null,
+          figures: <(String, String)>[
+            (
+              'INVITE_TOTAL_EARNED'.tr(),
+              formatWalletMoney(totalEarned(referral.rewards), currency),
+            ),
+            (
+              'INVITE_TRANSFERRED'.tr(),
+              formatWalletMoney(totalTransferred(referral.transfers), currency),
+            ),
+          ],
+        ),
+        const SizedBox(height: Insets.s8),
+        // DD-47: where the rewards came from.
         RewardSplitCard(
           driversLabel: 'INVITE_FROM_DRIVERS'.tr(),
           driversAmount: formatWalletMoney(
-            earnedFrom(rewards, InviteeRole.driver),
+            earnedFrom(referral.rewards, InviteeRole.driver),
             currency,
           ),
           passengersLabel: 'INVITE_FROM_PASSENGERS'.tr(),
           passengersAmount: formatWalletMoney(
-            earnedFrom(rewards, InviteeRole.passenger),
+            earnedFrom(referral.rewards, InviteeRole.passenger),
             currency,
           ),
-          note: 'INVITE_PAID_TO_WALLET'.tr(),
         ),
         const SizedBox(height: Insets.s24),
         Text(
@@ -224,31 +286,21 @@ class RewardsBody extends StatelessWidget {
           style: context.texts.subtitle.copyWith(color: c.textPrimary),
         ),
         const SizedBox(height: Insets.s4),
-        if (rewards.isEmpty)
+        if (history.isEmpty)
           TEmptyState(
             icon: DsIcons.gift,
             title: 'INVITE_NO_REWARDS'.tr(),
             message: 'INVITE_NO_REWARDS_HINT'.tr(),
           )
         else
-          for (final RewardRow row in rewardRows(rewards))
+          for (final RewardRow row in rewardRows(history))
             switch (row) {
               RewardDayHeader(:final DateTime day) => InviteDayHeader(
                   label: historyDayLabel(day, now: now, locale: locale),
                 ),
-              RewardItemRow(:final ReferralReward reward) => Padding(
+              RewardItemRow(:final RewardEntry entry) => Padding(
                   padding: const EdgeInsets.only(bottom: Insets.s8),
-                  child: RewardTile(
-                    name: reward.inviteeName,
-                    caption: _caption(reward, currency),
-                    amount: formatSignedWalletMoney(
-                      reward.amount,
-                      currency,
-                      WalletTxDirection.moneyIn,
-                    ),
-                    fromDriver:
-                        InviteeRole.of(reward.role) == InviteeRole.driver,
-                  ),
+                  child: _tile(entry, currency),
                 ),
             },
       ],

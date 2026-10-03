@@ -8,6 +8,7 @@ import 'package:tara_driver_application/presentation/screens/invite/invite_featu
 import 'package:tara_driver_application/presentation/screens/invite/invite_presentation.dart';
 import 'package:tara_driver_application/presentation/screens/invite/logic.dart';
 import 'package:tara_driver_application/presentation/screens/invite/state.dart';
+import 'package:tara_driver_application/presentation/screens/invite/transfer_sheet.dart';
 import 'package:tara_driver_application/presentation/screens/invite/widgets/invite_widgets.dart';
 import 'package:tara_driver_application/presentation/screens/wallet/data/models/wallet_model.dart';
 import 'package:tara_driver_application/presentation/screens/wallet/wallet_presentation.dart';
@@ -107,6 +108,7 @@ class _WalletPageState extends State<WalletPage> {
         final String? currency = dataWallet?.currency?.toString();
         final String? rate = commissionRateText(dataWallet?.commistionFare);
         final num? debt = walletDebt(dataWallet?.debted);
+        final num rewards = _rewardBalance ?? 0;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
@@ -128,11 +130,22 @@ class _WalletPageState extends State<WalletPage> {
                     args: <String>[formatWalletMoney(debt, currency)],
                   ),
                   message: 'WALLET_DEBT_MESSAGE'.tr(),
+                  // DD-48: the driver owes and has rewards — one tap from
+                  // the problem to the fix.
+                  hint: rewards > 0
+                      ? 'WALLET_DEBT_REWARD_HINT'.tr(args: <String>[
+                          formatWalletMoney(rewards, currency),
+                        ])
+                      : null,
+                  actionLabel: rewards > 0 ? 'INVITE_TRANSFER'.tr() : null,
+                  onAction:
+                      rewards > 0 ? () => confirmRewardTransfer(context) : null,
                 ),
               ],
-              // DD-46, DD-47: invite rewards are paid into this balance, so
-              // what they have earned is shown here, and opens the detail. Shown once they have loaded; a failure to
-              // load them never takes the wallet down with it.
+              // DD-48: invite rewards are a pot of their own, shown under the
+              // balance with the button that moves them into it. Shown once
+              // they have loaded; a failure to load them never takes the
+              // wallet down with it.
               if (inviteFeatureEnabled) _inviteCard(),
               const SizedBox(height: Insets.s24),
             ],
@@ -145,20 +158,33 @@ class _WalletPageState extends State<WalletPage> {
     }
   }
 
-  Widget _inviteCard() {
-    if (invite.state.status.value != InviteStatus.loaded) {
-      return const SizedBox.shrink();
+  /// What the driver can transfer now, or null while the rewards have not
+  /// loaded (or the feature is off).
+  num? get _rewardBalance {
+    if (!inviteFeatureEnabled ||
+        invite.state.status.value != InviteStatus.loaded) {
+      return null;
     }
+    return rewardBalance(invite.state.referral.value);
+  }
+
+  Widget _inviteCard() {
+    final num? available = _rewardBalance;
+    if (available == null) return const SizedBox.shrink();
     final ReferralModel referral =
         invite.state.referral.value ?? const ReferralModel();
+    final List<String> invited = <String>['${referral.invitees.length}'];
     return Padding(
       padding: const EdgeInsets.only(top: Insets.s8),
-      child: InviteEarnedCard(
-        label: 'INVITE_EARNED_LABEL'.tr(),
-        amount:
-            formatWalletMoney(totalEarned(referral.rewards), referral.currency),
-        caption: 'INVITE_EARNED_CAPTION'
-            .tr(args: <String>['${referral.invitees.length}']),
+      child: RewardBalanceCard(
+        label: 'INVITE_REWARDS'.tr(),
+        amount: formatWalletMoney(available, referral.currency),
+        caption: available > 0
+            ? 'INVITE_NOT_IN_BALANCE'.tr(args: invited)
+            : 'INVITE_NOTHING_TO_TRANSFER'.tr(args: invited),
+        transferLabel: 'INVITE_TRANSFER'.tr(),
+        transferring: invite.state.transferring.value,
+        onTransfer: available > 0 ? () => confirmRewardTransfer(context) : null,
         onTap: () => Get.toNamed(AppRoutes.inviteRewards),
       ),
     );
