@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;
-import 'package:pu_taxi_driver/app/funtion_convert.dart';
+import 'package:pu_taxi_driver/core/utils/fare_money.dart';
 import 'package:pu_taxi_driver/core/contracts/booking_status.dart';
 import 'package:pu_taxi_driver/core/helper/address_parts.dart';
 import 'package:pu_taxi_driver/core/theme/tokens.dart';
@@ -91,7 +91,7 @@ class HistoryCardWidget extends StatelessWidget {
               const SizedBox(width: Insets.s8),
               if (_isCompleted)
                 Text(
-                  '៛${formatRielAmount(item.payment!.amount.toString())}',
+                  formatFare(item.payment!.amount),
                   style: context.texts.subtitle.copyWith(
                     color: c.textPrimary,
                     fontFeatures: const <FontFeature>[
@@ -248,7 +248,7 @@ class HistoryCardWidget extends StatelessWidget {
     Get.toNamed(
       AppRoutes.mapHistoryDetail,
       arguments: MapHistoryDetailArgs(
-        cost: formatRielAmount(item.payment!.amount.toString()),
+        cost: item.payment!.amount.toString(),
         distand: figures[0],
         duration: figures[1],
         typeVehicleId: item.driver!.vehicle!.typeVehicleId!,
@@ -266,6 +266,7 @@ class HistoryCardWidget extends StatelessWidget {
         paymentMethod: item.payment!.paymentMethod,
         tripTime: historyDate(item),
         endedAt: historyEndedAt(item),
+        rideCredit: item.payment!.rideCredit,
       ),
     );
   }

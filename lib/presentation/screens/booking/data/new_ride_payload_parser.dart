@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:pu_taxi_driver/core/utils/money.dart';
 import 'package:pu_taxi_driver/routes/route_arguments.dart';
 
 /// D-05 (docs/12) — parses the payload for a new ride request. The driver
@@ -31,6 +32,39 @@ class NewRideParseException implements Exception {
   String toString() => 'NewRideParseException: $reason';
 }
 
+/// The ride request carried by a `newRide` socket event.
+///
+/// A socket handler gets the event's arguments as one value: the argument
+/// itself when the server sends one, a list of them when it sends more. This
+/// backend sends two — the request, then a short string — so what arrives is
+/// `[{booking_code: …, booking_id: …, …}, "Q4GfXZP"]` (seen 2026-10-06). The
+/// handler cast that straight to a map, the cast threw, and the request
+/// sounded its alert but never opened: the driver heard a ride and saw
+/// nothing.
+///
+/// The request is the first object among the arguments. What the string
+/// after it is for is not known, and it is not needed to show the request.
+BookingScreenArgs parseNewRideEvent(dynamic event) {
+  final Map<String, dynamic>? request = _firstObject(event);
+  if (request == null) {
+    throw NewRideParseException('no ride request in the event: $event');
+  }
+  return parseNewRideArgs(request);
+}
+
+/// [value] itself when it is an object (or the JSON text of one), else the
+/// first such thing in it when it is a list.
+Map<String, dynamic>? _firstObject(dynamic value) {
+  if (value is List) {
+    for (final dynamic item in value) {
+      final Map<String, dynamic>? found = _firstObject(item);
+      if (found != null) return found;
+    }
+    return null;
+  }
+  return _asMap(value);
+}
+
 BookingScreenArgs parseNewRideArgs(Map<String, dynamic> data) {
   final passenger = _asMap(data['passenger']) ?? const {};
   final location = _asMap(data['location']) ?? const {};
@@ -46,7 +80,7 @@ BookingScreenArgs parseNewRideArgs(Map<String, dynamic> data) {
     bookingCode: _requireInt(data['booking_code'], 'booking_code'),
     passengerId: _requireInt(data['passengerId'], 'passengerId'),
     typeVehicleId: _intOr(data['vehicleType'], 0),
-    pricrVehicle: _intOr(data['vehiclePrice'], 0),
+    pricrVehicle: parseMoney(data['vehiclePrice']) ?? 0,
     timeOut: _intOr(data['timeout'], 30),
     namePassanger: passenger['name']?.toString() ?? '',
     phonePassanger: passenger['phone']?.toString() ?? '',

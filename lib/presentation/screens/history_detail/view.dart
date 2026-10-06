@@ -4,7 +4,9 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:pu_taxi_driver/core/utils/fare_money.dart';
 import 'package:pu_taxi_driver/core/theme/tokens.dart';
+import 'package:pu_taxi_driver/presentation/screens/calculate_fee/payment_split.dart';
 import 'package:pu_taxi_driver/presentation/screens/calculate_fee/widgets/receipt_card.dart';
 import 'package:pu_taxi_driver/presentation/screens/contact_us/logic.dart';
 import 'package:pu_taxi_driver/presentation/screens/contact_us/state.dart';
@@ -218,6 +220,12 @@ class TripDetailBody extends StatelessWidget {
     final String? invoice =
         trip.invoiceId == null ? null : '#${trip.invoiceId}';
     final bool hasRoute = (trip.startAddress ?? '').trim().isNotEmpty;
+    // `cost` is the amount as the backend wrote it; the credit is a figure.
+    final PaymentSplit split = paymentSplit(
+      amount: trip.cost,
+      rideCredit: trip.rideCredit,
+      paidInCash: PaymentKind.of(trip.paymentMethod) == PaymentKind.cash,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -225,10 +233,17 @@ class TripDetailBody extends StatelessWidget {
         PaymentHero(
           label: 'TOTAL_PRICE'.tr(),
           method: trip.paymentMethod,
-          amount: '៛${trip.cost}',
+          amount: formatFare(trip.cost),
           distance: trip.distand,
           duration: trip.duration,
           time: _time(trip.tripTime),
+          creditNote: !split.usesCredit
+              ? null
+              : split.fullyCredited
+                  ? 'RIDE_CREDIT_FULL_NOTE'.tr()
+                  : 'RIDE_CREDIT_NOTE'.tr(args: <String>[
+                      formatFare(split.credit),
+                    ]),
         ),
         if (hasRoute) ...<Widget>[
           const SizedBox(height: Insets.s12),

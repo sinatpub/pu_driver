@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 import 'package:pu_taxi_driver/core/utils/json_list.dart';
+import 'package:pu_taxi_driver/core/utils/json_field.dart';
 
 DetailNotificationModel detailNotificationModelFromJson(String str) =>
     DetailNotificationModel.fromJson(json.decode(str));
@@ -22,8 +23,8 @@ class DetailNotificationModel {
 
   factory DetailNotificationModel.fromJson(Map<String, dynamic> json) =>
       DetailNotificationModel(
-        status: json["status"],
-        data: DataDetailNotification.fromJson(json["data"]),
+        status: json["status"] is bool ? json["status"] : null,
+        data: objectOrNull(json["data"], DataDetailNotification.fromJson),
       );
 
   Map<String, dynamic> toJson() => {
@@ -61,16 +62,16 @@ class DataDetailNotification {
 
   factory DataDetailNotification.fromJson(Map<String, dynamic> json) =>
       DataDetailNotification(
-        id: json["id"],
-        title: json["title"],
-        description: json["description"],
-        releaseDate: json["release_date"],
-        expiredDate: json["expired_date"],
-        target: json["target"],
-        status: json["status"],
-        createdBy: json["created_by"],
-        createdAt: json["created_at"],
-        updatedAt: json["updated_at"],
+        id: intOrNull(json["id"]),
+        title: stringOrNull(json["title"]),
+        description: stringOrNull(json["description"]),
+        releaseDate: stringOrNull(json["release_date"]),
+        expiredDate: stringOrNull(json["expired_date"]),
+        target: intOrNull(json["target"]),
+        status: intOrNull(json["status"]),
+        createdBy: intOrNull(json["created_by"]),
+        createdAt: stringOrNull(json["created_at"]),
+        updatedAt: stringOrNull(json["updated_at"]),
         files: parseJsonList<FileElement>(
             json["files"], (x) => FileElement.fromJson(x)),
       );
@@ -112,14 +113,14 @@ class FileElement {
   });
 
   factory FileElement.fromJson(Map<String, dynamic> json) => FileElement(
-        id: json["id"],
-        fileOriginalName: json["file_original_name"],
-        fileSize: json["file_size"],
-        fileType: json["file_type"],
-        fileUrl: json["file_url"],
-        objectId: json["object_id"],
-        objectType: json["object_type"],
-        createdBy: json["created_by"],
+        id: intOrNull(json["id"]),
+        fileOriginalName: stringOrNull(json["file_original_name"]),
+        fileSize: stringOrNull(json["file_size"]),
+        fileType: stringOrNull(json["file_type"]),
+        fileUrl: stringOrNull(json["file_url"]),
+        objectId: intOrNull(json["object_id"]),
+        objectType: stringOrNull(json["object_type"]),
+        createdBy: intOrNull(json["created_by"]),
       );
 
   Map<String, dynamic> toJson() => {

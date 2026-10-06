@@ -1,3 +1,5 @@
+import 'package:pu_taxi_driver/core/utils/json_field.dart';
+
 class SetDriverStatusModel {
   Data? data;
   bool? status;
@@ -11,9 +13,9 @@ class SetDriverStatusModel {
 
   factory SetDriverStatusModel.fromJson(Map<String, dynamic> json) =>
       SetDriverStatusModel(
-        data: json["data"] == null ? null : Data.fromJson(json["data"]),
-        status: json["status"],
-        message: json["message"],
+        data: objectOrNull(json["data"], Data.fromJson),
+        status: json["status"] is bool ? json["status"] : null,
+        message: stringOrNull(json["message"]),
       );
 
   Map<String, dynamic> toJson() => {
@@ -45,18 +47,18 @@ class Data {
   });
 
   factory Data.fromJson(Map<String, dynamic> json) => Data(
-        id: json["id"],
-        userId: json["user_id"],
-        vehicleId: json["vehicle_id"],
-        licenseNumber: json["license_number"],
-        rating: json["rating"],
-        isAvailable: json["is_available"],
-        createdAt: json["created_at"] == null
-            ? null
-            : DateTime.parse(json["created_at"]),
-        updatedAt: json["updated_at"] == null
-            ? null
-            : DateTime.parse(json["updated_at"]),
+        id: intOrNull(json["id"]),
+        userId: intOrNull(json["user_id"]),
+        vehicleId: intOrNull(json["vehicle_id"]),
+        licenseNumber: stringOrNull(json["license_number"]),
+        rating: intOrNull(json["rating"]),
+        // The one field the app acts on: 1 is online. A flag sent as
+        // `true` / `false` reads the same way.
+        isAvailable: json["is_available"] is bool
+            ? (json["is_available"] == true ? 1 : 0)
+            : intOrNull(json["is_available"]),
+        createdAt: dateOrNull(json["created_at"]),
+        updatedAt: dateOrNull(json["updated_at"]),
       );
 
   Map<String, dynamic> toJson() => {

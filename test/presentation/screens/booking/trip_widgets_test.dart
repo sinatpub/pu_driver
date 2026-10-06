@@ -544,7 +544,7 @@ void main() {
           const TripMeterStrip(
             duration: '00:42',
             distance: '3.2 km',
-            fare: '7,600',
+            fare: '៛7,600',
           ),
         ),
       );
@@ -571,7 +571,7 @@ void main() {
           const TripMeterStrip(
             duration: '00:00',
             distance: '0.0 km',
-            fare: '4,000',
+            fare: '៛4,000',
           ),
         ),
       );

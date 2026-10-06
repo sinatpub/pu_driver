@@ -175,6 +175,16 @@ class MockDevPanel extends StatelessWidget {
               onSelectionChanged: (v) =>
                   _update(s.copyWith(paymentMethod: v.first)),
             ),
+            _label(context, 'Passenger uses ride credit (set at drop-off)'),
+            SegmentedButton<MockRideCredit>(
+              segments: [
+                for (final m in MockRideCredit.values)
+                  ButtonSegment(value: m, label: Text(m.label)),
+              ],
+              selected: {s.rideCredit},
+              onSelectionChanged: (v) =>
+                  _update(s.copyWith(rideCredit: v.first)),
+            ),
             _label(context, 'Driver approval (applies next time Home loads)'),
             SegmentedButton<MockApproval>(
               segments: const [

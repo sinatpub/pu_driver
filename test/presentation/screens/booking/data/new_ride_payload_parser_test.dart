@@ -164,4 +164,114 @@ void main() {
       });
     });
   });
+
+  // What the `newRide` socket event really carried on 2026-10-06: the
+  // request and a short string, so the handler was given a two-item list.
+  group('parseNewRideEvent', () {
+    Map<String, dynamic> realRequest() => <String, dynamic>{
+          'booking_code': 1791280683,
+          'booking_id': 1,
+          'passengerId': 3,
+          'location': <String, dynamic>{
+            'latitude': 11.52590516098051,
+            'longitude': 104.92335179820657,
+          },
+          'vehiclePrice': 0.3,
+          'vehicleType': 1,
+          'timeout': 15,
+          'passenger': <String, dynamic>{
+            'name': 'Dummy Passenger',
+            'phone': '+855900000003',
+            'profile': null,
+          },
+          'destination': <String, dynamic>{
+            'latitude': null,
+            'longitude': null,
+          },
+        };
+
+    test('the real event: a list of the request and a string', () {
+      final args = parseNewRideEvent(<dynamic>[realRequest(), 'Q4GfXZP']);
+
+      expect(args.bookingId, 1);
+      expect(args.bookingCode, 1791280683);
+      expect(args.passengerId, 3);
+      expect(args.timeOut, 15);
+      expect(args.typeVehicleId, 1);
+      expect(args.namePassanger, 'Dummy Passenger');
+      expect(args.phonePassanger, '+855900000003');
+      // `profile: null` is no photo, not the text "null".
+      expect(args.imagePassanger, '');
+      expect(args.latPassenger, 11.52590516098051);
+      expect(args.lngPassenger, 104.92335179820657);
+      // A destination of nulls is "not chosen yet".
+      expect(args.desLatPassenger, isNull);
+      expect(args.desLngPassenger, isNull);
+    });
+
+    test('a request sent on its own still parses', () {
+      expect(parseNewRideEvent(realRequest()).bookingId, 1);
+    });
+
+    test('the request is found wherever it sits among the arguments', () {
+      expect(
+        parseNewRideEvent(<dynamic>['Q4GfXZP', realRequest()]).bookingId,
+        1,
+      );
+      expect(
+        parseNewRideEvent(<dynamic>[
+          <dynamic>[realRequest()],
+        ]).bookingId,
+        1,
+      );
+    });
+
+    test('a request sent as JSON text parses too', () {
+      expect(
+        parseNewRideEvent(<dynamic>[jsonEncode(realRequest())]).bookingId,
+        1,
+      );
+    });
+
+    test('an event with no request in it fails with a reason', () {
+      for (final dynamic event in <dynamic>[
+        null,
+        'Q4GfXZP',
+        <dynamic>[],
+        <dynamic>['Q4GfXZP', 7],
+      ]) {
+        expect(
+          () => parseNewRideEvent(event),
+          throwsA(isA<NewRideParseException>()),
+          reason: 'event: $event',
+        );
+      }
+    });
+
+    test('a request without a booking id still fails loudly', () {
+      final Map<String, dynamic> request = realRequest()..remove('booking_id');
+      expect(
+        () => parseNewRideEvent(<dynamic>[request, 'Q4GfXZP']),
+        throwsA(isA<NewRideParseException>()),
+      );
+    });
+
+    test('the price per km keeps its decimals (DD-54)', () {
+      expect(
+        parseNewRideEvent(<dynamic>[realRequest(), 'Q4GfXZP']).pricrVehicle,
+        0.3,
+      );
+    });
+
+    test('a price sent as text reads the same; none at all is 0, not known',
+        () {
+      final Map<String, dynamic> asText = realRequest()
+        ..['vehiclePrice'] = '0.30';
+      expect(parseNewRideEvent(asText).pricrVehicle, 0.3);
+
+      final Map<String, dynamic> missing = realRequest()
+        ..remove('vehiclePrice');
+      expect(parseNewRideEvent(missing).pricrVehicle, 0);
+    });
+  });
 }

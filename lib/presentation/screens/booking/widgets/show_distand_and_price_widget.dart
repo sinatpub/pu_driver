@@ -66,7 +66,7 @@ class TripMeterStrip extends StatelessWidget {
                 _MeterRule(color: c.borderDivider),
                 _MeterCell(
                   label: "EST_FARE".tr(),
-                  value: '≈ ៛$fare',
+                  value: '≈ $fare',
                   valueStyle: valueStyle,
                   labelStyle: labelStyle,
                 ),

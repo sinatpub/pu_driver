@@ -179,7 +179,7 @@ class DriverSocketService extends BaseSocketService {
     tlog("New ride data: $data");
 
     try {
-      final args = parseNewRideArgs(Map<String, dynamic>.from(data as Map));
+      final args = parseNewRideEvent(data);
       Get.toNamed(AppRoutes.booking, arguments: args);
     } catch (e) {
       tlog("Failed to show new ride request: $e — raw data: $data");

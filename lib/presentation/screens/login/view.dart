@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:pu_taxi_driver/core/theme/tokens.dart';
+import 'package:pu_taxi_driver/core/utils/debug_auth_bypass.dart';
 import 'package:pu_taxi_driver/core/utils/phone_formatter.dart';
 import 'package:pu_taxi_driver/presentation/widgets/ds/ds.dart';
 import 'package:pu_taxi_driver/presentation/widgets/language_segment.dart';
@@ -23,8 +24,16 @@ import 'state.dart';
 /// digits" wording is a known quirk). The formatters are the same three, in
 /// the same order. The keyboard action still only validates — it never
 /// submitted, and still doesn't. No step dots (`DD-24`).
+///
+/// A debug build that asks for the OTP bypass also gets one extra button
+/// under Next, which signs in as the account in `dart_defines.json` — see
+/// [DebugAuthBypass]. No release build shows it.
 class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
+  const LoginPage({super.key, @visibleForTesting this.showDebugLogin});
+
+  /// Null follows [DebugAuthBypass.isEnabled]. Tests set it, because that
+  /// flag is a compile-time constant they cannot switch on.
+  final bool? showDebugLogin;
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +48,7 @@ class LoginPage extends StatelessWidget {
         child: Obx(() {
           final bool isLoading =
               logic.state.status.value == LoginStatus.loading;
+          final bool debugLoggingIn = logic.state.debugLoggingIn.value;
           final String? error = logic.state.isInvalidPhone.value
               ? 'CHECK_YOUR_PHONE_NUMBER_ERROR'.tr()
               : logic.state.isRequired8Digit.value
@@ -82,7 +92,7 @@ class LoginPage extends StatelessWidget {
                         controller: logic.phoneController,
                         hint: 'ENTER_YOUR_PHONE_NUMBER'.tr(),
                         errorText: error,
-                        enabled: !isLoading,
+                        enabled: !isLoading && !debugLoggingIn,
                         shakeKey: logic.phoneShake,
                         inputFormatters: <TextInputFormatter>[
                           FilteringTextInputFormatter.digitsOnly,
@@ -104,9 +114,29 @@ class LoginPage extends StatelessWidget {
                       TButton(
                         label: 'NEXT'.tr(),
                         loading: isLoading,
-                        onPressed: () =>
-                            logic.submit(logic.phoneController.text),
+                        onPressed: debugLoggingIn
+                            ? null
+                            : () => logic.submit(logic.phoneController.text),
                       ),
+                      if (showDebugLogin ??
+                          DebugAuthBypass.isEnabled) ...<Widget>[
+                        const SizedBox(height: Insets.s24),
+                        TButton(
+                          label: DebugAuthBypass.loginLabel,
+                          variant: TButtonVariant.secondary,
+                          size: TButtonSize.small,
+                          loading: debugLoggingIn,
+                          onPressed: isLoading ? null : logic.debugLogin,
+                        ),
+                        const SizedBox(height: Insets.s8),
+                        Text(
+                          DebugAuthBypass.loginCaption,
+                          textAlign: TextAlign.center,
+                          style: context.texts.caption.copyWith(
+                            color: c.textSecondary,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),

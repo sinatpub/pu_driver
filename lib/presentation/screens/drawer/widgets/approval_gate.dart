@@ -7,16 +7,21 @@ import 'package:pu_taxi_driver/core/theme/tokens.dart';
 import 'package:pu_taxi_driver/presentation/screens/contact_us/logic.dart';
 import 'package:pu_taxi_driver/presentation/widgets/ds/ds.dart';
 
-/// UX-redesign C1 — the approval gate over the shell body.
+/// The approval gate over the shell body (UX-redesign C1, redrawn in DD-52).
 ///
-/// **Fails closed, exactly as before**: only [DriverApprovalStatus.approved]
-/// lifts it, so `unknown` — the value before the first
-/// `get-current-drive-info` resolves — still blocks. That is the same test the
-/// old overlay used (`AppLogic.isApproved`).
+/// **It appears only for a driver who is blocked**: waiting for approval, or
+/// not approved. Then it is a full page under the app bar, because the map
+/// behind it is of no use to a driver who cannot work.
 ///
-/// What changed is that the three blocked states no longer look identical
-/// (`DD-08`). A rejected driver used to be told to wait for approval, and
-/// every driver saw that message for a moment on each launch.
+/// It no longer appears while the status is being checked. That used to put
+/// a card over a washed-out home on every launch, for every driver — nearly
+/// all of whom are approved — and the same card stayed up, still saying
+/// "checking", when the check had failed. Both of those are now a line on
+/// the home status card (`DriverStatusCard`), with a retry when it failed.
+///
+/// **Going online still fails closed.** Hiding the gate is not approval:
+/// `AppLogic.toggle` and the app-bar pill both test `isApproved`, which is
+/// false until a check has answered.
 ///
 /// It covers the body only. The app bar stays reachable, as it always has —
 /// that is how a blocked driver still gets to the drawer and to support.
@@ -28,34 +33,42 @@ class ApprovalGate extends StatelessWidget {
     final AppLogic app = Get.find<AppLogic>();
     return Obx(() {
       final DriverApprovalStatus status = app.state.approvalStatus.value;
-      if (status == DriverApprovalStatus.approved) {
+      final bool rejected = status == DriverApprovalStatus.rejected;
+      if (!rejected && status != DriverApprovalStatus.pending) {
         return const SizedBox.shrink();
       }
 
-      final bool checking = status == DriverApprovalStatus.unknown;
       return Positioned.fill(
         child: ApprovalGateView(
           status: status,
-          title: switch (status) {
-            DriverApprovalStatus.unknown => 'APPROVAL_CHECKING'.tr(),
-            DriverApprovalStatus.pending => 'WAITING_APPROVED_FROM_ADMIN'.tr(),
-            DriverApprovalStatus.rejected => 'APPROVAL_REJECTED_TITLE'.tr(),
-            DriverApprovalStatus.approved => '',
-          },
-          message: switch (status) {
-            DriverApprovalStatus.unknown => 'APPROVAL_CHECKING_DES'.tr(),
-            // Shipped in the translations since before the redesign and never
-            // rendered until now.
-            DriverApprovalStatus.pending => 'WAITING_DES'.tr(),
-            DriverApprovalStatus.rejected => 'APPROVAL_REJECTED_DESC'.tr(),
-            DriverApprovalStatus.approved => '',
-          },
-          // The fetch swallows its errors (`AppLogic.fetchCurrentDriveInfo`),
-          // so a failed call leaves `unknown` forever. Without a retry the
-          // driver's only way out is restarting the app.
-          actionLabel:
-              checking ? 'PLEASE_TRY_AGAIN'.tr() : 'CONTACT_SUPPORT'.tr(),
-          onAction: checking ? app.fetchCurrentDriveInfo : _contactSupport,
+          title: rejected
+              ? 'APPROVAL_REJECTED_TITLE'.tr()
+              : 'WAITING_APPROVED_FROM_ADMIN'.tr(),
+          message:
+              rejected ? 'APPROVAL_REJECTED_DESC'.tr() : 'WAITING_DES'.tr(),
+          // A rejected application has no next step to show: the page says
+          // what to do instead.
+          steps: rejected
+              ? const <ApprovalStep>[]
+              : <ApprovalStep>[
+                  ApprovalStep(
+                    'APPROVAL_STEP_SENT'.tr(),
+                    ApprovalStepState.done,
+                  ),
+                  ApprovalStep(
+                    'APPROVAL_STEP_REVIEW'.tr(),
+                    ApprovalStepState.current,
+                  ),
+                  ApprovalStep(
+                    'APPROVAL_STEP_READY'.tr(),
+                    ApprovalStepState.upcoming,
+                  ),
+                ],
+          supportLabel: 'CONTACT_SUPPORT'.tr(),
+          onSupport: _contactSupport,
+          checkAgainLabel: 'APPROVAL_CHECK_AGAIN'.tr(),
+          checking: app.state.approvalChecking.value,
+          onCheckAgain: app.fetchCurrentDriveInfo,
         ),
       );
     });
@@ -70,62 +83,131 @@ class ApprovalGate extends StatelessWidget {
   }
 }
 
-/// The gate's appearance for one status.
+/// Where one step of the approval stands.
+enum ApprovalStepState { done, current, upcoming }
+
+/// One line of "what happens next" on the waiting page.
+class ApprovalStep {
+  const ApprovalStep(this.label, this.state);
+
+  final String label;
+  final ApprovalStepState state;
+}
+
+/// The blocked page for one status: [DriverApprovalStatus.pending] or
+/// [DriverApprovalStatus.rejected].
 ///
 /// Takes its copy as parameters and holds no GetX or localisation lookups, so
-/// each of the three blocked states can be pumped in a widget test.
+/// each state can be pumped in a widget test.
 class ApprovalGateView extends StatelessWidget {
   const ApprovalGateView({
     super.key,
     required this.status,
     required this.title,
     required this.message,
-    required this.actionLabel,
-    this.onAction,
+    this.steps = const <ApprovalStep>[],
+    required this.supportLabel,
+    this.onSupport,
+    required this.checkAgainLabel,
+    this.onCheckAgain,
+    this.checking = false,
   });
 
   final DriverApprovalStatus status;
   final String title;
   final String message;
-  final String actionLabel;
-  final VoidCallback? onAction;
+
+  /// Shown as a short list under the message. Empty for a rejection.
+  final List<ApprovalStep> steps;
+
+  final String supportLabel;
+  final VoidCallback? onSupport;
+
+  /// The driver's own way to ask again, rather than restarting the app to
+  /// find out whether they were approved.
+  final String checkAgainLabel;
+  final VoidCallback? onCheckAgain;
+
+  /// A check is on its way: the "check again" button spins.
+  final bool checking;
 
   @override
   Widget build(BuildContext context) {
     final TaarraaColors c = context.colors;
 
-    return Container(
-      color: c.blockingOverlay,
-      padding: const EdgeInsets.all(Insets.s24),
-      alignment: Alignment.center,
-      child: TCard(
+    return ColoredBox(
+      color: c.bgPage,
+      child: SafeArea(
+        top: false,
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            _icon(context),
-            const SizedBox(height: Insets.s16),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: context.texts.title.copyWith(color: c.textPrimary),
-            ),
-            const SizedBox(height: Insets.s8),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: context.texts.bodySecondary.copyWith(
-                color: c.textSecondary,
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(
+                  Insets.screen,
+                  Insets.s32,
+                  Insets.screen,
+                  Insets.s16,
+                ),
+                child: Column(
+                  children: <Widget>[
+                    _icon(context),
+                    const SizedBox(height: Insets.s16),
+                    Semantics(
+                      header: true,
+                      child: Text(
+                        title,
+                        textAlign: TextAlign.center,
+                        style:
+                            context.texts.title.copyWith(color: c.textPrimary),
+                      ),
+                    ),
+                    const SizedBox(height: Insets.s8),
+                    Text(
+                      message,
+                      textAlign: TextAlign.center,
+                      style: context.texts.bodySecondary.copyWith(
+                        color: c.textSecondary,
+                      ),
+                    ),
+                    if (steps.isNotEmpty) ...<Widget>[
+                      const SizedBox(height: Insets.s24),
+                      TCard(
+                        child: Column(
+                          children: <Widget>[
+                            for (int i = 0; i < steps.length; i++) ...<Widget>[
+                              if (i > 0) const SizedBox(height: Insets.s12),
+                              _ApprovalStepRow(step: steps.elementAt(i)),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: Insets.s24),
-            TButton(
-              label: actionLabel,
-              variant: status == DriverApprovalStatus.rejected
-                  ? TButtonVariant.primary
-                  : TButtonVariant.secondary,
-              size: TButtonSize.small,
-              expand: false,
-              onPressed: onAction,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                Insets.screen,
+                0,
+                Insets.screen,
+                Insets.s16,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  TButton(label: supportLabel, onPressed: onSupport),
+                  const SizedBox(height: Insets.s8),
+                  TButton(
+                    label: checkAgainLabel,
+                    variant: TButtonVariant.tertiary,
+                    size: TButtonSize.small,
+                    loading: checking,
+                    onPressed: onCheckAgain,
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -135,12 +217,8 @@ class ApprovalGateView extends StatelessWidget {
 
   Widget _icon(BuildContext context) {
     final TaarraaColors c = context.colors;
-    final (Color tone, String? icon) = switch (status) {
-      DriverApprovalStatus.unknown => (c.textSecondary, null),
-      DriverApprovalStatus.pending => (c.warning, DsIcons.clock),
-      DriverApprovalStatus.rejected => (c.danger, DsIcons.close),
-      DriverApprovalStatus.approved => (c.success, DsIcons.check),
-    };
+    final bool rejected = status == DriverApprovalStatus.rejected;
+    final Color tone = rejected ? c.danger : c.warning;
 
     return Container(
       width: 72,
@@ -150,19 +228,59 @@ class ApprovalGateView extends StatelessWidget {
         shape: BoxShape.circle,
       ),
       child: Center(
-        child: icon == null
-            // `unknown` is a pending answer, not a verdict — a spinner says
-            // "still checking", which is what is actually happening.
-            ? SizedBox(
-                width: 26,
-                height: 26,
-                child: CircularProgressIndicator(
-                  strokeWidth: 3,
-                  valueColor: AlwaysStoppedAnimation<Color>(tone),
-                ),
-              )
-            : TIcon(icon, size: TIconSize.lg, color: tone),
+        child: TIcon(
+          rejected ? DsIcons.close : DsIcons.clock,
+          size: TIconSize.lg,
+          color: tone,
+        ),
       ),
+    );
+  }
+}
+
+class _ApprovalStepRow extends StatelessWidget {
+  const _ApprovalStepRow({required this.step});
+
+  final ApprovalStep step;
+
+  @override
+  Widget build(BuildContext context) {
+    final TaarraaColors c = context.colors;
+    final bool current = step.state == ApprovalStepState.current;
+
+    return Row(
+      children: <Widget>[
+        SizedBox(
+          width: TIconSize.md.value,
+          height: TIconSize.md.value,
+          child: switch (step.state) {
+            ApprovalStepState.done => TIcon(DsIcons.check, color: c.success),
+            ApprovalStepState.current => TIcon(DsIcons.clock, color: c.warning),
+            // Not started: an empty ring, the same size as the icons above.
+            ApprovalStepState.upcoming => Padding(
+                padding: const EdgeInsets.all(3),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: c.borderControl, width: 1.5),
+                  ),
+                ),
+              ),
+          },
+        ),
+        const SizedBox(width: Insets.s12),
+        Expanded(
+          child: Text(
+            step.label,
+            style: (current ? context.texts.bodyStrong : context.texts.body)
+                .copyWith(
+              color: step.state == ApprovalStepState.upcoming
+                  ? c.textSecondary
+                  : c.textPrimary,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

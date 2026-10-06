@@ -48,9 +48,13 @@ class MapHistoryDetailArgs {
     this.paymentMethod,
     this.tripTime,
     this.endedAt,
+    this.rideCredit,
   });
 
   final int typeVehicleId;
+
+  /// The trip's amount as the backend wrote it ("0.86"), not formatted: the
+  /// detail screen formats it in the fare currency (DD-54).
   final String cost;
   final String distand;
   final String duration;
@@ -74,6 +78,10 @@ class MapHistoryDetailArgs {
 
   /// When the trip started, for the "Time" figure.
   final DateTime? tripTime;
+
+  /// DD-51: the passenger's ride credit used on the trip, as the server sent
+  /// it. Shown on a cash trip.
+  final dynamic rideCredit;
 
   /// When the trip ended, for the passenger-call window.
   final DateTime? endedAt;
@@ -134,7 +142,10 @@ class BookingScreenArgs {
   final String imagePassanger;
   final String phonePassanger;
   final int typeVehicleId;
-  final int pricrVehicle;
+
+  /// Price per km, in the fare currency. A decimal on the real backend
+  /// (`0.3`), so not an `int` (DD-54). 0 means "not known": no estimate.
+  final num pricrVehicle;
   final bool refreshApp;
   final double latStart;
   final double lngStart;

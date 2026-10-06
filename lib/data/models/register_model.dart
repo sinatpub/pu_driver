@@ -1,3 +1,5 @@
+import 'package:pu_taxi_driver/core/utils/json_field.dart';
+
 class RegisterModel {
   Data? data;
   bool? status;
@@ -10,9 +12,9 @@ class RegisterModel {
   });
 
   factory RegisterModel.fromJson(Map<String, dynamic> json) => RegisterModel(
-        data: json["data"] == null ? null : Data.fromJson(json["data"]),
-        status: json["status"],
-        message: json["message"],
+        data: objectOrNull(json["data"], Data.fromJson),
+        status: json["status"] is bool ? json["status"] : null,
+        message: stringOrNull(json["message"]),
       );
 
   Map<String, dynamic> toJson() => {
@@ -32,8 +34,8 @@ class Data {
   });
 
   factory Data.fromJson(Map<String, dynamic> json) => Data(
-        driver: json["driver"] == null ? null : Driver.fromJson(json["driver"]),
-        token: json["token"],
+        driver: objectOrNull(json["driver"], Driver.fromJson),
+        token: stringOrNull(json["token"]),
       );
 
   Map<String, dynamic> toJson() => {
@@ -86,26 +88,25 @@ class Driver {
   });
 
   factory Driver.fromJson(Map<String, dynamic> json) => Driver(
-        id: json["id"],
-        name: json["name"],
+        id: intOrNull(json["id"]),
+        name: stringOrNull(json["name"]),
         lastName: json["last_name"],
         firstName: json["first_name"],
         email: json["email"],
         gender: json["gender"],
-        dob: json["dob"],
-        countryCode: json["country_code"],
-        phone: json["phone"],
+        dob: stringOrNull(json["dob"]),
+        countryCode: stringOrNull(json["country_code"]),
+        phone: stringOrNull(json["phone"]),
         cardType: json["card_type"],
         cardNumber: json["card_number"],
-        cardImage: json["card_image"],
+        cardImage: stringOrNull(json["card_image"]),
         driverLicenseNumber: json["driver_license_number"],
-        driverLicenseExpired: json["driver_license_expired"],
-        driverLicenseImage: json["driver_license_image"],
-        status: json["status"],
-        statusDate: json["status_date"],
-        profileImage: json["profile_image"],
-        vehicle:
-            json["vehicle"] == null ? null : Vehicle.fromJson(json["vehicle"]),
+        driverLicenseExpired: stringOrNull(json["driver_license_expired"]),
+        driverLicenseImage: stringOrNull(json["driver_license_image"]),
+        status: intOrNull(json["status"]),
+        statusDate: stringOrNull(json["status_date"]),
+        profileImage: stringOrNull(json["profile_image"]),
+        vehicle: objectOrNull(json["vehicle"], Vehicle.fromJson),
       );
 
   Map<String, dynamic> toJson() => {
@@ -159,19 +160,19 @@ class Vehicle {
   });
 
   factory Vehicle.fromJson(Map<String, dynamic> json) => Vehicle(
-        id: json["id"],
-        typeVehicleId: json["type_vehicle_id"],
+        id: intOrNull(json["id"]),
+        typeVehicleId: intOrNull(json["type_vehicle_id"]),
         model: json["model"],
         manufacturer: json["manufacturer"],
         yearOfManufacture: json["year_of_manufacture"],
-        color: json["color"],
-        plateNumber: json["plate_number"],
+        color: stringOrNull(json["color"]),
+        plateNumber: stringOrNull(json["plate_number"]),
         enginePower: json["engine_power"],
         maxPassenger: json["max_passenger"],
-        status: json["status"],
-        vehicleImage: json["vehicle_image"] == null
-            ? []
-            : List<dynamic>.from(json["vehicle_image"]!.map((x) => x)),
+        status: intOrNull(json["status"]),
+        vehicleImage: json["vehicle_image"] is List
+            ? List<dynamic>.from(json["vehicle_image"] as List)
+            : <dynamic>[],
       );
 
   Map<String, dynamic> toJson() => {

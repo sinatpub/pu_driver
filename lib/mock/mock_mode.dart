@@ -84,6 +84,27 @@ enum MockPaymentMethod {
   final String label;
 }
 
+/// DD-51: how much of the fare the simulated passenger pays with ride credit.
+/// Decided when the trip completes.
+enum MockRideCredit {
+  none('None'),
+
+  /// ៛3,000, or the whole fare if it is less.
+  part('៛3,000'),
+  full('All');
+
+  const MockRideCredit(this.label);
+  final String label;
+
+  static const int partAmount = 3000;
+
+  int of(int fare) => switch (this) {
+        MockRideCredit.none => 0,
+        MockRideCredit.part => fare < partAmount ? fare : partAmount,
+        MockRideCredit.full => fare,
+      };
+}
+
 /// The admin-approval state of the mock driver account (`driver.status`).
 enum MockApproval {
   approved(1),
@@ -104,6 +125,7 @@ class MockSettings {
     this.speed = 1,
     this.dispatch = MockDispatch.auto,
     this.paymentMethod = MockPaymentMethod.cash,
+    this.rideCredit = MockRideCredit.none,
     this.rideHasDestination = true,
     this.approval = MockApproval.approved,
   });
@@ -118,6 +140,7 @@ class MockSettings {
   final double speed;
   final MockDispatch dispatch;
   final MockPaymentMethod paymentMethod;
+  final MockRideCredit rideCredit;
 
   /// With a destination the trip screen draws a route and shows a fixed
   /// estimate; without one it runs the live distance/fare meter.
@@ -130,6 +153,7 @@ class MockSettings {
     double? speed,
     MockDispatch? dispatch,
     MockPaymentMethod? paymentMethod,
+    MockRideCredit? rideCredit,
     bool? rideHasDestination,
     MockApproval? approval,
   }) =>
@@ -139,6 +163,7 @@ class MockSettings {
         speed: speed ?? this.speed,
         dispatch: dispatch ?? this.dispatch,
         paymentMethod: paymentMethod ?? this.paymentMethod,
+        rideCredit: rideCredit ?? this.rideCredit,
         rideHasDestination: rideHasDestination ?? this.rideHasDestination,
         approval: approval ?? this.approval,
       );
@@ -186,6 +211,9 @@ class MockMode {
       paymentMethod: _byName(MockPaymentMethod.values,
               prefs.getString('${_prefix}paymentMethod')) ??
           MockPaymentMethod.cash,
+      rideCredit: _byName(
+              MockRideCredit.values, prefs.getString('${_prefix}rideCredit')) ??
+          MockRideCredit.none,
       rideHasDestination: prefs.getBool('${_prefix}rideHasDestination') ?? true,
       approval:
           _byName(MockApproval.values, prefs.getString('${_prefix}approval')) ??
@@ -224,6 +252,7 @@ class MockMode {
     await prefs.setDouble('${_prefix}speed', next.speed);
     await prefs.setString('${_prefix}dispatch', next.dispatch.name);
     await prefs.setString('${_prefix}paymentMethod', next.paymentMethod.name);
+    await prefs.setString('${_prefix}rideCredit', next.rideCredit.name);
     await prefs.setBool(
         '${_prefix}rideHasDestination', next.rideHasDestination);
     await prefs.setString('${_prefix}approval', next.approval.name);

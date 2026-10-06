@@ -198,7 +198,8 @@ class TransactionRow extends StatelessWidget {
         WalletTxKind.tripEarning => DsIcons.car,
         WalletTxKind.commission => DsIcons.doc,
         WalletTxKind.referralReward ||
-        WalletTxKind.rewardTransfer =>
+        WalletTxKind.rewardTransfer ||
+        WalletTxKind.rideCredit =>
           DsIcons.gift,
         _ => DsIcons.wallet,
       };

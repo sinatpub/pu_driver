@@ -39,7 +39,13 @@ class SessionService {
     await _tokenStore.write(token);
   }
 
+  /// How many sessions have ended in this run of the app. App-lifetime
+  /// state reads it to tell a new driver from the one before (`AppLogic`).
+  int get endedSessions => _endedSessions;
+  int _endedSessions = 0;
+
   Future<void> clear() async {
+    _endedSessions++;
     _cachedToken = null;
     await _tokenStore.clear();
   }

@@ -7,8 +7,7 @@ import 'package:get/get.dart' hide Trans;
 import 'package:pu_taxi_driver/app/state.dart';
 import 'package:pu_taxi_driver/core/network/api_client.dart';
 import 'package:pu_taxi_driver/data/datasources/get_vehical_remote_data_source.dart';
-import 'package:pu_taxi_driver/data/models/vehical_model.dart'
-    hide Color;
+import 'package:pu_taxi_driver/data/models/vehical_model.dart' hide Color;
 import 'package:pu_taxi_driver/presentation/screens/login/data/datasource/auth_datasource.dart';
 import 'package:pu_taxi_driver/presentation/screens/login/data/repository/auth_repository.dart';
 import 'package:pu_taxi_driver/presentation/screens/history/data/models/history_driver_info_model.dart';
@@ -44,6 +43,7 @@ import 'package:pu_taxi_driver/routes/route_arguments.dart';
 import 'package:pu_taxi_driver/presentation/widgets/ds/ds.dart';
 
 import '../helpers/localized_host.dart';
+import 'package:pu_taxi_driver/core/utils/fare_money.dart';
 
 /// UX-redesign P3 — accessibility on the redesigned screens (`02 §1.2, §13`).
 ///
@@ -188,11 +188,19 @@ final Map<String, (Widget Function(), bool)> _surfaces =
     () => const Scaffold(
           body: Stack(
             children: <Widget>[
-              ApprovalGateView(
-                status: DriverApprovalStatus.rejected,
-                title: 'Application not approved',
-                message: 'Please re-submit your documents.',
-                actionLabel: 'Contact support',
+              Positioned.fill(
+                child: ApprovalGateView(
+                  status: DriverApprovalStatus.pending,
+                  title: 'Waiting approval from admin',
+                  message: 'Your account is pending admin approval.',
+                  steps: <ApprovalStep>[
+                    ApprovalStep('Documents sent', ApprovalStepState.done),
+                    ApprovalStep('Under review', ApprovalStepState.current),
+                    ApprovalStep('Ready to drive', ApprovalStepState.upcoming),
+                  ],
+                  supportLabel: 'Contact support',
+                  checkAgainLabel: 'Check again',
+                ),
               ),
             ],
           ),
@@ -494,8 +502,11 @@ Future<void> _pump(
 }
 
 void main() {
+  // The fixtures are priced in riel; the app's default is dollars (DD-54).
+  setUp(() => debugFareCurrency = 'KHR');
   setUp(_registerControllers);
   tearDown(() {
+    debugFareCurrency = null;
     Get.find<OtpLogic>().onClose();
     Get.reset();
   });

@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:pu_taxi_driver/core/network/api_client.dart';
 import 'package:pu_taxi_driver/core/network/result.dart';
+import 'package:pu_taxi_driver/core/utils/debug_auth_bypass.dart';
 import 'package:pu_taxi_driver/presentation/screens/login/data/datasource/auth_datasource.dart';
 import 'package:pu_taxi_driver/presentation/screens/login/data/models/phone_model.dart';
 import 'package:pu_taxi_driver/presentation/screens/login/data/repository/auth_repository.dart';
@@ -59,6 +60,16 @@ void main() {
       await t.pumpAndSettle();
     }
 
+    Future<void> pumpWithDebugLogin(WidgetTester t) async {
+      t.view.physicalSize = const Size(1170, 2532);
+      t.view.devicePixelRatio = 3;
+      addTearDown(t.view.reset);
+      await t.pumpWidget(
+        localizedHostPage(const LoginPage(showDebugLogin: true)),
+      );
+      await t.pumpAndSettle();
+    }
+
     testWidgets('empty number shows the phone error, no request',
         (WidgetTester t) async {
       await pump(t);
@@ -98,6 +109,51 @@ void main() {
       await pump(t);
       expect(find.byType(TSegmented), findsOneWidget);
       expect(find.byType(BottomSheet), findsNothing);
+    });
+
+    // The bypass flag is a compile-time constant that no test build sets, so
+    // a plain `LoginPage()` here is what a build without the flag shows.
+    testWidgets('no debug login unless the build asks for the bypass',
+        (WidgetTester t) async {
+      await pump(t);
+      expect(find.text(DebugAuthBypass.loginLabel), findsNothing);
+      expect(find.byType(TButton), findsOneWidget);
+    });
+
+    testWidgets('the debug login sits under Next and says which account',
+        (WidgetTester t) async {
+      await pumpWithDebugLogin(t);
+
+      expect(find.text(DebugAuthBypass.loginLabel), findsOneWidget);
+      expect(find.text(DebugAuthBypass.loginCaption), findsOneWidget);
+      expect(
+        t.getTopLeft(find.text(DebugAuthBypass.loginLabel)).dy,
+        greaterThan(t.getBottomLeft(find.text('Next')).dy),
+      );
+    });
+
+    testWidgets('tapping it without the bypass signs nobody in',
+        (WidgetTester t) async {
+      await pumpWithDebugLogin(t);
+      await t.tap(find.text(DebugAuthBypass.loginLabel));
+      await t.pumpAndSettle();
+
+      expect(logic.state.debugLoggingIn.value, isFalse);
+      expect(find.byType(LoginPage), findsOneWidget);
+      expect(repo.calls, 0);
+    });
+
+    testWidgets('while it signs in, the field and Next are locked',
+        (WidgetTester t) async {
+      await pumpWithDebugLogin(t);
+      logic.state.debugLoggingIn.value = true;
+      await t.pump();
+
+      expect(t.widget<TextField>(find.byType(TextField)).enabled, isFalse);
+      final List<TButton> buttons =
+          t.widgetList<TButton>(find.byType(TButton)).toList();
+      expect(buttons.first.onPressed, isNull);
+      expect(buttons.last.loading, isTrue);
     });
   });
 

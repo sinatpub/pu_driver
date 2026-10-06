@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 import 'package:pu_taxi_driver/core/utils/json_list.dart';
+import 'package:pu_taxi_driver/core/utils/json_field.dart';
 
 NotificationModel notificationModeFromJson(String str) =>
     NotificationModel.fromJson(json.decode(str));
@@ -30,13 +31,13 @@ class NotificationModel {
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) =>
       NotificationModel(
-        status: json["status"],
+        status: json["status"] is bool ? json["status"] : null,
         data: parseJsonList<DataNotification>(
             json["data"], (x) => DataNotification.fromJson(x)),
-        currentPage: json["current_page"],
-        lastPage: json["last_page"],
-        perPage: json["per_page"],
-        total: json["total"],
+        currentPage: intOrNull(json["current_page"]),
+        lastPage: intOrNull(json["last_page"]),
+        perPage: intOrNull(json["per_page"]),
+        total: intOrNull(json["total"]),
       );
 
   Map<String, dynamic> toJson() => {
@@ -78,16 +79,16 @@ class DataNotification {
 
   factory DataNotification.fromJson(Map<String, dynamic> json) =>
       DataNotification(
-        id: json["id"],
-        title: json["title"],
-        description: json["description"],
-        releaseDate: json["release_date"],
-        expiredDate: json["expired_date"],
-        target: json["target"],
-        status: json["status"],
-        createdBy: json["created_by"],
-        createdAt: json["created_at"],
-        updatedAt: json["updated_at"],
+        id: intOrNull(json["id"]),
+        title: stringOrNull(json["title"]),
+        description: stringOrNull(json["description"]),
+        releaseDate: stringOrNull(json["release_date"]),
+        expiredDate: stringOrNull(json["expired_date"]),
+        target: intOrNull(json["target"]),
+        status: intOrNull(json["status"]),
+        createdBy: intOrNull(json["created_by"]),
+        createdAt: stringOrNull(json["created_at"]),
+        updatedAt: stringOrNull(json["updated_at"]),
         files: parseJsonList<FileElement>(
             json["files"], (x) => FileElement.fromJson(x)),
       );
@@ -129,14 +130,14 @@ class FileElement {
   });
 
   factory FileElement.fromJson(Map<String, dynamic> json) => FileElement(
-        id: json["id"],
-        fileOriginalName: json["file_original_name"],
-        fileSize: json["file_size"],
-        fileType: json["file_type"],
-        fileUrl: json["file_url"],
-        objectId: json["object_id"],
-        objectType: json["object_type"],
-        createdBy: json["created_by"],
+        id: intOrNull(json["id"]),
+        fileOriginalName: stringOrNull(json["file_original_name"]),
+        fileSize: stringOrNull(json["file_size"]),
+        fileType: stringOrNull(json["file_type"]),
+        fileUrl: stringOrNull(json["file_url"]),
+        objectId: intOrNull(json["object_id"]),
+        objectType: stringOrNull(json["object_type"]),
+        createdBy: intOrNull(json["created_by"]),
       );
 
   Map<String, dynamic> toJson() => {

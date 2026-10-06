@@ -30,3 +30,15 @@ num? parseMoney(dynamic value) {
 
 /// The same value as a double, for arithmetic. Null stays null.
 double? parseMoneyAsDouble(dynamic value) => parseMoney(value)?.toDouble();
+
+/// The symbol for a currency code.
+///
+/// Unknown or absent codes fall back to `$`, matching what the wallet screen
+/// did before this moved here.
+String currencySymbol(String? currency) => currency == "KHR" ? "៛" : "\$";
+
+/// Whether a currency is conventionally written without a fractional part.
+///
+/// Riel is used in whole units in practice, which is why the app's
+/// `formatRielAmount` renders zero decimals.
+bool isWholeUnitCurrency(String? currency) => currency == "KHR";

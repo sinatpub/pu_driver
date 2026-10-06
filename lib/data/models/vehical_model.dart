@@ -1,3 +1,5 @@
+import 'package:pu_taxi_driver/core/utils/json_field.dart';
+
 class VehicalTypeEntities {
   List<SingleVehical> data;
   List<Color> color;
@@ -13,10 +15,10 @@ class VehicalTypeEntities {
 
   factory VehicalTypeEntities.fromJson(Map<String, dynamic> json) =>
       VehicalTypeEntities(
-        data: List<SingleVehical>.from(json["data"].map((x) => SingleVehical.fromJson(x))),
-        color: List<Color>.from(json["color"].map((x) => Color.fromJson(x))),
-        message: json["message"],
-        status: json["status"],
+        data: objectList(json["data"], SingleVehical.fromJson),
+        color: objectList(json["color"], Color.fromJson),
+        message: stringOrEmpty(json["message"]),
+        status: boolOrDefault(json["status"]),
       );
 
   Map<String, dynamic> toJson() => {
@@ -30,11 +32,15 @@ class VehicalTypeEntities {
 class SingleVehical {
   int id;
   String name;
-  int price;
-  int minimumFare;
+
+  /// Price per km and the fare floor, in the fare currency. Decimals on the
+  /// real backend (`"0.30"`, `"0.50"`), so not `int` (DD-54). Money: a value
+  /// that is missing or not a number refuses to parse rather than becoming 0.
+  num price;
+  num minimumFare;
   String? image;
-  DateTime createdAt;
-  DateTime updatedAt;
+  DateTime? createdAt;
+  DateTime? updatedAt;
 
   SingleVehical({
     required this.id,
@@ -42,18 +48,26 @@ class SingleVehical {
     required this.price,
     required this.minimumFare,
     required this.image,
-    required this.createdAt,
-    required this.updatedAt,
+    this.createdAt,
+    this.updatedAt,
   });
 
   factory SingleVehical.fromJson(Map<String, dynamic> json) => SingleVehical(
-        id: json["id"],
-        name: json["name"],
-        price: json["price"],
-        minimumFare: json["minimum_fare"],
-        image: json["image"],
-        createdAt: DateTime.parse(json["created_at"]),
-        updatedAt: DateTime.parse(json["updated_at"]),
+        id: intOrDefault(json["id"]),
+        name: stringOrEmpty(json["name"]),
+        price: requireMoney(
+          json["price"],
+          model: 'SingleVehical',
+          field: 'price',
+        ),
+        minimumFare: requireMoney(
+          json["minimum_fare"],
+          model: 'SingleVehical',
+          field: 'minimum_fare',
+        ),
+        image: stringOrNull(json["image"]),
+        createdAt: dateOrNull(json["created_at"]),
+        updatedAt: dateOrNull(json["updated_at"]),
       );
 
   Map<String, dynamic> toJson() => {
@@ -62,8 +76,8 @@ class SingleVehical {
         "price": price,
         "image": image,
         "minimum_fare": minimumFare,
-        "created_at": createdAt.toIso8601String(),
-        "updated_at": updatedAt.toIso8601String(),
+        "created_at": createdAt?.toIso8601String(),
+        "updated_at": updatedAt?.toIso8601String(),
       };
 }
 
@@ -83,11 +97,11 @@ class Color {
   });
 
   factory Color.fromJson(Map<String, dynamic> json) => Color(
-        id: json["id"],
-        name: json["name"],
-        colorCode: json["color_code"],
-        createdAt: json["created_at"],
-        updatedAt: json["updated_at"],
+        id: intOrDefault(json["id"]),
+        name: stringOrEmpty(json["name"]),
+        colorCode: stringOrNull(json["color_code"]),
+        createdAt: stringOrNull(json["created_at"]),
+        updatedAt: stringOrNull(json["updated_at"]),
       );
 
   Map<String, dynamic> toJson() => {

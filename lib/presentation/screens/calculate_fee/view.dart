@@ -2,10 +2,11 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;
 
-import 'package:pu_taxi_driver/app/funtion_convert.dart';
+import 'package:pu_taxi_driver/core/utils/fare_money.dart';
 import 'package:pu_taxi_driver/core/theme/tokens.dart';
 import 'package:pu_taxi_driver/core/utils/clock_format.dart';
 import 'package:pu_taxi_driver/core/utils/distance_format.dart';
+import 'package:pu_taxi_driver/presentation/screens/calculate_fee/payment_split.dart';
 import 'package:pu_taxi_driver/presentation/screens/calculate_fee/widgets/receipt_card.dart';
 import 'package:pu_taxi_driver/presentation/widgets/ds/ds.dart';
 
@@ -56,10 +57,31 @@ class CalculateFeeScreen extends StatelessWidget {
     final String? method = logic.isFromDropBooking
         ? logic.dataComplete!.data!.payment!.paymentMethod
         : logic.dataDriverInfo!.payment!.paymentMethod;
+    final dynamic rideCredit = logic.isFromDropBooking
+        ? logic.dataComplete!.data!.payment!.rideCredit
+        : logic.dataDriverInfo!.payment!.rideCredit;
 
-    final String amountText = '៛${formatRielAmount(amount)}';
+    final String amountText = formatFare(amount);
     final PaymentKind kind = PaymentKind.of(method);
     final Duration? parsedDuration = parseDurationText(duration);
+
+    // DD-51: on a cash trip the passenger may have paid part with ride
+    // credit. The driver collects the rest; the credit goes to the wallet.
+    final PaymentSplit split = paymentSplit(
+      amount: amount,
+      rideCredit: rideCredit,
+      paidInCash: kind == PaymentKind.cash,
+    );
+    final String heroAmount = split.usesCredit && !split.fullyCredited
+        ? formatFare(split.cash)
+        : amountText;
+    final String hint = !split.usesCredit
+        ? kind.hint(amountText)
+        : split.fullyCredited
+            ? 'PAID_IN_APP_HINT'.tr()
+            : kind.hint(heroAmount);
+    final String action =
+        split.fullyCredited ? 'FINISH_TRIP'.tr() : kind.action;
 
     return Scaffold(
       backgroundColor: c.bgPage,
@@ -79,8 +101,22 @@ class CalculateFeeScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
                     PaymentHero(
-                      method: method,
-                      amount: amountText,
+                      // No "Cash" badge on a trip with no cash to take.
+                      method: split.fullyCredited ? null : method,
+                      amount: heroAmount,
+                      label: split.fullyCredited
+                          ? 'PAID_BY_RIDE_CREDIT'.tr()
+                          : null,
+                      nothingToCollect: split.fullyCredited ? true : null,
+                      fareNote: split.usesCredit && !split.fullyCredited
+                          ? 'FARE_TOTAL'.tr(args: <String>[amountText])
+                          : null,
+                      creditNote: !split.usesCredit
+                          ? null
+                          : split.fullyCredited
+                              ? 'RIDE_CREDIT_FULL_NOTE'.tr()
+                              : 'RIDE_CREDIT_NOTE'
+                                  .tr(args: <String>[formatFare(split.credit)]),
                       distance: formatDistanceText(distance),
                       duration: parsedDuration == null
                           ? duration
@@ -102,7 +138,7 @@ class CalculateFeeScreen extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(
                   Insets.s16, 0, Insets.s16, Insets.s12),
               child: Text(
-                kind.hint(amountText),
+                hint,
                 textAlign: TextAlign.center,
                 style: context.texts.caption.copyWith(color: c.textSecondary),
               ),
@@ -119,7 +155,7 @@ class CalculateFeeScreen extends StatelessWidget {
                   final bool busy =
                       logic.state.status.value == PaymentStatus.loading;
                   return TButton(
-                    label: kind.action,
+                    label: action,
                     variant: TButtonVariant.success,
                     loading: busy,
                     onPressed: busy ? null : logic.acceptPayment,

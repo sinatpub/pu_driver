@@ -8,8 +8,8 @@
 /// and ignores whatever distance/fare the client sends (Q-2, `docs/13`).
 double estimateFare({
   required double distanceKm,
-  required int pricePerKm,
-  required int minimumFare,
+  required num pricePerKm,
+  required num minimumFare,
 }) {
   if (distanceKm <= 1.0) return minimumFare.toDouble();
   return (distanceKm - 1.0) * pricePerKm + minimumFare;

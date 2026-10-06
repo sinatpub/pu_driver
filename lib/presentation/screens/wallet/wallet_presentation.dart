@@ -6,28 +6,18 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:pu_taxi_driver/core/utils/money.dart';
 import 'package:pu_taxi_driver/presentation/screens/wallet/data/models/wallet_model.dart';
 
+// `currencySymbol` and `isWholeUnitCurrency` moved to core/utils/money.dart
+// when the trip screens needed them too (DD-54); re-exported so the wallet's
+// callers keep one import.
+export 'package:pu_taxi_driver/core/utils/money.dart'
+    show currencySymbol, isWholeUnitCurrency;
+
 /// N-01 (docs/12) — presenting the wallet the backend already returns.
 ///
 /// Pure: no GetX, no BuildContext, no widgets. The wallet is the driver's
 /// money, and `.agent/RULES.md` puts money in mandatory-test territory, so
 /// every rule about how it is displayed or ordered lives here where it can be
 /// tested rather than inside a widget tree.
-
-/// The symbol for a currency code.
-///
-/// Unknown or absent codes fall back to `$`, matching what the screen did
-/// before. That fallback is a guess the backend should not be making us take
-/// — see the note on [formatWalletAmount].
-String currencySymbol(String? currency) => currency == "KHR" ? "៛" : "\$";
-
-/// Whether a currency is conventionally written without a fractional part.
-///
-/// Riel is used in whole units in practice, which is why the app's shared
-/// `formatRielAmount` renders zero decimals. It was called
-/// `formatToTwoDecimalPlaces` until 2026-09-10, and this screen using it for
-/// USD on the strength of that name is what produced the rounding defect
-/// below.
-bool isWholeUnitCurrency(String? currency) => currency == "KHR";
 
 /// Formats a wallet amount for display.
 ///
@@ -71,6 +61,9 @@ enum WalletTxKind {
 
   /// Invite rewards moved into the balance by the driver (DD-48).
   rewardTransfer,
+
+  /// The part of a cash fare a passenger paid with ride credit (DD-51).
+  rideCredit,
   unknown;
 
   static WalletTxKind of(String? typeName) {
@@ -81,6 +74,7 @@ enum WalletTxKind {
     if (name.contains('withdraw')) return WalletTxKind.withdraw;
     // Before "reward": "Reward Transfer" contains both words.
     if (name.contains('transfer')) return WalletTxKind.rewardTransfer;
+    if (name.contains('credit')) return WalletTxKind.rideCredit;
     if (name.contains('referral') || name.contains('reward')) {
       return WalletTxKind.referralReward;
     }
@@ -97,6 +91,7 @@ enum WalletTxKind {
         WalletTxKind.withdraw => 'WALLET_TX_WITHDRAW',
         WalletTxKind.referralReward => 'WALLET_TX_REFERRAL_REWARD',
         WalletTxKind.rewardTransfer => 'WALLET_TX_REWARD_TRANSFER',
+        WalletTxKind.rideCredit => 'WALLET_TX_RIDE_CREDIT',
         WalletTxKind.unknown => null,
       };
 }
@@ -118,7 +113,8 @@ WalletTxDirection walletTxDirection(WalletTxKind kind, dynamic amount) {
     WalletTxKind.topUp ||
     WalletTxKind.tripEarning ||
     WalletTxKind.referralReward ||
-    WalletTxKind.rewardTransfer =>
+    WalletTxKind.rewardTransfer ||
+    WalletTxKind.rideCredit =>
       WalletTxDirection.moneyIn,
     WalletTxKind.unknown => WalletTxDirection.unknown,
   };

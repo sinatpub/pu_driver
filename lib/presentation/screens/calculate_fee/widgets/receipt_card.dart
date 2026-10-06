@@ -121,6 +121,9 @@ class PaymentHero extends StatelessWidget {
     required this.duration,
     required this.time,
     this.label,
+    this.creditNote,
+    this.fareNote,
+    this.nothingToCollect,
   });
 
   /// Replaces the method's instruction ("Collect in cash") over the amount,
@@ -133,6 +136,17 @@ class PaymentHero extends StatelessWidget {
 
   /// Pre-formatted, e.g. "៛9,100" via `formatRielAmount`.
   final String amount;
+
+  /// DD-51: "៛3,000 paid by ride credit · added to your wallet" — shown in a
+  /// green band under the amount when the passenger used ride credit.
+  final String? creditNote;
+
+  /// DD-51: "Fare ៛12,000" — when the amount shown is not the whole fare.
+  final String? fareNote;
+
+  /// Overrides when "Nothing to collect" shows. Null keeps the rule: a trip
+  /// paid in the app, on the payment screen.
+  final bool? nothingToCollect;
 
   /// Pre-formatted: "3.1 km", "8:24", "17:36".
   final String distance;
@@ -166,11 +180,25 @@ class PaymentHero extends StatelessWidget {
             alignment: Alignment.centerLeft,
             child: TAmount(text: amount, style: TAmountStyle.hero),
           ),
-          if (kind.paidInApp && label == null)
+          if (nothingToCollect ?? (kind.paidInApp && label == null))
             Text(
               'NOTHING_TO_COLLECT'.tr(),
               style: context.texts.caption.copyWith(color: c.success),
             ),
+          if (fareNote != null && fareNote!.isNotEmpty)
+            Text(
+              fareNote!,
+              style: context.texts.caption.copyWith(
+                color: c.textSecondary,
+                fontFeatures: const <FontFeature>[
+                  FontFeature.tabularFigures(),
+                ],
+              ),
+            ),
+          if (creditNote != null && creditNote!.isNotEmpty) ...<Widget>[
+            const SizedBox(height: Insets.s8),
+            RideCreditNote(text: creditNote!),
+          ],
           const SizedBox(height: Insets.s12),
           _TripFacts(
             facts: <(String, String)>[
@@ -178,6 +206,49 @@ class PaymentHero extends StatelessWidget {
               ('DURATION'.tr(), duration),
               ('TIME'.tr(), time),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The ride-credit band under the amount (DD-51): green, with the gift mark,
+/// because it is money coming to the driver.
+class RideCreditNote extends StatelessWidget {
+  const RideCreditNote({super.key, required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final TaarraaColors c = context.colors;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: c.successTint,
+        borderRadius: Radii.controlRadius,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.only(top: 1),
+            child: TIcon(DsIcons.gift, size: TIconSize.sm, color: c.success),
+          ),
+          const SizedBox(width: Insets.s8),
+          Expanded(
+            child: Text(
+              text,
+              style: context.texts.caption.copyWith(
+                color: c.success,
+                fontWeight: FontWeights.bold,
+                fontFeatures: const <FontFeature>[
+                  FontFeature.tabularFigures(),
+                ],
+              ),
+            ),
           ),
         ],
       ),

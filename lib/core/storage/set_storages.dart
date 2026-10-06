@@ -24,6 +24,26 @@ class StorageSet {
         StorageKeys.arrivedAt, '$bookingId|${at.millisecondsSinceEpoch}');
   }
 
+  /// Keeps the trip meter across an app restart: the metres driven so far
+  /// for [bookingId], and the point they were last counted at, so the stretch
+  /// covered while the app was closed can be added when it comes back.
+  ///
+  /// The meter used to live only in the trip screen. A restart mid-trip set
+  /// it back to zero, so the driver saw the minimum fare again — and
+  /// `complete-drive` was sent that short distance.
+  static Future<void> setTripDistance(
+    int bookingId, {
+    required double meters,
+    required double latitude,
+    required double longitude,
+  }) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      StorageKeys.tripDistance,
+      '$bookingId|$meters|$latitude|$longitude',
+    );
+  }
+
   static Future<void> saveLocation(double latitude, double longitude) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setDouble('latitude', latitude);

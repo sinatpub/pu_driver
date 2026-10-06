@@ -1,96 +1,118 @@
-import 'package:pu_taxi_driver/core/config/app_config.dart';
+import 'dart:io' show Platform;
+
 import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:pu_taxi_driver/core/network/api_client.dart';
+import 'package:pu_taxi_driver/core/config/app_config.dart';
+import 'package:pu_taxi_driver/core/network/result.dart';
+import 'package:pu_taxi_driver/core/storage/get_storages.dart';
+import 'package:pu_taxi_driver/core/storage/set_storages.dart';
+import 'package:pu_taxi_driver/data/models/register_model.dart';
 import 'package:pu_taxi_driver/services/session_service.dart';
+
+/// The password login the bypass signs in with: `AuthRepository.passwordLogin`.
+/// Passed in rather than imported, so this file does not reach up into a
+/// screen's data layer.
+typedef DebugPasswordLogin = Future<Result<RegisterModel>> Function({
+  required String phone,
+  required String password,
+  required String deviceToken,
+  required String platform,
+});
 
 /// A development-only shortcut past OTP verification, so the screens *behind*
 /// login (drawer, home, trip) can be exercised on an emulator without a real
 /// SMS round-trip.
 ///
-/// **This cannot be switched on in a release build.** It requires all three:
+/// **This cannot be switched on in a release build.** It requires both:
 ///
 /// 1. `kDebugMode` — the constant is `false` in profile/release, so the whole
 ///    branch is tree-shaken out of a shipped binary.
 /// 2. `--dart-define=DEBUG_OTP_BYPASS=true` — off unless a build explicitly
 ///    asks for it. Deliberately **not** in `dart_defines.example.json`.
-/// 3. The typed code matching [bypassCode].
 ///
-/// On a match it performs a **real** password login against `POST /taxi/login`
-/// — an endpoint the driver app does not otherwise use — and caches the token
-/// and user it returns, so everything downstream talks to the backend as that
-/// account. Credentials come from `--dart-define`, never from source;
+/// It has two doors: the login page's button ([loginLabel]), and typing
+/// [bypassCode] on the OTP screen.
+///
+/// Either one performs a **real** password login against
+/// `POST /taxi-driver/login` — an endpoint the driver app does not otherwise
+/// use. That endpoint answers with the same body as `verify-phone-otp` (the
+/// driver and a token), and the result is kept the same way a verified OTP
+/// is, so everything downstream talks to the backend as that driver.
+/// Credentials come from `--dart-define`, never from source;
 /// `dart_defines.json` is gitignored, which is where they belong.
 class DebugAuthBypass {
   DebugAuthBypass._();
 
   static const bypassCode = '0000';
 
-  /// Where the cached login user lands, for anything that wants to inspect it.
-  static const userCacheKey = 'debug_bypass_user';
-
   static const _enabledByDefine = AppConfig.debugOtpBypass;
   static const _phone = AppConfig.debugLoginPhone;
   static const _password = AppConfig.debugLoginPassword;
+
+  /// Sent as `device_token` when the phone has no FCM token yet. The app
+  /// registers the real one right after sign-in, through `push-device-token`.
+  static const _noDeviceToken = 'debug-login';
 
   static bool get isEnabled => kDebugMode && _enabledByDefine;
 
   static bool accepts(String otpCode) => isEnabled && otpCode == bypassCode;
 
-  static Map<String, dynamic>? _cachedUser;
+  /// The login page's debug button. Kept here, not in the translation files:
+  /// it is developer tooling and no driver ever sees it.
+  static const loginLabel = 'Debug login';
 
-  /// The user object from the bypass login, once [seedSession] has run.
-  static Map<String, dynamic>? get cachedUser => _cachedUser;
+  /// Which account the button signs in as, so nobody has to open
+  /// `dart_defines.json` to find out.
+  static String get loginCaption => _phone.isEmpty
+      ? 'Debug build only. DEBUG_LOGIN_PHONE is not set.'
+      : 'Debug build only. Signs in as $_phone.';
 
-  /// Logs in for real and caches the result. Returns true when a token was
-  /// obtained; false (with a log line saying why) otherwise.
-  static Future<bool> seedSession() async {
+  /// Why the last [seedSession] failed, for the screen that asked; the log
+  /// has the same text. Null after a success.
+  static String? lastError;
+
+  /// Signs in for real through [login] and keeps the driver and the token as
+  /// a verified OTP does. Returns true when a session was obtained; false
+  /// (with [lastError] and a log line saying why) otherwise.
+  static Future<bool> seedSession(DebugPasswordLogin login) async {
     if (!isEnabled) return false;
+    lastError = null;
     if (_phone.isEmpty || _password.isEmpty) {
-      debugPrint(
-        '[DebugAuthBypass] OTP bypassed, but DEBUG_LOGIN_PHONE / '
-        'DEBUG_LOGIN_PASSWORD are unset — no session. Add them to '
-        'dart_defines.json (gitignored).',
-      );
-      return false;
+      return _fail('DEBUG_LOGIN_PHONE / DEBUG_LOGIN_PASSWORD are unset. '
+          'Add them to dart_defines.json (gitignored).');
     }
 
-    final result = await ApiClient().request<Map<String, dynamic>>(
-      path: '/taxi/login',
-      method: 'POST',
-      requiresToken: false,
-      body: {'phone': _phone, 'password': _password},
-      decode: (response) => Map<String, dynamic>.from(response.data as Map),
+    final String? fcmToken = await StorageGet.getFcmTokenLocal();
+    final result = await login(
+      phone: _phone,
+      password: _password,
+      deviceToken:
+          fcmToken == null || fcmToken.isEmpty ? _noDeviceToken : fcmToken,
+      platform: Platform.isIOS ? 'ios' : 'android',
     );
 
-    return await result.when(
-      ok: (json) async {
-        final data = json['data'] as Map<String, dynamic>?;
-        final token = data?['token'] as String?;
-        if (token == null || token.isEmpty) {
-          debugPrint('[DebugAuthBypass] login returned no token: $json');
-          return false;
+    return result.when(
+      ok: (RegisterModel model) async {
+        final String? token = model.data?.token;
+        final Driver? driver = model.data?.driver;
+        // The same rule the OTP screen applies: a session is a driver and a
+        // token together.
+        if (token == null || token.isEmpty || driver == null) {
+          return _fail(model.message ?? 'Login returned no driver session.');
         }
         await SessionService.instance.saveToken(token);
-        await _cacheUser(data?['user']);
+        await StorageSet.storeDriverData(model);
         debugPrint(
-          '[DebugAuthBypass] logged in as '
-          '${_cachedUser?['name']} (id=${_cachedUser?['id']}, '
-          'role_id=${_cachedUser?['role_id']}); token cached.',
+          '[DebugAuthBypass] signed in as ${driver.name} (id=${driver.id}).',
         );
         return true;
       },
-      err: (error) async {
-        debugPrint('[DebugAuthBypass] login failed: ${error.message}');
-        return false;
-      },
+      err: (error) async => _fail(error.message),
     );
   }
 
-  static Future<void> _cacheUser(Object? user) async {
-    if (user is! Map) return;
-    _cachedUser = Map<String, dynamic>.from(user);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(userCacheKey, _cachedUser.toString());
+  static bool _fail(String reason) {
+    lastError = reason;
+    debugPrint('[DebugAuthBypass] no session: $reason');
+    return false;
   }
 }

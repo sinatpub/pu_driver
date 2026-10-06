@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:pu_taxi_driver/app/logic.dart';
+import 'package:pu_taxi_driver/app/state.dart';
 import 'package:pu_taxi_driver/core/theme/tokens.dart';
 import 'package:pu_taxi_driver/presentation/widgets/ds/t_motion.dart';
 
@@ -11,7 +12,7 @@ import 'package:pu_taxi_driver/presentation/widgets/ds/t_motion.dart';
 /// Replaces `SwitchOnlineWidget` (a `flutter_switch`) with the prototype's
 /// pill. **The toggle logic is unchanged**, including its asymmetry: the
 /// approval gate only blocks going *online*. Turning off is always allowed,
-/// exactly as before.
+/// exactly as before. The toast a blocked driver gets now names the reason.
 ///
 /// Everything else still belongs to [AppLogic] — the optimistic flip, the
 /// rollback on failure and the EasyLoading overlay. This widget reads and
@@ -36,7 +37,16 @@ class OnlineStatusPill extends StatelessWidget {
           // Carried over verbatim from `switch_online_widget.dart`: the guard
           // fires only when going online.
           if (next && !app.isApproved) {
-            EasyLoading.showToast('WAITING_APPROVED_FROM_ADMIN'.tr());
+            // DD-52: say which of the three it is. A driver whose check has
+            // not answered is not "waiting for approval".
+            EasyLoading.showToast(switch (app.state.approvalStatus.value) {
+              DriverApprovalStatus.rejected => 'APPROVAL_REJECTED_TITLE'.tr(),
+              DriverApprovalStatus.pending =>
+                'WAITING_APPROVED_FROM_ADMIN'.tr(),
+              _ => app.state.approvalCheckFailed.value
+                  ? 'APPROVAL_CHECK_FAILED'.tr()
+                  : 'APPROVAL_CHECKING'.tr(),
+            });
             return;
           }
           app.toggle(next);

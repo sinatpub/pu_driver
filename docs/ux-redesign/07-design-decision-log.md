@@ -8,7 +8,7 @@ Each decision is recorded once. Other docs reference them as `DD-xx`. **Status**
 |---|---|---|
 | DD-05 | Logout | Product |
 | DD-33 | Error-dialog semantics | Engineering + Product |
-| DD-45 | Invite: what a driver earns for inviting a passenger; code format; link domain; the referral endpoints | Product + Backend |
+| DD-45 | Invite: the real link domain (before launch); the referral endpoints | Product + Backend |
 
 ---
 
@@ -1123,7 +1123,7 @@ The wallet showed two money cards — "Wallet 85,400 ៛" and "Commission fare 1
 
 ### Needs from the backend
 - Confirm `commission_fare` is a percentage and `debted` is unpaid commission, with the balance floor and the pay-debt-first rule.
-- The debt limit, and whether requests stop past it.
+- *(Answered 2026-10-03: there is no automatic debt limit. The company watches debt in the admin panel and stops a driver by hand; the app shows the debt and never blocks requests itself.)*
 - Transaction `type` codes (CLIENT_BRIEF B4), so names and directions come from codes, not from matching English text.
 - Top-up and withdraw endpoints (Q-4).
 
@@ -1159,7 +1159,7 @@ The reward flowchart and `ux_ui_design/referral-ux-copy-deck.md` describe a driv
 - **One QR and one invite code per person**, the same for inviting drivers and passengers. The QR holds a link; the app the new person signs up in decides what they joined as.
 - **Both drivers and passengers can invite and earn.** (The passenger app is not built yet.)
 - **The invited person is a driver:** the inviter earns **1% of each wallet top-up** that driver makes.
-- **The invited person is a passenger:** the inviter earns **10% of the platform's commission** on each trip they take. It comes out of the commission, never the fare or the driver's share, and it has no end date.
+- **The invited person is a passenger:** the inviter earns **10% of the platform's commission** on each trip they take, whether the inviter is a passenger or a driver (confirmed by the user on 2026-10-03). It comes out of the commission, never the fare or the driver's share, and it has no end date.
 - **A code is given at sign-up only.** There is no way to add one later.
 
 ### Decision (driver app)
@@ -1170,9 +1170,15 @@ The reward flowchart and `ux_ui_design/referral-ux-copy-deck.md` describe a driv
 - **Hidden without a backend:** `inviteFeatureEnabled` is true only while the mock backend is serving the app. Against the real API the button, the wallet card and the sign-up field do not appear, so no driver reaches a screen that can only fail.
 
 ### Open
-- **What a driver earns for inviting a passenger.** The app shows one rule per kind of invited person, so it shows 10% here too. The copy deck said 1% of commission. Not confirmed.
-- **The invite code's format** (the mock uses six random characters) and **the link's domain** (the mock uses `putaxi.example`).
-- **Whether the invited person gets anything** for joining (Q-21).
+- **The link's domain.** The mock uses `putaxi.example`; the user keeps the placeholder for now. A real domain is needed before launch.
+
+### Settled on 2026-10-03
+- **One level only.** The inviter earns from the people they invited directly, never from people those people invite.
+- **The invited person earns nothing**, at joining or later (Q-21). Only the inviter is rewarded, once the invited person tops up (driver) or pays for a ride (passenger).
+- **The invite code's format** stays six random letters and digits.
+- **Khmer text** is reviewed by the product owner, a native speaker.
+
+### Still open
 - **Self-invites** (same phone or device) should be refused by the server.
 - **The endpoints.** The app proposes `GET /taxi-driver/referral` (code, link, the two rates, invitees, rewards) and `GET /taxi-driver/referral/check-code?code=` (asked before the driver has a token). Neither exists.
 
@@ -1291,3 +1297,105 @@ The page background, `bg.page` `#F2F2F5`, read too deep behind the white cards o
 ### Impact
 `TaarraaColors.light.bgPage` in `core/theme/tokens.dart`; `02-design-system.md`, `01-design-direction.md`.
 
+## Decision DD-51: A passenger's rewards are ride credit
+
+**Settled by the user on 2026-10-03: option A. Product rule for the passenger app; recorded here because it changes what the driver collects.**
+
+### Decision
+- A passenger's invite rewards collect in a passenger reward balance — **ride credit**.
+- At payment the passenger **chooses** to use it, for part or all of a trip. Nothing is taken automatically, as on the driver side (DD-49).
+- **No cash withdrawal**, as on the driver side.
+- **The driver is paid the full fare.** The company covers the credit; it never comes out of the driver's share.
+
+### A trip paid partly with credit (settled 2026-10-03: option A)
+- **The driver collects only the rest.** Fare ៛12,000, ៛3,000 credit: the payment screen says "Collect ៛9,000 in cash", with "៛3,000 paid by ride credit · added to your wallet" under it.
+- **The credited part reaches the driver's wallet** as a "Ride credit +៛3,000" row.
+- **Commission is on the full fare** (៛12,000 × 10% = ៛1,200): the fare did not change, only who paid part of it.
+- Not chosen: collecting the full fare in cash and refunding the passenger later; credit on wallet or card trips only.
+- Not built: the payment screen, history and wallet changes wait for the user to see the UI.
+
+### Needs from the backend
+A passenger reward balance; credit applied at payment; the trip payload carrying the credit used and the cash to collect; the credited part paid into the driver's wallet with its own transaction type; commission on the full fare.
+
+
+---
+
+## Decision DD-52: The account check is quiet; only a blocked driver gets a page
+
+**Settled by the user on 2026-10-06 (option A of three shown as mock-ups). Replaces the centre card of DD-08.**
+
+### Context
+The approval gate was one card over a washed-out home, for four different cases: still checking, could not check, waiting for approval, not approved. Every driver saw it on every launch, and nearly all of them are approved. When the check failed, the card went on saying "Checking your account…" beside a "Please try again" button.
+
+The first run against the real backend made it worse: `get-current-drive-info` answers `"data": null` for a driver with no trip, so the driver's status never arrived and the card never left.
+
+### Decision
+- **No answer from the backend is not a block.** `"data": null` — or an answer with no `driver.status` — means the driver is free to work, and the gate opens (user, 2026-10-06). The server refuses an unapproved driver on `set-status` whatever the app shows. `0` and `2` in `driver.status` still mean waiting and not approved.
+- **While checking: no card.** The home looks as it always does. The status card says "You're offline · Checking your account…" over a thin moving bar.
+- **Check failed: its own words.** The status card says "Couldn't check your account" with one button, "Please try again". No spinner. A status code the app does not know is treated the same way.
+- **Waiting for approval: a full page** under the app bar — an amber clock, the title and message, three steps (Documents sent · Under review · Ready to drive), "Contact support", and "Check again" so the driver need not restart the app to find out.
+- **Not approved: the same page** with a red cross, no steps, and the same two buttons.
+- **Going online still fails closed.** Hiding the card is not approval: the pill tests `isApproved`. Its toast now names the reason — checking, could not check, waiting, or not approved — instead of always "waiting for approval".
+
+### Open
+On this backend the status does not arrive with `get-current-drive-info`, so a waiting or rejected driver also gets the open gate, and their tap on the pill fails without a message. `get-profile` carries a `status` and is the likely source; its real body has not been seen yet.
+
+### Impact
+`AppState.approvalChecking` / `approvalCheckFailed`, `approvalStatusForDriveInfo`, `AppLogic.fetchCurrentDriveInfo`; `ApprovalGate`, `ApprovalGateView` (new parameters), `ApprovalStep`; `DriverStatusCard(View)` (`busy`, `actionLabel`); `OnlineStatusPill` toast; the map's bottom padding while the retry shows. Keys: `APPROVAL_CHECK_FAILED`, `APPROVAL_CHECK_FAILED_DES`, `APPROVAL_CHECK_AGAIN`, `APPROVAL_STEP_SENT`, `APPROVAL_STEP_REVIEW`, `APPROVAL_STEP_READY`. `APPROVAL_CHECKING_DES` is no longer shown.
+
+### In mock mode
+QA panel → "Driver approval": Approved, Pending, Rejected. The failed check is the "Network error" scenario.
+
+---
+
+## Decision DD-53: The driver is put online without a tap
+
+**Asked for by the user on 2026-10-06: "auto turn on service and no need click, turn off only error or waiting approval". Changes DD-09, where the pill was the only way online.**
+
+### Decision
+- **Opening the app is going to work.** Once per sign-in, the app puts the driver online by itself. No tap, and no overlay: the status card changes from "You're offline" to "You're online".
+- **It waits for three answers**, in any order: the account may work (DD-52), the server's own `check-status` has been read, and the phone has a GPS fix. A driver who cannot be located is not offered to passengers.
+- **Offline only for a reason:** the account check failed; the account is waiting for approval or not approved; there is no location; or the server refused `set-status`. When the reason goes away — "Please try again" works, "Check again" finds the driver approved, the GPS fix arrives — the driver is put online then.
+- **A refusal is said, once.** The server's own message is shown, the driver stays offline, and the app does not try again behind their back. The pill is there to try again. A tap on the pill that fails now says why too; it used to fall back silently.
+- **The pill stays, and it is the driver's.** A driver who turns themselves off is not turned back on — not when the home is rebuilt after a trip, and not when the location reports again. The next time they open the app, they are put online again.
+- **A driver the server still has online is left as they are:** no second `set-status`.
+- **A new sign-in starts clean.** The app-lifetime state (approval, online, this rule's "already done") is cleared when a session has ended, so the next driver on the same phone is checked, and put online, as the first was.
+
+### Open
+- The pill being kept, and "off" lasting only until the app is next opened, are my reading of the request. The alternative — remembering "off" across launches — would make the driver tap again, which is what the request set out to remove.
+- Where a waiting driver's status comes from on the real backend is still open (DD-52). Until it is known, such a driver is put online by the app and refused by the server, and sees the server's message.
+
+### Impact
+`AppLogic` (`_goOnlineWhenReady`, `_setOnline`, `setLocationReady`, `_startCleanAfterSignOut`; the three EasyLoading calls are now passed in), `AppState.statusChecked` / `locationReady`, `HomeLogic.onInit` (reports the location status), `SessionService.endedSessions`, `SetDriverStatusModel` (read through `json_field.dart`; `is_available` may be a flag).
+
+### In mock mode
+The mock driver goes online a moment after the home opens, and with "Dispatch: auto" a ride request follows. To look at the offline home, tap the pill, or set "Driver approval" to Pending.
+
+---
+
+## Decision DD-54: Ride fares are in dollars, with two decimals
+
+**Settled by the user on 2026-10-06 (option A of three). Found on the first real trip, which showed "Fare so far ≈ ៛0" after 1.2 km.**
+
+### Context
+Every ride-money screen was written for whole riel: an integer price per km, an integer minimum fare, `formatRielAmount` (no decimals) and a fixed `៛` in front. The real backend prices rides in decimals — `"price": "0.30"` a km, `"minimum_fare": "0.50"`, `vehiclePrice: 0.3` on the ride request — and sends no currency with a ride or a payment. Three things broke at once:
+- the vehicle list failed to parse (`type 'String' is not a subtype of type 'int'`), so the minimum fare stayed 0;
+- the price per km became 0;
+- anything left would have been rounded to a whole number: a fare of 0.86 shown as `៛1` on the payment screen, which is the amount a driver asks a passenger for.
+
+### Decision
+- **Fares are dollars**, shown as `$0.86` — symbol first, two decimals, never rounded to another amount.
+- **The currency is one setting**, `FARE_CURRENCY` (default `USD`), because the backend does not say. `KHR` still shows whole riel. QA mock mode stays in riel, since its rides are priced that way.
+- **An unknown amount is a dash**, not `$0.00`.
+- **Prices are decimals end to end:** the vehicle list, the `newRide` request, a resumed trip, the estimate.
+- **A resumed trip with no price shows no estimate.** It used to fall back to 1200 a km, a riel figure that would now read as dollars.
+- The price per km of a resumed trip is read from `vehicle.vehicle_type.price`, where the backend sends it.
+
+### Where it shows
+The request sheet's estimate, the trip meter, the payment screen (amount, cash to collect, ride-credit note), the history cards and the trip detail.
+
+### Needs from the backend
+A `currency` on the ride and on the payment, so the app stops assuming. The wallet says `"currency": "KHR"` while the same driver's rides are priced `0.30` a km; one of the two is wrong.
+
+### Impact
+`AppConfig.fareCurrency`, `core/utils/fare_money.dart` (`formatFare`, `fareCurrency`), `currencySymbol` / `isWholeUnitCurrency` moved to `core/utils/money.dart`, `estimateFare` (takes `num`), `BookingScreenArgs.pricrVehicle` (`num`), `SingleVehical.price` / `minimumFare` (`num`, read with `requireMoney`; this also closes five long-failing `json_field` tests), `CurrentDriverInfoModel` vehicle price, `MapHistoryDetailArgs.cost` (now the raw amount). The three trip widgets take the fare with its symbol.

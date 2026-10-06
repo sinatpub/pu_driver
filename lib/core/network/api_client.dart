@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:dio/dio.dart';
 import 'package:pu_taxi_driver/core/api_service/client/dio_http_client.dart';
@@ -45,7 +46,17 @@ class ApiClient {
         unawaited(_session.handleUnauthorized());
       }
       return Result.err(apiException);
-    } catch (exception) {
+    } catch (exception, stack) {
+      // The response arrived but could not be read: almost always a field
+      // whose type is not what a model declares. Callers show a generic
+      // message, or nothing at all, so without this line the failure has no
+      // trace anywhere.
+      developer.log(
+        'Could not read the response of $method $path',
+        name: 'api',
+        error: exception,
+        stackTrace: stack,
+      );
       return Result.err(ApiException.unknown(exception));
     }
   }

@@ -4,6 +4,7 @@ import 'package:pu_taxi_driver/core/theme/app_theme.dart';
 import 'package:pu_taxi_driver/presentation/screens/home/state.dart';
 import 'package:pu_taxi_driver/presentation/screens/home/widgets/driver_status_card.dart';
 import 'package:pu_taxi_driver/presentation/screens/home/widgets/location_state_view.dart';
+import 'package:pu_taxi_driver/presentation/widgets/ds/ds.dart';
 
 /// UX-redesign C2 — the home tab's two state-driven overlays.
 ///
@@ -67,6 +68,50 @@ void main() {
       );
 
       expect(find.textContaining('៛'), findsNothing);
+    });
+
+    // DD-52: the approval check shows here, not as a card over the home.
+    testWidgets('while the account is checked: a line and a moving bar',
+        (WidgetTester t) async {
+      await t.pumpWidget(
+        _host(
+          const DriverStatusCardView(
+            isOnline: false,
+            title: "You're offline",
+            message: 'Checking your account…',
+            busy: true,
+          ),
+        ),
+      );
+
+      expect(find.text('Checking your account…'), findsOneWidget);
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+      // Nothing to press: the check is running.
+      expect(find.byType(TButton), findsNothing);
+      expect(find.byType(TBadge), findsNothing);
+    });
+
+    testWidgets('a failed check says so and can be retried, with no spinner',
+        (WidgetTester t) async {
+      int retries = 0;
+      await t.pumpWidget(
+        _host(
+          DriverStatusCardView(
+            isOnline: false,
+            title: "Couldn't check your account",
+            message: 'Check your connection, then try again.',
+            actionLabel: 'Please try again',
+            onAction: () => retries++,
+          ),
+        ),
+      );
+
+      expect(find.text("Couldn't check your account"), findsOneWidget);
+      expect(find.byType(LinearProgressIndicator), findsNothing);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+
+      await t.tap(find.text('Please try again'));
+      expect(retries, 1);
     });
   });
 

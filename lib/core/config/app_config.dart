@@ -30,12 +30,22 @@ class AppConfig {
   // as the old `socket.tara-taxi.com` deployment was (docs/04 §1.2).
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://api.tara-taxi.com',
+    defaultValue: 'https://taxi-api.simpledevelopertools.com',
   );
 
   static const String socketBaseUrl = String.fromEnvironment(
     'SOCKET_BASE_URL',
-    defaultValue: 'https://socket.tara-taxi.com',
+    defaultValue: 'https://taxi-api.simpledevelopertools.com',
+  );
+
+  // ---- Money ---------------------------------------------------------
+  /// The currency ride fares are in (DD-54). The backend prices rides in
+  /// decimals — `"0.30"` a km, `"0.50"` minimum — and sends no currency with
+  /// a ride or a payment, so the app has to be told. `KHR` is shown in whole
+  /// riel; anything else with two decimals.
+  static const String fareCurrency = String.fromEnvironment(
+    'FARE_CURRENCY',
+    defaultValue: 'USD',
   );
 
   // ---- Third-party keys, supplied via dart_defines.json ------------------

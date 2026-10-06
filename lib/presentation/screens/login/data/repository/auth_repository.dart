@@ -17,6 +17,19 @@ class AuthRepository {
           {required String phone, required String otpCode}) =>
       _datasource.verifyOtp(phone: phone, otpCode: otpCode);
 
+  Future<Result<RegisterModel>> passwordLogin({
+    required String phone,
+    required String password,
+    required String deviceToken,
+    required String platform,
+  }) =>
+      _datasource.passwordLogin(
+        phone: phone,
+        password: password,
+        deviceToken: deviceToken,
+        platform: platform,
+      );
+
   Future<Result<RegisterModel>> register({
     required String fullName,
     required String phoneNumber,

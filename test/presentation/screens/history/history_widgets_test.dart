@@ -11,6 +11,7 @@ import 'package:pu_taxi_driver/presentation/widgets/ds/ds.dart';
 import 'package:pu_taxi_driver/routes/route_arguments.dart';
 
 import '../../../helpers/localized_host.dart';
+import 'package:pu_taxi_driver/core/utils/fare_money.dart';
 
 /// UX-redesign S1 — the history card and the history detail card
 /// (`03 S09`/`S10`, `DD-19`, `DD-20`).
@@ -47,6 +48,11 @@ DataHistory _trip({required int status, required String statusName}) {
 }
 
 void main() {
+  // The trips below are priced in riel (7,600). The app's own default is
+  // dollars (DD-54), so the currency is pinned for this file.
+  setUp(() => debugFareCurrency = 'KHR');
+  tearDown(() => debugFareCurrency = null);
+
   group('HistoryCardWidget (DD-41)', () {
     testWidgets('completed: time and amount, the route, then who and how far',
         (WidgetTester t) async {

@@ -81,6 +81,17 @@ class HomeLogic extends GetxController {
 
     checkVersion();
 
+    // DD-53: the app goes online by itself once the driver can be located,
+    // so it has to be told when that is.
+    final AppLogic app = Get.find<AppLogic>();
+    app.setLocationReady(
+      state.locationStatus.value == LocationLoadStatus.success,
+    );
+    ever<LocationLoadStatus>(
+      state.locationStatus,
+      (status) => app.setLocationReady(status == LocationLoadStatus.success),
+    );
+
     // Replaces BlocConsumer<CurrentDriverInfoBloc, CurrentDriverInfoState>.
     // The fetch is triggered once from DrawerLogic.onInit
     // (AppLogic.fetchCurrentDriveInfo), the same trigger point the
@@ -234,7 +245,9 @@ class HomeLogic extends GetxController {
           lngStart: double.parse(dataDriver.startLongitude.toString()),
           refreshApp: true,
           typeVehicleId: dataDriver.driver!.vehicle!.typeVehicleId!,
-          pricrVehicle: dataDriver.driver!.vehicle!.pricrVehicle ?? 1200,
+          // 0 is "not known" and shows no estimate. This used to fall back
+          // to 1200 — a riel price that would be read as dollars now.
+          pricrVehicle: dataDriver.driver!.vehicle!.pricrVehicle ?? 0,
           namePassanger: dataDriver.passenger!.name.toString(),
           phonePassanger: dataDriver.passenger!.phone.toString(),
           imagePassanger: dataDriver.passenger!.profileImage.toString(),

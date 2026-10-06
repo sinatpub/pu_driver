@@ -84,6 +84,51 @@ int intOrDefault(dynamic value, {int fallback = 0}) {
   return fallback;
 }
 
+/// A display integer, or null when absent or unparseable.
+///
+/// For ids, counts and status codes on a model whose fields are nullable.
+/// Accepts a number or a numeric string, because this backend sends both: a
+/// model that read `json["status"]` straight into an `int?` threw on `"1"`,
+/// and that one field took the whole response down with it.
+int? intOrNull(dynamic value) {
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  if (value is String) {
+    final String text = value.trim();
+    return int.tryParse(text) ?? num.tryParse(text)?.toInt();
+  }
+  return null;
+}
+
+/// A display string, or null when absent. A number or a flag is written out
+/// rather than refused: `"plate_number": 1234` is still a plate number.
+String? stringOrNull(dynamic value) {
+  if (value is String) return value;
+  if (value is num || value is bool) return value.toString();
+  return null;
+}
+
+/// A nested object, or null when absent or not an object. This backend
+/// writes an empty relation as `[]`, which is not a map and must not be
+/// handed to a `fromJson`.
+T? objectOrNull<T>(
+  dynamic value,
+  T Function(Map<String, dynamic> json) fromJson,
+) =>
+    value is Map<String, dynamic> ? fromJson(value) : null;
+
+/// A list of nested objects. Absent, or not a list, is an empty list; an
+/// item that is not an object is skipped.
+List<T> objectList<T>(
+  dynamic value,
+  T Function(Map<String, dynamic> json) fromJson,
+) =>
+    <T>[
+      if (value is List)
+        for (final dynamic item in value)
+          if (item is Map<String, dynamic>) fromJson(item),
+    ];
+
 /// A flag, or [fallback] when absent.
 bool boolOrDefault(dynamic value, {bool fallback = false}) =>
     value is bool ? value : fallback;

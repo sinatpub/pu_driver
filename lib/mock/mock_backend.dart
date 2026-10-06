@@ -68,6 +68,7 @@ class MockRide {
     this.endPoint,
     this.distanceKm,
     this.fare,
+    this.rideCredit,
   });
 
   final int id;
@@ -85,6 +86,9 @@ class MockRide {
   LatLng? endPoint;
   double? distanceKm;
   int? fare;
+
+  /// DD-51: the part of the fare the passenger paid with ride credit.
+  int? rideCredit;
 
   LatLng get pickup => MockPlaces.pickup.latLng;
 
@@ -106,6 +110,7 @@ class MockRide {
         'endPoint': endPoint == null ? null : _latLngToJson(endPoint!),
         'distanceKm': distanceKm,
         'fare': fare,
+        'rideCredit': rideCredit,
       };
 
   factory MockRide.fromJson(Map<String, dynamic> json) => MockRide(
@@ -122,6 +127,7 @@ class MockRide {
         endPoint: _latLngFromJson(json['endPoint']),
         distanceKm: (json['distanceKm'] as num?)?.toDouble(),
         fare: json['fare'] as int?,
+        rideCredit: json['rideCredit'] as int?,
       );
 }
 
@@ -214,7 +220,8 @@ class MockBackend {
       return _verifyOtp(request);
     }
     if (path.endsWith('/taxi-driver/register')) return _ok(_authPayload());
-    if (path.endsWith('/taxi/login')) return _debugLogin();
+    // The debug login (`DebugAuthBypass`): same body as a verified OTP.
+    if (path.endsWith('/taxi-driver/login')) return _ok(_authPayload());
     if (path.endsWith('/taxi-driver/push-device-token')) {
       return _ok({'status': true, 'message': 'Device token saved'});
     }
@@ -316,14 +323,6 @@ class MockBackend {
         'message': 'Login successful',
         'data': {'token': MockData.token, 'driver': _driverJson()},
       };
-
-  MockResponse _debugLogin() => _ok({
-        'status': true,
-        'data': {
-          'token': MockData.token,
-          'user': {'id': MockData.driverId, 'name': 'Dara Sok', 'role_id': 2},
-        },
-      });
 
   // ---- Driver status & location ------------------------------------------
 
@@ -522,6 +521,8 @@ class MockBackend {
         pricePerKm: MockData.pricePerKm,
         minimumFare: MockData.minimumFare,
       ));
+    // DD-51: the passenger decides at payment how much credit to use.
+    current.rideCredit = settings.rideCredit.of(current.fare!);
     _changed();
     return _ok({
       'status': true,
@@ -938,6 +939,7 @@ class MockBackend {
           ? '${seconds ~/ 3600} hours ${(seconds % 3600) ~/ 60} mins'
           : '${seconds ~/ 60} mins ${seconds % 60} seconds',
       'amount': '${r.fare ?? 0}',
+      'ride_credit': r.rideCredit ?? 0,
       'payment_method': r.paymentMethod,
       'status': paid ? 1 : (cancelled ? 2 : 0),
       'status_name': paid ? 'Paid' : (cancelled ? 'Cancelled' : 'Pending'),
@@ -953,13 +955,26 @@ class MockBackend {
 
   void _recordEarnings(MockRide r) {
     final fare = r.fare ?? 0;
+    // DD-51: commission is on the full fare, whoever paid it.
     final commission = (fare * 0.10).round();
     final id = _transactions.length + 1;
     if (r.paymentMethod == MockPaymentMethod.cash.label) {
+      // DD-51: the part the passenger paid with ride credit was not handed
+      // over in cash, so the platform pays it into the wallet.
+      final credit = r.rideCredit ?? 0;
+      if (credit > 0) {
+        _walletBalance += credit;
+        _transactions.add(MockData.transaction(
+            id: id,
+            typeName: 'Ride Credit',
+            amount: credit,
+            at: _now(),
+            referenceId: r.id));
+      }
       // Cash stays with the driver; the platform takes its commission.
       _walletBalance -= commission;
       _transactions.add(MockData.transaction(
-          id: id,
+          id: _transactions.length + 1,
           typeName: 'Commission',
           amount: -commission,
           at: _now(),

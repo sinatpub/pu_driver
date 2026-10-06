@@ -1,3 +1,12 @@
+import 'package:pu_taxi_driver/core/utils/json_field.dart';
+import 'package:pu_taxi_driver/core/utils/money.dart';
+
+// Every field is read through `json_field.dart`. This model is what the
+// approval gate and the resume-a-trip redirect are fed from, and it used to
+// read each value straight into a typed field: one `"1"` where an `int` was
+// declared, or one `[]` where an object was, threw inside `fromJson` and the
+// whole response was lost — with the gate left on "checking" for good.
+
 class CurrentDriverInfoModel {
   DataDriverInfo? data;
   bool? status;
@@ -11,9 +20,9 @@ class CurrentDriverInfoModel {
 
   factory CurrentDriverInfoModel.fromJson(Map<String, dynamic> json) =>
       CurrentDriverInfoModel(
-        data: json["data"] == null ? null : DataDriverInfo.fromJson(json["data"]),
-        status: json["status"],
-        message: json["message"],
+        data: objectOrNull(json["data"], DataDriverInfo.fromJson),
+        status: json["status"] is bool ? json["status"] : null,
+        message: stringOrNull(json["message"]),
       );
 
   Map<String, dynamic> toJson() => {
@@ -65,32 +74,24 @@ class DataDriverInfo {
   });
 
   factory DataDriverInfo.fromJson(Map<String, dynamic> json) => DataDriverInfo(
-        id: json["id"],
-        bookingCode: json["booking_code"],
-        startLatitude: json["start_latitude"],
-        startLongitude: json["start_longitude"],
+        id: intOrNull(json["id"]),
+        bookingCode: stringOrNull(json["booking_code"]),
+        startLatitude: stringOrNull(json["start_latitude"]),
+        startLongitude: stringOrNull(json["start_longitude"]),
         endLatitude: json["end_latitude"],
         endLongitude: json["end_longitude"],
-        startTime: json["start_time"] == null
-            ? null
-            : DateTime.parse(json["start_time"]),
+        startTime: dateOrNull(json["start_time"]),
         endTime: json["end_time"],
-        startAddress: json["start_address"],
+        startAddress: stringOrNull(json["start_address"]),
         endAddress: json["end_address"],
         fare: json["fare"],
-        status: json["status"],
-        statusName: json["status_name"],
-        passenger: json["passenger"] == null
-            ? null
-            : Passenger.fromJson(json["passenger"]),
-        driver: json["driver"] == null ? null : Driver.fromJson(json["driver"]),
-        payment: json["payment"] == null?null:Payment.fromJson(json["payment"]),
-        createdAt: json["created_at"] == null
-            ? null
-            : DateTime.parse(json["created_at"]),
-        updatedAt: json["updated_at"] == null
-            ? null
-            : DateTime.parse(json["updated_at"]),
+        status: intOrNull(json["status"]),
+        statusName: stringOrNull(json["status_name"]),
+        passenger: objectOrNull(json["passenger"], Passenger.fromJson),
+        driver: objectOrNull(json["driver"], Driver.fromJson),
+        payment: objectOrNull(json["payment"], Payment.fromJson),
+        createdAt: dateOrNull(json["created_at"]),
+        updatedAt: dateOrNull(json["updated_at"]),
       );
 
   Map<String, dynamic> toJson() => {
@@ -161,27 +162,27 @@ class Driver {
   });
 
   factory Driver.fromJson(Map<String, dynamic> json) => Driver(
-        id: json["id"],
-        name: json["name"],
-        lastName: json["last_name"],
-        firstName: json["first_name"],
-        email: json["email"],
-        gender: json["gender"],
-        dob: json["dob"],
-        countryCode: json["country_code"],
-        phone: json["phone"],
-        cardType: json["card_type"],
-        cardNumber: json["card_number"],
-        cardImage: json["card_image"],
-        driverLicenseNumber: json["driver_license_number"],
-        driverLicenseExpired: json["driver_license_expired"],
-        driverLicenseImage: json["driver_license_image"],
-        status: json["status"],
-        statusDate: json["status_date"],
-        profileImage: json["profile_image"],
-        vehicle:
-            json["vehicle"] == null ? null : Vehicle.fromJson(json["vehicle"]),
-        lastLocation:json["last_location"] ==null?null:LastLocation.fromJson(json["last_location"]),
+        id: intOrNull(json["id"]),
+        name: stringOrNull(json["name"]),
+        lastName: stringOrNull(json["last_name"]),
+        firstName: stringOrNull(json["first_name"]),
+        email: stringOrNull(json["email"]),
+        gender: intOrNull(json["gender"]),
+        dob: stringOrNull(json["dob"]),
+        countryCode: stringOrNull(json["country_code"]),
+        phone: stringOrNull(json["phone"]),
+        cardType: intOrNull(json["card_type"]),
+        cardNumber: stringOrNull(json["card_number"]),
+        cardImage: stringOrNull(json["card_image"]),
+        driverLicenseNumber: stringOrNull(json["driver_license_number"]),
+        driverLicenseExpired: stringOrNull(json["driver_license_expired"]),
+        driverLicenseImage: stringOrNull(json["driver_license_image"]),
+        status: intOrNull(json["status"]),
+        statusDate: stringOrNull(json["status_date"]),
+        profileImage: stringOrNull(json["profile_image"]),
+        vehicle: objectOrNull(json["vehicle"], Vehicle.fromJson),
+        lastLocation:
+            objectOrNull(json["last_location"], LastLocation.fromJson),
       );
 
   Map<String, dynamic> toJson() => {
@@ -256,28 +257,28 @@ class Passenger {
   });
 
   factory Passenger.fromJson(Map<String, dynamic> json) => Passenger(
-        id: json["id"],
-        name: json["name"],
-        lastName: json["last_name"],
-        firstName: json["first_name"],
-        email: json["email"],
-        gender: json["gender"],
-        dob: json["dob"],
-        countryCode: json["country_code"],
-        phone: json["phone"],
-        cardType: json["card_type"],
-        cardNumber: json["card_number"],
-        cardImage: json["card_image"],
-        driverLicenseNumber: json["driver_license_number"],
-        driverLicenseExpired: json["driver_license_expired"],
-        driverLicenseImage: json["driver_license_image"],
-        status: json["status"],
-        statusDate: json["status_date"],
-        profileImage: json["profile_image"],
-        vehicle:
-            json["vehicle"] == null ? null : Vehicle.fromJson(json["vehicle"]),
-        roleId: json["role_id"],
-        lastLocation:json["last_location"] ==null?null:LastLocation.fromJson(json["last_location"]),
+        id: intOrNull(json["id"]),
+        name: stringOrNull(json["name"]),
+        lastName: stringOrNull(json["last_name"]),
+        firstName: stringOrNull(json["first_name"]),
+        email: stringOrNull(json["email"]),
+        gender: intOrNull(json["gender"]),
+        dob: stringOrNull(json["dob"]),
+        countryCode: stringOrNull(json["country_code"]),
+        phone: stringOrNull(json["phone"]),
+        cardType: intOrNull(json["card_type"]),
+        cardNumber: stringOrNull(json["card_number"]),
+        cardImage: stringOrNull(json["card_image"]),
+        driverLicenseNumber: stringOrNull(json["driver_license_number"]),
+        driverLicenseExpired: stringOrNull(json["driver_license_expired"]),
+        driverLicenseImage: stringOrNull(json["driver_license_image"]),
+        status: intOrNull(json["status"]),
+        statusDate: stringOrNull(json["status_date"]),
+        profileImage: stringOrNull(json["profile_image"]),
+        vehicle: objectOrNull(json["vehicle"], Vehicle.fromJson),
+        roleId: intOrNull(json["role_id"]),
+        lastLocation:
+            objectOrNull(json["last_location"], LastLocation.fromJson),
       );
 
   Map<String, dynamic> toJson() => {
@@ -308,7 +309,7 @@ class Passenger {
 class Vehicle {
   int? id;
   int? typeVehicleId;
-  int? pricrVehicle;
+  num? pricrVehicle;
   String? model;
   String? manufacturer;
   int? yearOfManufacture;
@@ -335,27 +336,32 @@ class Vehicle {
   });
 
   factory Vehicle.fromJson(Map<String, dynamic> json) => Vehicle(
-        id: json["id"],
-        typeVehicleId: json["type_vehicle_id"],
-        pricrVehicle: json["vehicle_price"] == null?null:json["vehicle_price"],
-        model: json["model"],
-        manufacturer: json["manufacturer"],
-        yearOfManufacture: json["year_of_manufacture"],
-        color: json["color"],
-        plateNumber: json["plate_number"],
-        enginePower: json["engine_power"],
-        maxPassenger: json["max_passenger"],
-        status: json["status"],
-        vehicleImage: json["vehicle_image"] == null
-            ? []
-            : List<VehicleImage>.from(
-                json["vehicle_image"]!.map((x) => VehicleImage.fromJson(x))),
+        id: intOrNull(json["id"]),
+        typeVehicleId: intOrNull(json["type_vehicle_id"]),
+        // DD-54: price per km, a decimal. The backend sends it on the
+        // vehicle's type (`vehicle_type.price: "0.30"`); `vehicle_price` is
+        // where the app first expected it and is still read when present.
+        pricrVehicle: parseMoney(json["vehicle_price"]) ??
+            parseMoney(
+              json["vehicle_type"] is Map
+                  ? json["vehicle_type"]["price"]
+                  : null,
+            ),
+        model: stringOrNull(json["model"]),
+        manufacturer: stringOrNull(json["manufacturer"]),
+        yearOfManufacture: intOrNull(json["year_of_manufacture"]),
+        color: stringOrNull(json["color"]),
+        plateNumber: stringOrNull(json["plate_number"]),
+        enginePower: stringOrNull(json["engine_power"]),
+        maxPassenger: intOrNull(json["max_passenger"]),
+        status: intOrNull(json["status"]),
+        vehicleImage: objectList(json["vehicle_image"], VehicleImage.fromJson),
       );
 
   Map<String, dynamic> toJson() => {
         "id": id,
         "type_vehicle_id": typeVehicleId,
-        "vehicle_price":pricrVehicle?? pricrVehicle,
+        "vehicle_price": pricrVehicle ?? pricrVehicle,
         "model": model,
         "manufacturer": manufacturer,
         "year_of_manufacture": yearOfManufacture,
@@ -392,13 +398,13 @@ class VehicleImage {
   });
 
   factory VehicleImage.fromJson(Map<String, dynamic> json) => VehicleImage(
-        id: json["id"],
-        fileOriginalName: json["file_original_name"],
-        fileSize: json["file_size"],
-        fileType: json["file_type"],
-        fileUrl: json["file_url"],
-        objectId: json["object_id"],
-        objectType: json["object_type"],
+        id: intOrNull(json["id"]),
+        fileOriginalName: stringOrNull(json["file_original_name"]),
+        fileSize: stringOrNull(json["file_size"]),
+        fileType: stringOrNull(json["file_type"]),
+        fileUrl: stringOrNull(json["file_url"]),
+        objectId: intOrNull(json["object_id"]),
+        objectType: stringOrNull(json["object_type"]),
         createdBy: json["created_by"],
       );
 
@@ -415,47 +421,53 @@ class VehicleImage {
 }
 
 class Payment {
-    int? id;
-    int? invoiceId;
-    int? rideId;
-    String? distance;
-    String? duration;
-    String? amount;
-    String? paymentMethod;
-    int? status;
-    String? statusName;
-    String? createdAt;
-    String? updatedAt;
+  int? id;
+  int? invoiceId;
+  int? rideId;
+  String? distance;
+  String? duration;
+  String? amount;
+  String? paymentMethod;
 
-    Payment({
-        this.id,
-        this.invoiceId,
-        this.rideId,
-        this.distance,
-        this.duration,
-        this.amount,
-        this.paymentMethod,
-        this.status,
-        this.statusName,
-        this.createdAt,
-        this.updatedAt,
-    });
+  /// DD-51: the passenger's ride credit used on this trip (proposed
+  /// field, mock only). The driver collects the fare less this in cash.
+  dynamic rideCredit;
+  int? status;
+  String? statusName;
+  String? createdAt;
+  String? updatedAt;
 
-    factory Payment.fromJson(Map<String, dynamic> json) => Payment(
-        id: json["id"],
-        invoiceId: json["invoice_id"],
-        rideId: json["ride_id"],
-        distance: json["distance"],
-        duration: json["duration"],
-        amount: json["amount"],
-        paymentMethod: json["payment_method"],
-        status: json["status"],
-        statusName: json["status_name"],
-        createdAt: json["created_at"],
-        updatedAt: json["updated_at"],
-    );
+  Payment({
+    this.id,
+    this.invoiceId,
+    this.rideId,
+    this.distance,
+    this.duration,
+    this.amount,
+    this.paymentMethod,
+    this.rideCredit,
+    this.status,
+    this.statusName,
+    this.createdAt,
+    this.updatedAt,
+  });
 
-    Map<String, dynamic> toJson() => {
+  factory Payment.fromJson(Map<String, dynamic> json) => Payment(
+        id: intOrNull(json["id"]),
+        invoiceId: intOrNull(json["invoice_id"]),
+        rideId: intOrNull(json["ride_id"]),
+        distance: stringOrNull(json["distance"]),
+        duration: stringOrNull(json["duration"]),
+        amount: stringOrNull(json["amount"]),
+        paymentMethod: stringOrNull(json["payment_method"]),
+        rideCredit: json["ride_credit"],
+        status: intOrNull(json["status"]),
+        statusName: stringOrNull(json["status_name"]),
+        createdAt: stringOrNull(json["created_at"]),
+        updatedAt: stringOrNull(json["updated_at"]),
+      );
+
+  Map<String, dynamic> toJson() => {
         "id": id,
         "invoice_id": invoiceId,
         "ride_id": rideId,
@@ -463,29 +475,30 @@ class Payment {
         "duration": duration,
         "amount": amount,
         "payment_method": paymentMethod,
+        "ride_credit": rideCredit,
         "status": status,
         "status_name": statusName,
         "created_at": createdAt,
         "updated_at": updatedAt,
-    };
+      };
 }
 
 class LastLocation {
-    String? latitude;
-    String? longitude;
+  String? latitude;
+  String? longitude;
 
-    LastLocation({
-        this.latitude,
-        this.longitude,
-    });
+  LastLocation({
+    this.latitude,
+    this.longitude,
+  });
 
-    factory LastLocation.fromJson(Map<String, dynamic> json) => LastLocation(
-        latitude: json["latitude"],
-        longitude: json["longitude"],
-    );
+  factory LastLocation.fromJson(Map<String, dynamic> json) => LastLocation(
+        latitude: stringOrNull(json["latitude"]),
+        longitude: stringOrNull(json["longitude"]),
+      );
 
-    Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => {
         "latitude": latitude,
         "longitude": longitude,
-    };
+      };
 }

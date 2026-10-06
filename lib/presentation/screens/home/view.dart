@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:pu_taxi_driver/app/logic.dart';
 import 'package:pu_taxi_driver/core/theme/tokens.dart';
 import 'package:pu_taxi_driver/presentation/screens/home/widgets/driver_status_card.dart';
 import 'package:pu_taxi_driver/presentation/screens/home/widgets/location_state_view.dart';
@@ -43,6 +44,10 @@ class _HomeScreenState extends State<HomeScreen> {
   /// unreachable is just bad. An estimate of the card's height, which is
   /// content-sized; verify on a device with a long Khmer string.
   static const double _statusCardReserve = 112;
+
+  /// The card is taller by its retry button while the approval check has
+  /// failed (DD-52): the gap above the button, and the button.
+  static const double _statusCardRetryReserve = Insets.s12 + Sizes.touchTarget;
 
   @override
   void initState() {
@@ -131,6 +136,9 @@ class _HomeScreenState extends State<HomeScreen> {
         // and Google's logo sit above its row instead of under it.
         padding: EdgeInsets.only(
           bottom: _statusCardReserve +
+              (Get.find<AppLogic>().state.approvalCheckFailed.value
+                  ? _statusCardRetryReserve
+                  : 0) +
               (inviteFeatureEnabled ? InviteFab.size + Insets.s12 : 0),
         ),
         initialCameraPosition: CameraPosition(

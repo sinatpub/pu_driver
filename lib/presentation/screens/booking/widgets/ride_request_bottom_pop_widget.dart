@@ -470,7 +470,7 @@ class _ModelBottomSheetNewRequestWidgetState
                         widget.hasDestination
                             ? "EST_FARE".tr()
                             : "FARE_SO_FAR".tr(),
-                        "≈ ៛${widget.fare}"
+                        "≈ ${widget.fare}"
                       ),
                     ],
                   ),
@@ -721,7 +721,7 @@ class _TripFigures extends StatelessWidget {
     return _FigureTiles(
       tiles: <(String, String)>[
         if (distance != null) ("TRIP".tr(), distance!),
-        if (fare != null) ("EST_FARE".tr(), "≈ ៛$fare"),
+        if (fare != null) ("EST_FARE".tr(), "≈ $fare"),
       ],
     );
   }

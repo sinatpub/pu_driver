@@ -8,4 +8,7 @@ class LoginState {
   final Rxn<PhoneNumberModel> phoneModel = Rxn<PhoneNumberModel>();
   final RxBool isInvalidPhone = RxBool(false);
   final RxBool isRequired8Digit = RxBool(false);
+
+  /// The debug-only login button is waiting on its request.
+  final RxBool debugLoggingIn = RxBool(false);
 }

@@ -4,6 +4,7 @@ import 'package:get/get.dart' hide Trans;
 import 'package:pu_taxi_driver/routes/app_routes.dart';
 import 'package:pu_taxi_driver/routes/route_arguments.dart';
 import 'package:pu_taxi_driver/core/storage/set_storages.dart';
+import 'package:pu_taxi_driver/core/utils/debug_auth_bypass.dart';
 import 'package:pu_taxi_driver/presentation/screens/login/data/repository/auth_repository.dart';
 import 'package:pu_taxi_driver/presentation/widgets/error_dialog_widget.dart';
 import 'package:pu_taxi_driver/presentation/widgets/shake_widget.dart';
@@ -97,6 +98,30 @@ class LoginLogic extends GetxController {
   /// what the driver app sends — a contract change, not a bug fix.
   static String normalisePhone(String value) =>
       value.replaceAll(RegExp(r'\D'), '');
+
+  /// The login page's debug button — see [DebugAuthBypass]. Signs in as the
+  /// driver account from `dart_defines.json` through `POST /taxi-driver/login`
+  /// and goes where a verified OTP goes, skipping the phone and OTP steps. Does nothing in a build that has not
+  /// asked for the bypass, so it cannot sign anyone in from a release.
+  Future<void> debugLogin() async {
+    if (!DebugAuthBypass.isEnabled || state.debugLoggingIn.value) return;
+
+    state.debugLoggingIn.value = true;
+    final bool ok =
+        await DebugAuthBypass.seedSession(_repository.passwordLogin);
+    state.debugLoggingIn.value = false;
+
+    if (ok) {
+      Get.offAllNamed(AppRoutes.home);
+      return;
+    }
+    showErrorCustomDialog(
+      Get.context!,
+      "PLEASE_TRY_AGAIN".tr(),
+      DebugAuthBypass.lastError ?? 'Debug login failed. See the log.',
+      false,
+    );
+  }
 
   Future<void> submit(String phoneNumber) async {
     // Validation deliberately runs on the *unnormalised* string. The

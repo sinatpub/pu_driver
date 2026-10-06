@@ -15,8 +15,7 @@ import 'package:pu_taxi_driver/core/network/api_client.dart';
 import 'package:pu_taxi_driver/core/theme/tokens.dart';
 import 'package:pu_taxi_driver/core/utils/app_constant.dart';
 import 'package:pu_taxi_driver/data/datasources/get_vehical_remote_data_source.dart';
-import 'package:pu_taxi_driver/data/models/vehical_model.dart'
-    hide Color;
+import 'package:pu_taxi_driver/data/models/vehical_model.dart' hide Color;
 import 'package:pu_taxi_driver/presentation/screens/login/data/datasource/auth_datasource.dart';
 import 'package:pu_taxi_driver/presentation/screens/login/data/repository/auth_repository.dart';
 import 'package:pu_taxi_driver/presentation/screens/history/data/models/history_driver_info_model.dart'
@@ -246,11 +245,19 @@ final List<_SurfaceDef> _surfaces = <_SurfaceDef>[
           body: Stack(
             children: <Widget>[
               Positioned.fill(
-                child: ApprovalGateView(
-                  status: DriverApprovalStatus.unknown,
-                  title: 'Checking approval',
-                  message: 'Please wait.',
-                  actionLabel: 'Try again',
+                // DD-52: no gate while the status is checked. What is left
+                // of this state is the failed check on the home status card.
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: DriverStatusCardView(
+                      isOnline: false,
+                      title: "Couldn't check your account",
+                      message: 'Check your connection, then try again.',
+                      actionLabel: 'Try again',
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -269,7 +276,13 @@ final List<_SurfaceDef> _surfaces = <_SurfaceDef>[
                   status: DriverApprovalStatus.pending,
                   title: 'Waiting for approval',
                   message: 'Please wait.',
-                  actionLabel: 'Contact support',
+                  steps: <ApprovalStep>[
+                    ApprovalStep('Documents sent', ApprovalStepState.done),
+                    ApprovalStep('Under review', ApprovalStepState.current),
+                    ApprovalStep('Ready to drive', ApprovalStepState.upcoming),
+                  ],
+                  supportLabel: 'Contact support',
+                  checkAgainLabel: 'Check again',
                 ),
               ),
             ],
@@ -288,7 +301,8 @@ final List<_SurfaceDef> _surfaces = <_SurfaceDef>[
                   status: DriverApprovalStatus.rejected,
                   title: 'Application not approved',
                   message: 'Please re-submit your documents.',
-                  actionLabel: 'Contact support',
+                  supportLabel: 'Contact support',
+                  checkAgainLabel: 'Check again',
                 ),
               ),
             ],

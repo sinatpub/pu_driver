@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:pu_taxi_driver/app/funtion_convert.dart';
+import 'package:pu_taxi_driver/core/utils/fare_money.dart';
 import 'package:pu_taxi_driver/core/helper/get_address_latlng_helper.dart';
 import 'package:pu_taxi_driver/routes/app_routes.dart';
 import 'package:pu_taxi_driver/routes/route_arguments.dart';
@@ -107,7 +108,9 @@ class _BookingScreenState extends State<BookingScreen> {
   double totalDistance = 0.0;
   double totalDistanceCount = 0.0;
   String totalFee = "";
-  int priceUnder1Km = 0;
+
+  /// The fare floor, in the fare currency. A decimal on the real backend.
+  num priceUnder1Km = 0;
 
   /// C4 (`03 § dropping`): the drop-off's spinner starts at the tap rather
   /// than after the position + reverse-geocode round trip inside
@@ -240,6 +243,13 @@ class _BookingScreenState extends State<BookingScreen> {
               ).toString();
               _lastPosition = current;
             });
+            // So a restart mid-trip does not put the meter back to zero.
+            StorageSet.setTripDistance(
+              args.bookingId,
+              meters: totalDistanceCount,
+              latitude: current.latitude,
+              longitude: current.longitude,
+            );
           }
         } else {
           _lastPosition = current;
@@ -317,17 +327,28 @@ class _BookingScreenState extends State<BookingScreen> {
         if (refreshApp == true) {
           currentAddressDriver =
               await getAddressFromLatLng(latDriver!, lngDriver!);
-          if (args.latStart != 0.0) {
+          // The trip was already running when this screen opened: an app
+          // restart. Pick the meter up where it stopped — the metres counted
+          // before, and the point they were counted at, so the next GPS fix
+          // adds the stretch driven while the app was closed.
+          final saved = await StorageGet.getTripDistance(args.bookingId);
+          if (saved != null) {
+            totalDistanceCount = saved.meters;
+            _lastPosition = saved.lastPoint;
+          } else if (args.latStart != 0.0) {
+            // Nothing saved (another phone, a reinstall): the driving
+            // distance from the pickup is the best guess left. It needs the
+            // route service, and reads 0 when that refuses.
             totalDistanceCount = (await RouteService.instance.drivingDistanceKm(
                     LatLng(position.latitude, position.longitude),
                     LatLng(args.latStart, args.lngStart)) *
                 1000);
-            totalFee = estimateFare(
-              distanceKm: totalDistanceCount / 1000,
-              pricePerKm: args.pricrVehicle,
-              minimumFare: priceUnder1Km,
-            ).toString();
           }
+          totalFee = estimateFare(
+            distanceKm: totalDistanceCount / 1000,
+            pricePerKm: args.pricrVehicle,
+            minimumFare: priceUnder1Km,
+          ).toString();
         } else {
           currentAddressDriver =
               await getAddressFromLatLng(position.latitude, position.longitude);
@@ -723,7 +744,7 @@ class _BookingScreenState extends State<BookingScreen> {
       pricePerKm: args.pricrVehicle,
       minimumFare: priceUnder1Km,
     );
-    return formatRielAmount(fare.round().toString());
+    return formatFare(fare);
   }
 
   void _drawPolylines({
@@ -852,6 +873,16 @@ class _BookingScreenState extends State<BookingScreen> {
       setState(() {
         priceUnder1Km = dataTypeVechical[0].minimumFare;
         _minimumFareKnown = true;
+        // A resumed trip may have worked its fare out before the fare floor
+        // was known; work it out again now that it is.
+        if (totalDistanceCount > 0 &&
+            (args.desLatPassenger == null || args.desLatPassenger == 0.0)) {
+          totalFee = estimateFare(
+            distanceKm: totalDistanceCount / 1000,
+            pricePerKm: args.pricrVehicle,
+            minimumFare: priceUnder1Km,
+          ).toString();
+        }
       });
     }
   }
@@ -889,6 +920,8 @@ class _BookingScreenState extends State<BookingScreen> {
         StorageSet.setArrivedAt(args.bookingId, _arrivedAt!);
       case TripStarted():
         StorageRemove.removeArrivedAt();
+        // A new ride starts its meter at zero.
+        StorageRemove.removeTripDistance();
         setState(() {
           refreshApp = false;
           getLocation(TripStage.inProgress);
@@ -914,9 +947,11 @@ class _BookingScreenState extends State<BookingScreen> {
           currentLat: currentLatDriver,
           currentLng: currentLatDriver, // sic — same as the original
         );
+        StorageRemove.removeTripDistance();
         _navigateToCalculateFee(completed);
       case TripCancelled():
         StorageRemove.removeArrivedAt();
+        StorageRemove.removeTripDistance();
         Get.offAllNamed(AppRoutes.home);
     }
   }
@@ -1144,9 +1179,9 @@ class _BookingScreenState extends State<BookingScreen> {
           final String meterFare =
               (args.desLatPassenger == null || args.desLatPassenger == 0.0)
                   ? totalDistanceCount <= 1000
-                      ? formatRielAmount(priceUnder1Km.toString())
-                      : formatRielAmount(totalFee)
-                  : formatRielAmount(totalFee);
+                      ? formatFare(priceUnder1Km)
+                      : formatFare(totalFee)
+                  : formatFare(totalFee);
           return Stack(
             children: [
               GoogleMap(
@@ -1222,7 +1257,7 @@ class _BookingScreenState extends State<BookingScreen> {
                         ? null
                         : _formatKm(_tripDistanceKm!)),
                 tripFare: stage == TripStage.waitingAtPickup
-                    ? (totalFee.isEmpty ? null : formatRielAmount(totalFee))
+                    ? (totalFee.isEmpty ? null : formatFare(totalFee))
                     : _requestFare(),
                 waitingSince: _arrivedAt,
                 hasDestination: _hasDestination,

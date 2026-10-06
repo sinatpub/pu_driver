@@ -1,3 +1,4 @@
+import 'package:pu_taxi_driver/core/utils/json_field.dart';
 
 class UpdateDriverLocationModel {
   Data? data;
@@ -12,9 +13,9 @@ class UpdateDriverLocationModel {
 
   factory UpdateDriverLocationModel.fromJson(Map<String, dynamic> json) =>
       UpdateDriverLocationModel(
-        data: json["data"] == null ? null : Data.fromJson(json["data"]),
-        status: json["status"],
-        message: json["message"],
+        data: objectOrNull(json["data"], Data.fromJson),
+        status: json["status"] is bool ? json["status"] : null,
+        message: stringOrNull(json["message"]),
       );
 
   Map<String, dynamic> toJson() => {
@@ -42,16 +43,12 @@ class Data {
   });
 
   factory Data.fromJson(Map<String, dynamic> json) => Data(
-        id: json["id"],
-        userId: json["user_id"],
-        latitude: json["latitude"],
-        longitude: json["longitude"],
-        createdAt: json["created_at"] == null
-            ? null
-            : DateTime.parse(json["created_at"]),
-        updatedAt: json["updated_at"] == null
-            ? null
-            : DateTime.parse(json["updated_at"]),
+        id: intOrNull(json["id"]),
+        userId: intOrNull(json["user_id"]),
+        latitude: stringOrNull(json["latitude"]),
+        longitude: stringOrNull(json["longitude"]),
+        createdAt: dateOrNull(json["created_at"]),
+        updatedAt: dateOrNull(json["updated_at"]),
       );
 
   Map<String, dynamic> toJson() => {

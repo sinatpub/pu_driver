@@ -21,70 +21,125 @@ Widget _host(Widget child) {
 
 void main() {
   group('ApprovalGateView', () {
-    testWidgets('unknown is shown as still checking, not as a verdict',
+    const List<ApprovalStep> steps = <ApprovalStep>[
+      ApprovalStep('Documents sent', ApprovalStepState.done),
+      ApprovalStep('Under review', ApprovalStepState.current),
+      ApprovalStep('Ready to drive', ApprovalStepState.upcoming),
+    ];
+
+    testWidgets('waiting shows what happens next, and both ways out',
         (WidgetTester t) async {
       await t.pumpWidget(
         _host(
-          const ApprovalGateView(
-            status: DriverApprovalStatus.unknown,
-            title: 'Checking your account…',
-            message: 'We are confirming your approval status.',
-            actionLabel: 'Please try again',
+          const Positioned.fill(
+            child: ApprovalGateView(
+              status: DriverApprovalStatus.pending,
+              title: 'Waiting approval from admin',
+              message: 'Your account is pending admin approval.',
+              steps: steps,
+              supportLabel: 'Contact support',
+              checkAgainLabel: 'Check again',
+            ),
           ),
         ),
       );
 
-      expect(find.text('Checking your account…'), findsOneWidget);
-      // A spinner, not a clock or a cross: the answer has not arrived yet.
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.text('Waiting approval from admin'), findsOneWidget);
+      expect(find.text('Documents sent'), findsOneWidget);
+      expect(find.text('Under review'), findsOneWidget);
+      expect(find.text('Ready to drive'), findsOneWidget);
+      expect(find.text('Contact support'), findsOneWidget);
+      expect(find.text('Check again'), findsOneWidget);
+      // Waiting is a verdict, not a check in flight: nothing spins.
+      expect(find.byType(CircularProgressIndicator), findsNothing);
     });
 
-    testWidgets('pending and rejected read differently',
+    testWidgets('rejected reads differently, and lists no steps',
         (WidgetTester t) async {
       await t.pumpWidget(
         _host(
-          const ApprovalGateView(
-            status: DriverApprovalStatus.pending,
-            title: 'Waiting approval from admin',
-            message: 'Your account is pending admin approval.',
-            actionLabel: 'Contact support',
+          const Positioned.fill(
+            child: ApprovalGateView(
+              status: DriverApprovalStatus.rejected,
+              title: 'Application not approved',
+              message: 'Please re-submit your documents.',
+              supportLabel: 'Contact support',
+              checkAgainLabel: 'Check again',
+            ),
           ),
         ),
       );
-      expect(find.text('Waiting approval from admin'), findsOneWidget);
-      expect(find.byType(CircularProgressIndicator), findsNothing);
 
-      await t.pumpWidget(
-        _host(
-          const ApprovalGateView(
-            status: DriverApprovalStatus.rejected,
-            title: 'Application not approved',
-            message: 'Please re-submit your documents.',
-            actionLabel: 'Contact support',
-          ),
-        ),
-      );
       // The rejected driver is never told to wait — that was the old bug.
       expect(find.text('Application not approved'), findsOneWidget);
       expect(find.textContaining('Waiting'), findsNothing);
+      expect(find.text('Under review'), findsNothing);
+      expect(find.text('Contact support'), findsOneWidget);
     });
 
-    testWidgets('the action fires', (WidgetTester t) async {
-      int taps = 0;
+    testWidgets('it is a page of its own: the home behind does not show',
+        (WidgetTester t) async {
       await t.pumpWidget(
-        _host(
-          ApprovalGateView(
-            status: DriverApprovalStatus.unknown,
-            title: 'Checking your account…',
-            message: 'We are confirming your approval status.',
-            actionLabel: 'Please try again',
-            onAction: () => taps++,
+        MaterialApp(
+          theme: AppTheme.light(khmer: false),
+          home: const Scaffold(
+            body: Stack(
+              children: <Widget>[
+                Center(child: Text('the map')),
+                Positioned.fill(
+                  child: ApprovalGateView(
+                    status: DriverApprovalStatus.pending,
+                    title: 'Waiting approval from admin',
+                    message: 'Your account is pending admin approval.',
+                    supportLabel: 'Contact support',
+                    checkAgainLabel: 'Check again',
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       );
 
-      await t.tap(find.text('Please try again'));
-      expect(taps, 1);
+      final ColoredBox page = t.widget<ColoredBox>(
+        find
+            .descendant(
+              of: find.byType(ApprovalGateView),
+              matching: find.byType(ColoredBox),
+            )
+            .first,
+      );
+      expect(page.color.a, 1.0);
+    });
+
+    testWidgets('both buttons fire, and "check again" spins while it runs',
+        (WidgetTester t) async {
+      int support = 0;
+      int checks = 0;
+      Widget page({required bool checking}) => _host(
+            Positioned.fill(
+              child: ApprovalGateView(
+                status: DriverApprovalStatus.pending,
+                title: 'Waiting approval from admin',
+                message: 'Your account is pending admin approval.',
+                supportLabel: 'Contact support',
+                onSupport: () => support++,
+                checkAgainLabel: 'Check again',
+                onCheckAgain: () => checks++,
+                checking: checking,
+              ),
+            ),
+          );
+
+      await t.pumpWidget(page(checking: false));
+      await t.tap(find.text('Contact support'));
+      await t.tap(find.text('Check again'));
+      expect(support, 1);
+      expect(checks, 1);
+
+      await t.pumpWidget(page(checking: true));
+      await t.pump();
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
   });
 

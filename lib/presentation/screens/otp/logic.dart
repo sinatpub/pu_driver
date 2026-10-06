@@ -90,11 +90,11 @@ class OtpLogic extends GetxController {
   }
 
   Future<void> verify({required String phone, required String otpCode}) async {
-    // Debug-only shortcut — see [DebugAuthBypass] for the three conditions
-    // that must all hold. Compiled out of release builds entirely.
+    // Debug-only shortcut — see [DebugAuthBypass] for the conditions that
+    // must all hold. Compiled out of release builds entirely.
     if (DebugAuthBypass.accepts(otpCode)) {
       state.status.value = OtpStatus.loading;
-      final ok = await DebugAuthBypass.seedSession();
+      final ok = await DebugAuthBypass.seedSession(_repository.passwordLogin);
       if (!ok) {
         state.errorMessage.value =
             'Debug bypass could not obtain a session — see the log.';

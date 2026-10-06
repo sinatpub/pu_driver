@@ -54,6 +54,26 @@ class StorageGet {
     return ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms);
   }
 
+  /// What [StorageSet.setTripDistance] saved for [bookingId]; null when
+  /// nothing was saved, it was saved for another booking, or it cannot be
+  /// read.
+  static Future<({double meters, LatLng lastPoint})?> getTripDistance(
+    int bookingId,
+  ) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final List<String>? parts =
+        prefs.getString(StorageKeys.tripDistance)?.split('|');
+    if (parts == null || parts.length != 4) return null;
+    if (parts[0] != '$bookingId') return null;
+    final double? meters = double.tryParse(parts[1]);
+    final double? latitude = double.tryParse(parts[2]);
+    final double? longitude = double.tryParse(parts[3]);
+    if (meters == null || meters < 0 || latitude == null || longitude == null) {
+      return null;
+    }
+    return (meters: meters, lastPoint: LatLng(latitude, longitude));
+  }
+
   ////// FCM TOKEN
   static Future<String?> getFcmTokenLocal() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();

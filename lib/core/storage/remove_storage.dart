@@ -20,6 +20,11 @@ class StorageRemove {
     await prefs.remove(StorageKeys.arrivedAt);
   }
 
+  static Future<void> removeTripDistance() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove(StorageKeys.tripDistance);
+  }
+
   static Future<void> removeFCMTOKEN() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove("fcm_token_data");
