@@ -107,7 +107,6 @@ String _onTypeError(dynamic exception) {
 
 //
 DioErrorException _onDioError(DioException exception) {
-  _logDioError(exception);
   if (exception.error is SocketException) {
     ///Socket exception mostly from internet connection or host
     return DioErrorException(ErrorMessage.CONNECTION_ERROR);
@@ -141,17 +140,6 @@ ServerResponseException _onServerResponseException(
       "Http Log: Server error :=> ${response.requestOptions.path}:=> $exception");
   //httpLog("Server error :=> ${response.requestOptions.path}:=> $exception");
   return ServerResponseException(exception.toString());
-}
-
-void _logDioError(DioException exception) {
-  String errorMessage = "Dio error :=> ${exception.requestOptions.path}";
-  if (exception.response != null) {
-    errorMessage += ", Response: => ${exception.response!.data.toString()}";
-  } else {
-    errorMessage += ", ${exception.message}";
-  }
-
-  tlog("Http Log: Server error :=> $errorMessage");
 }
 
 String handleExceptionError(dynamic error, [String path = ""]) {
