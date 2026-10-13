@@ -1399,3 +1399,43 @@ A `currency` on the ride and on the payment, so the app stops assuming. The wall
 
 ### Impact
 `AppConfig.fareCurrency`, `core/utils/fare_money.dart` (`formatFare`, `fareCurrency`), `currencySymbol` / `isWholeUnitCurrency` moved to `core/utils/money.dart`, `estimateFare` (takes `num`), `BookingScreenArgs.pricrVehicle` (`num`), `SingleVehical.price` / `minimumFare` (`num`, read with `requireMoney`; this also closes five long-failing `json_field` tests), `CurrentDriverInfoModel` vehicle price, `MapHistoryDetailArgs.cost` (now the raw amount). The three trip widgets take the fare with its symbol.
+
+---
+
+## Decision DD-55: A demo build shows the invite feature on the real backend
+
+**Asked for by the user on 2026-10-06, to show the feature to the client before the backend has its routes.**
+
+### Decision
+- A build made with `DEMO_INVITE=true` shows the invite QR, the rewards screens, the sign-up invite code and "Transfer to balance" while the rest of the app runs on the real backend: real sign-in, real trips, the real wallet.
+- **Made up:** the invite code and link, the invited people, the rewards, the transfers. They are the same figures QA mock mode uses, and they start over each time the app starts.
+- **A transfer moves no real money.** So the wallet tells one story during a demo, the transferred amount is added to the balance the real wallet reports, with a "Reward transfer" row — on the screen only. Nothing is sent to the backend.
+- **Off unless a build asks.** The flag is a compile-time constant; without it the demo code is dead. It is allowed in a release build, so a demo APK can be handed over — and for the same reason it must never be in a build that ships to drivers: it shows money that does not exist.
+- QA mock mode is unaffected and takes precedence when both are on.
+
+### Not done
+No "demo" label on the screens: the point is to show the feature as it will look. Whoever runs the demo should say the figures are sample data.
+
+### Impact
+`lib/demo/demo_invite.dart` (`DemoInvite`, `DemoInviteInterceptor`), `inviteFeatureEnabled`, `BaseHttpClient.init`. To remove: delete the folder, the interceptor line and the `DemoInvite.isActive` half of `inviteFeatureEnabled`.
+
+---
+
+## Decision DD-56: A test APK may carry the debug login
+
+**Asked for by the user on 2026-10-08, after a plain release APK could not be signed in to without a working SMS code.**
+
+### Decision
+- The debug login (the button on the login page, and OTP `0000`) can be built into a **release** APK for a tester or a client demo.
+- It needs **two** flags: `DEBUG_OTP_BYPASS=true`, as before, and the new `DEBUG_LOGIN_IN_RELEASE=true`. A debug build still needs only the first.
+- **The second flag goes on the command line of that one build**, never into `dart_defines.json`: every build that reads that file would get it, including one for the store.
+- On such a build the line under the button reads "Test build, not for release. Signs in as …", so whoever holds the phone can tell.
+
+### Why it is guarded this way
+The test account's phone and password are compiled into the APK, and anyone holding the file can read them out. So: hand the APK only to people who may sign in as that driver, use a test account on a test backend, and never upload such a build.
+
+### Build
+`fvm flutter build apk --release --dart-define-from-file=dart_defines.json --dart-define=DEBUG_LOGIN_IN_RELEASE=true`
+
+### Impact
+`AppConfig.debugLoginInRelease`, `DebugAuthBypass.isEnabled` and its caption.

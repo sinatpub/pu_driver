@@ -22,12 +22,16 @@ typedef DebugPasswordLogin = Future<Result<RegisterModel>> Function({
 /// login (drawer, home, trip) can be exercised on an emulator without a real
 /// SMS round-trip.
 ///
-/// **This cannot be switched on in a release build.** It requires both:
+/// **A release build does not have it unless it asks twice.** It requires:
 ///
-/// 1. `kDebugMode` — the constant is `false` in profile/release, so the whole
-///    branch is tree-shaken out of a shipped binary.
-/// 2. `--dart-define=DEBUG_OTP_BYPASS=true` — off unless a build explicitly
+/// 1. `--dart-define=DEBUG_OTP_BYPASS=true` — off unless a build explicitly
 ///    asks for it. Deliberately **not** in `dart_defines.example.json`.
+/// 2. `kDebugMode` — the constant is `false` in profile/release, so the whole
+///    branch is tree-shaken out of a shipped binary —
+///    **or** `--dart-define=DEBUG_LOGIN_IN_RELEASE=true`, for a test APK
+///    (DD-56). That second flag is passed on the command line of that one
+///    build and kept out of `dart_defines.json`, so an ordinary release build
+///    never carries the login, or the test account's password, by accident.
 ///
 /// It has two doors: the login page's button ([loginLabel]), and typing
 /// [bypassCode] on the OTP screen.
@@ -52,7 +56,10 @@ class DebugAuthBypass {
   /// registers the real one right after sign-in, through `push-device-token`.
   static const _noDeviceToken = 'debug-login';
 
-  static bool get isEnabled => kDebugMode && _enabledByDefine;
+  static const _allowedInRelease = AppConfig.debugLoginInRelease;
+
+  static bool get isEnabled =>
+      _enabledByDefine && (kDebugMode || _allowedInRelease);
 
   static bool accepts(String otpCode) => isEnabled && otpCode == bypassCode;
 
@@ -63,8 +70,12 @@ class DebugAuthBypass {
   /// Which account the button signs in as, so nobody has to open
   /// `dart_defines.json` to find out.
   static String get loginCaption => _phone.isEmpty
-      ? 'Debug build only. DEBUG_LOGIN_PHONE is not set.'
-      : 'Debug build only. Signs in as $_phone.';
+      ? '$_buildKind. DEBUG_LOGIN_PHONE is not set.'
+      : '$_buildKind. Signs in as $_phone.';
+
+  /// Says what the person is holding: a test APK is not a debug build.
+  static const String _buildKind =
+      kDebugMode ? 'Debug build only' : 'Test build, not for release';
 
   /// Why the last [seedSession] failed, for the screen that asked; the log
   /// has the same text. Null after a success.

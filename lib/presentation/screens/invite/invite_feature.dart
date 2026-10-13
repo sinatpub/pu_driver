@@ -1,3 +1,4 @@
+import 'package:pu_taxi_driver/demo/demo_invite.dart';
 import 'package:pu_taxi_driver/mock/mock_mode.dart';
 
 /// Whether the invite QR, the rewards screens and the sign-up invite code are
@@ -7,4 +8,8 @@ import 'package:pu_taxi_driver/mock/mock_mode.dart';
 /// mock backend only. Against the real API the entry points stay hidden —
 /// a driver never reaches a screen that can only fail. Replace this with
 /// `true` (or a server flag) when the endpoints in `ReferralDatasource` exist.
-bool get inviteFeatureEnabled => MockMode.isActive;
+///
+/// One exception, DD-55: a build made with `DEMO_INVITE=true` shows the
+/// feature on the real backend too, answered with made-up data
+/// (`demo/demo_invite.dart`), for showing it before the endpoints exist.
+bool get inviteFeatureEnabled => MockMode.isActive || DemoInvite.isActive;

@@ -66,6 +66,14 @@ class AppConfig {
   static const bool debugOtpBypass =
       bool.fromEnvironment('DEBUG_OTP_BYPASS', defaultValue: false);
 
+  /// Lets the debug login into a **release** build, for a test APK handed to
+  /// a tester or shown to a client (DD-56). It is its own flag on purpose,
+  /// and belongs on the command line of that one build, not in
+  /// `dart_defines.json`: every build that reads that file would get it,
+  /// including one meant for the store.
+  static const bool debugLoginInRelease =
+      bool.fromEnvironment('DEBUG_LOGIN_IN_RELEASE', defaultValue: false);
+
   static const String debugLoginPhone =
       String.fromEnvironment('DEBUG_LOGIN_PHONE');
 
