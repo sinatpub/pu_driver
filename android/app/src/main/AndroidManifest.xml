@@ -9,6 +9,11 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 <!--    Display full screen of notification-->
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
+    <!-- DD-58: OnlineService keeps the socket and the GPS alive while the
+         driver is online and the screen is off. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:label="PU Taxi Driver"
@@ -45,6 +50,10 @@
                 <category android:name="android.intent.category.category.DEFAULT"/>
             </intent-filter>
         </activity>
+        <service
+            android:name=".OnlineService"
+            android:exported="false"
+            android:foregroundServiceType="location" />
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

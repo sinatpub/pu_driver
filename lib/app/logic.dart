@@ -1,6 +1,7 @@
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:pu_taxi_driver/presentation/screens/home/data/repository/home_repository.dart';
+import 'package:pu_taxi_driver/services/online_service.dart';
 import 'package:pu_taxi_driver/services/session_service.dart';
 
 import 'state.dart';
@@ -28,20 +29,29 @@ import 'state.dart';
 /// there is no location — or when the server refuses, which is said in a
 /// message. After that the pill is the driver's: a driver who turns
 /// themselves off is not turned back on.
+///
+/// ## Online with the screen off (DD-58)
+///
+/// While [AppState.isOnline] is true the Android [OnlineService] runs, so the
+/// socket that brings ride requests outlives the screen. It follows the
+/// state: whatever turns the driver on or off starts or stops it.
 class AppLogic extends GetxController {
   AppLogic(
     this._repository, {
     SessionService? session,
+    OnlineService? onlineService,
     void Function(String message)? showMessage,
     void Function()? showBusy,
     void Function()? hideBusy,
   })  : _session = session ?? SessionService.instance,
+        _onlineService = onlineService ?? OnlineService.instance,
         _showMessage = showMessage ?? EasyLoading.showToast,
         _showBusy = showBusy ?? EasyLoading.show,
         _hideBusy = hideBusy ?? EasyLoading.dismiss;
 
   final HomeRepository _repository;
   final SessionService _session;
+  final OnlineService _onlineService;
 
   // The three EasyLoading calls, passed in so the logic can be tested
   // without the overlay it needs to be mounted in.
@@ -73,6 +83,17 @@ class AppLogic extends GetxController {
       ],
       (_) => _goOnlineWhenReady(),
     );
+    ever<bool>(state.isOnline, _followOnline);
+  }
+
+  /// What the service was last told. `isOnline` also reports being set to
+  /// the value it already has.
+  bool _serviceRunning = false;
+
+  void _followOnline(bool online) {
+    if (online == _serviceRunning) return;
+    _serviceRunning = online;
+    online ? _onlineService.start() : _onlineService.stop();
   }
 
   /// This object lives as long as the app does, so after a sign-out it still

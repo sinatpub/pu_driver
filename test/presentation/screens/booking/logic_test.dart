@@ -11,6 +11,7 @@ import 'package:pu_taxi_driver/presentation/screens/booking/data/repository/trip
 import 'package:pu_taxi_driver/presentation/screens/booking/domain/trip_state_machine.dart';
 import 'package:pu_taxi_driver/presentation/screens/booking/logic.dart';
 import 'package:pu_taxi_driver/presentation/screens/booking/state.dart';
+import 'package:pu_taxi_driver/services/online_service.dart';
 
 const _apiError = ApiException(type: ApiErrorType.unknown, message: 'boom');
 
@@ -84,8 +85,55 @@ class _FakeTripRepository extends TripRepository {
 BookingLogic _controller(_FakeTripRepository repo, TripStage stage) =>
     BookingLogic(repo, rideId: 42, initialStage: stage);
 
+/// DD-58 — the online service is told when a trip is running.
+class _Service extends OnlineService {
+  final List<bool> onTrip = <bool>[];
+
+  @override
+  Future<void> setOnTrip(bool value) async => onTrip.add(value);
+}
+
 void main() {
   late _FakeTripRepository repo;
+
+  group('the online service is told about the trip (DD-58)', () {
+    late _Service service;
+
+    BookingLogic open(TripStage stage) => BookingLogic(
+          _FakeTripRepository(),
+          rideId: 42,
+          initialStage: stage,
+          onlineService: service,
+        )..onInit();
+
+    setUp(() => service = _Service());
+
+    test('a request not yet answered is not a trip', () {
+      open(TripStage.requestReceived);
+
+      expect(service.onTrip, <bool>[false]);
+    });
+
+    test('a trip restored after a restart is one from the start', () {
+      for (final TripStage stage in <TripStage>[
+        TripStage.enRouteToPickup,
+        TripStage.waitingAtPickup,
+        TripStage.inProgress,
+        TripStage.completing,
+      ]) {
+        service = _Service();
+        open(stage);
+
+        expect(service.onTrip, <bool>[true], reason: stage.name);
+      }
+    });
+
+    test('leaving the trip screen ends it', () {
+      open(TripStage.inProgress).onClose();
+
+      expect(service.onTrip, <bool>[true, false]);
+    });
+  });
 
   setUp(() {
     repo = _FakeTripRepository();

@@ -1,7 +1,7 @@
 # PU Taxi Driver: manual test cases for a real device
 
 Written 2026-10-07 for the `dev` branch, running against the real backend
-(`taxi-api.simpledevelopertools.com`). 132 cases in 14 groups. A full pass takes
+(`taxi-api.simpledevelopertools.com`). 144 cases in 15 groups. A full pass takes
 about half a day with two phones; groups F to I are the core and take about
 90 minutes.
 
@@ -62,6 +62,7 @@ they behave differently from what is written here.
 | Gap 4 | Ride fares are in dollars (`$0.50`); the wallet is in riel (`៛`). | The backend does not send a currency with a ride. |
 | Gap 5 | Invite, rewards and transfer show sample data. A transfer moves no real money. | The backend has no routes for them yet. |
 | Gap 6 | No logout button. | Product decision still open. |
+| Gap 7 | No ride alert on a phone whose app Android has closed by itself (O-11, O-12). | The backend does not push a ride request yet; the app is ready for it. |
 
 ---
 
@@ -282,6 +283,27 @@ starts.
 | N-07 | During a trip, open a maps app for navigation, then return. | The trip page is unchanged; distance kept counting. | |
 | N-08 | Receive a request while music or a call is playing. | The request sound is still heard. | |
 
+### O. Online with the screen off, and clearing the app (Android)
+
+Added 2026-10-13 (DD-58). Use a real phone as well as an emulator: phone makers
+differ in how hard they close apps. For O-06 to O-09, read the result in
+`adb logcat -s OnlineService` or on the admin side.
+
+| ID | Steps | Expected | Result |
+|---|---|---|---|
+| O-01 | Sign in and let the app go online. Pull down the notification shade. | A permanent notification: "You're online", "Receiving requests". It cannot be swiped away. It makes no sound. | |
+| O-02 | Tap the pill to go offline. | The notification goes away. | |
+| O-03 | Go online. Tap the notification from another app. | The driver app comes to the front. | |
+| O-04 | Online. Lock the phone. Wait 5 minutes. Send a booking from the passenger app. | The request sound plays with the screen off. Unlocking shows the ride request. | |
+| O-05 | Online. Press Home and open another app. Wait 5 minutes. Send a booking. | The request sound plays and a notification shows. Opening the app shows the ride request. | |
+| O-06 | Online, no trip. Clear the app from the recent apps. | The "You're online" notification goes away within a few seconds. The log says "app cleared, offline call answered 201". The backend has the driver offline. | |
+| O-07 | After O-06, send a booking from the passenger app. | This driver is not offered the ride. | |
+| O-08 | After O-06, open the app again. | The app goes online by itself, and the notification is back. | |
+| O-09 | Accept a ride, so a trip is running. Clear the app from the recent apps. | The notification goes away. No offline call in the log. Opening the app again returns to the trip. | |
+| O-10 | Turn location permission off for the app in Android settings. Open the app and try to go online. | No crash. The log says the service was not started. | |
+| O-11 | Online. In Android settings, "Force stop" the app, or let a phone maker's battery saver close it. Send a booking. | Known gap 7 today: no alert, and `adb logcat -s flutter` shows no "ride push" line. When the backend pushes ride requests, the line is there with `announced=true`, the request sound plays, and it stops when the request times out. | |
+| O-12 | Change the language to English, then repeat O-11 once the backend pushes. | The alert is in English. | |
+
 ---
 
 ## 3. Bug report template
@@ -329,6 +351,7 @@ Console log:        for an API error, the response body only — not the curl
 | L. Announcements, terms, contact, language | 10 | | | |
 | M. Network, session, updates | 5 | | | |
 | N. Device checks | 8 | | | |
-| **Total** | **132** | | | |
+| O. Online with the screen off, clearing the app | 12 | | | |
+| **Total** | **144** | | | |
 
 Tested by: ____________  Date: ____________  Build: ____________

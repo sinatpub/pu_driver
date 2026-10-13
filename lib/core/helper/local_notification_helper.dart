@@ -93,7 +93,11 @@ class NotificationLocal {
       required FlutterLocalNotificationsPlugin plugin,
       required String title,
       bool useCustomSound = false,
-      String? description}) async {
+      String? description,
+
+      /// DD-58: the notification, and its sound, go away by themselves after
+      /// this long. For a ride request that nobody can answer any more.
+      Duration? timeoutAfter}) async {
     const int notificationId = FcmType.request;
 
     /// This is very important :
@@ -120,6 +124,7 @@ class NotificationLocal {
       channelShowBadge: true,
       fullScreenIntent: false,
       ticker: 'Booking',
+      timeoutAfter: timeoutAfter?.inMilliseconds,
     );
 
     // iOS Notification Details

@@ -1459,3 +1459,35 @@ Option B, a 48 px field with a 16 px number: lighter than the button under it, a
 
 ### Impact
 `TTextField.build` (`_lineHeight`, `_inputInnerHeight`, `_minInputPadding`). Tests in `ds_components_test.dart`: 56 px and centred text for the plain and phone field in both languages, and growth at text scale 2. The login renders in `docs/qa/q1/` are older than this.
+
+---
+
+## Decision DD-58: Ride requests reach a driver whose screen is off; clearing the app goes offline
+
+**Settled by the user on 2026-10-13: option C, "go offline", Android only.**
+
+### Context
+A ride request reaches the app over the socket only. Android cuts the network of an app that is not in front within minutes, and a cleared app has no process at all. So a driver with the screen off, or with the app cleared, heard nothing, and stayed "online" on the server where passengers were still matched to them.
+
+### Decision
+- **While the driver is online, an Android foreground service runs** (`OnlineService.kt`). Android then keeps the app's process, its socket and its GPS with the screen off or another app in front. The driver sees it as a permanent, silent notification: "You're online", "Receiving requests". It starts and stops with the online state, whatever changed it, and stops when the session ends.
+- **Clearing the app from the recent apps puts the driver offline.** The service outlives the screen for a few seconds, calls `POST /taxi-driver/set-status` with `status: 0`, and stops. Opening the app again puts the driver online as on any launch (DD-53). The same happens when Back ends the app, on Android 11 and older.
+- **Not during a trip.** From the accept to the end of the drop-off, clearing the app calls nothing: the trip goes on and the driver opens the app to finish it. Decided by Claude, not asked: what this backend does to a trip when its driver goes offline is not known.
+- **A pushed ride request is announced by the app** (`ride_push_alert.dart`): a data-only FCM message with `notification_type: service_booking` plays the booking sound and shows the request notification in the driver's language, and both go away after the request's `timeout`. This is for a phone whose app Android closed by itself. **The backend does not send this push yet.**
+
+### For the backend
+1. On every new ride request, also send an FCM message to the driver's device token (the one from `push-device-token`): **data only, no `notification` block, Android priority `high`, time to live equal to the request's timeout.** Data: `notification_type: "service_booking"` and the same fields as the `newRide` socket event (`booking_id`, `booking_code`, `passengerId`, `vehicleType`, `vehiclePrice`, `timeout`; `passenger`, `location` and `destination` as JSON text).
+2. A driver whose socket has been gone for some minutes, with no location update either, should be set offline by the server. A phone that is switched off or force-stopped can tell nobody.
+3. When a driver's socket connects, send again any request still waiting for that driver's answer. A request missed during a reconnect is lost today.
+
+### Limits
+- A phone maker's battery saver, or "Force stop", closes the service too. Nothing in the app can prevent that; the push is the answer, and after a force stop Android delivers no push either until the app is opened.
+- If the offline call fails (no network at that moment), the driver stays online on the server. Point 2 above covers it.
+- Tapping a pushed request on a closed app opens the app at the home, not at the request. To be built when a real push can be seen.
+- Google Play asks for a declaration for a location foreground service.
+- iOS is unchanged.
+
+### Impact
+`OnlineService.kt`, `MainActivity.kt` (method channel `pu_taxi_driver/online_service`), `AndroidManifest.xml` (`FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_LOCATION`, `WAKE_LOCK`, the service). `lib/services/online_service.dart`, `AppLogic` (follows `isOnline`), `SessionService.clear`, `BookingLogic` (reports the trip), `TripStage.isAcceptedTrip`, `ride_push_alert.dart`, `NotificationLogic.setupInteractedMessage`, `NotificationLocal.notificationBooking` (`timeoutAfter`). Manual test cases group O.
+
+**Not verified on a device.** The Dart side is tested and a debug APK builds; the notification, the screen-off socket and the offline call on clearing have to be seen on a phone.

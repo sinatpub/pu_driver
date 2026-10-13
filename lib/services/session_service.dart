@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:get/get.dart' hide Trans;
 import 'package:pu_taxi_driver/routes/app_routes.dart';
 import 'package:pu_taxi_driver/core/storage/token_store.dart';
 import 'package:pu_taxi_driver/core/storage/get_storages.dart';
 import 'package:pu_taxi_driver/services/location_service.dart';
+import 'package:pu_taxi_driver/services/online_service.dart';
 
 class SessionService {
   SessionService._(this._tokenStore);
@@ -47,6 +50,9 @@ class SessionService {
   Future<void> clear() async {
     _endedSessions++;
     _cachedToken = null;
+    // DD-58: nobody is online without a session, and the service holds the
+    // token that has just ended.
+    unawaited(OnlineService.instance.stop());
     await _tokenStore.clear();
   }
 

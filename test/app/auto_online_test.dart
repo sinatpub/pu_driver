@@ -10,6 +10,7 @@ import 'package:pu_taxi_driver/data/models/current_driver_info_model.dart';
 import 'package:pu_taxi_driver/data/models/set_status_model.dart';
 import 'package:pu_taxi_driver/presentation/screens/home/data/datasource/home_datasource.dart';
 import 'package:pu_taxi_driver/presentation/screens/home/data/repository/home_repository.dart';
+import 'package:pu_taxi_driver/services/online_service.dart';
 import 'package:pu_taxi_driver/services/session_service.dart';
 
 /// DD-53 — the app puts the driver online by itself, once per sign-in, when
@@ -72,10 +73,22 @@ class _Server extends HomeRepository {
       });
 }
 
+/// DD-58 — the Android service that runs while the driver is online.
+class _Service extends OnlineService {
+  final List<String> calls = <String>[];
+
+  @override
+  Future<void> start() async => calls.add('start');
+
+  @override
+  Future<void> stop() async => calls.add('stop');
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late _Server server;
+  late _Service service;
   late AppLogic app;
   late List<String> messages;
   late int busyShown;
@@ -83,10 +96,12 @@ void main() {
   setUp(() {
     FlutterSecureStorage.setMockInitialValues(<String, String>{});
     server = _Server();
+    service = _Service();
     messages = <String>[];
     busyShown = 0;
     app = AppLogic(
       server,
+      onlineService: service,
       showMessage: messages.add,
       showBusy: () => busyShown++,
       hideBusy: () {},
@@ -110,6 +125,48 @@ void main() {
     // Quietly: no overlay over the home, and nothing to tell.
     expect(busyShown, 0);
     expect(messages, isEmpty);
+  });
+
+  group('the online service follows the driver (DD-58)', () {
+    test('it starts when the app puts the driver online', () async {
+      await launch();
+
+      expect(service.calls, <String>['start']);
+    });
+
+    test('it stops when the driver turns themselves off, and starts again',
+        () async {
+      await launch();
+      await app.toggle(false);
+      await pumpEventQueue();
+      await app.toggle(true);
+      await pumpEventQueue();
+
+      expect(service.calls, <String>['start', 'stop', 'start']);
+    });
+
+    test('it starts for a driver the server still has online', () async {
+      server.available = 1;
+      await launch();
+
+      expect(service.calls, <String>['start']);
+    });
+
+    test('it does not run for a driver the server refuses', () async {
+      server.refusal = 'Not allowed';
+      await launch();
+      await pumpEventQueue();
+
+      expect(app.state.isOnline.value, isFalse);
+      expect(service.calls, <String>['start', 'stop']);
+    });
+
+    test('it never starts for a driver who is not approved', () async {
+      server.driverStatus = 0;
+      await launch();
+
+      expect(service.calls, isEmpty);
+    });
   });
 
   test('the order the three answers arrive in does not matter', () async {

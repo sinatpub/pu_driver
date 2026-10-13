@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:pu_taxi_driver/presentation/screens/booking/data/repository/trip_repository.dart';
 import 'package:pu_taxi_driver/presentation/screens/booking/domain/trip_state_machine.dart';
+import 'package:pu_taxi_driver/services/online_service.dart';
 import 'package:pu_taxi_driver/taxi_single_ton/taxi.dart';
 
 import 'state.dart';
@@ -19,14 +20,35 @@ class BookingLogic extends GetxController {
     this._repository, {
     required this.rideId,
     required TripStage initialStage,
+    OnlineService? onlineService,
   })  : _machine = TripStateMachine(initialStage),
+        _onlineService = onlineService ?? OnlineService.instance,
         state = BookingState(initialStage);
 
   final TripRepository _repository;
   final int rideId;
   final TripStateMachine _machine;
+  final OnlineService _onlineService;
 
   final BookingState state;
+
+  // DD-58: clearing the app puts the driver offline, but not in the middle
+  // of a trip. The service is told when one is running.
+  @override
+  void onInit() {
+    super.onInit();
+    _reportTrip(state.stage.value);
+    ever<TripStage>(state.stage, _reportTrip);
+  }
+
+  @override
+  void onClose() {
+    _onlineService.setOnTrip(false);
+    super.onClose();
+  }
+
+  void _reportTrip(TripStage stage) =>
+      _onlineService.setOnTrip(stage.isAcceptedTrip);
 
   bool get canCancel => _machine.canCancel;
 

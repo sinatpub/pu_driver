@@ -27,6 +27,19 @@ enum TripStage {
   completing
 }
 
+extension TripStageAccepted on TripStage {
+  /// From the accept to the end of the drop-off: the driver has a passenger
+  /// to serve. A request not yet answered is not a trip.
+  bool get isAcceptedTrip => switch (this) {
+        TripStage.idle || TripStage.requestReceived => false,
+        TripStage.enRouteToPickup ||
+        TripStage.waitingAtPickup ||
+        TripStage.inProgress ||
+        TripStage.completing =>
+          true,
+      };
+}
+
 extension TripStageProcessStep on TripStage {
   int toProcessStep() => switch (this) {
         TripStage.idle => 0,
