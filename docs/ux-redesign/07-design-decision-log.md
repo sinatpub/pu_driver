@@ -1491,3 +1491,18 @@ A ride request reaches the app over the socket only. Android cuts the network of
 `OnlineService.kt`, `MainActivity.kt` (method channel `pu_taxi_driver/online_service`), `AndroidManifest.xml` (`FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_LOCATION`, `WAKE_LOCK`, the service). `lib/services/online_service.dart`, `AppLogic` (follows `isOnline`), `SessionService.clear`, `BookingLogic` (reports the trip), `TripStage.isAcceptedTrip`, `ride_push_alert.dart`, `NotificationLogic.setupInteractedMessage`, `NotificationLocal.notificationBooking` (`timeoutAfter`). Manual test cases group O.
 
 **Not verified on a device.** The Dart side is tested and a debug APK builds; the notification, the screen-off socket and the offline call on clearing have to be seen on a phone.
+
+---
+
+## Decision DD-59: The `dev | main (release)` run configuration carries the debug login
+
+**Asked for by the user on 2026-10-13.**
+
+### Decision
+The IDE run configuration `dev | main (release)` passes `--dart-define=DEBUG_LOGIN_IN_RELEASE=true`, so the "Debug login" button is there when the app is run in release mode from the IDE. It stays the rule of DD-56 that the flag is on a command line and not in `dart_defines.json`.
+
+### Not changed
+`dev | apk`, `dev | release` and every `prd` configuration: an APK or bundle built from them has no debug login.
+
+### Impact
+`.run/dev _ main (release).run.xml`.

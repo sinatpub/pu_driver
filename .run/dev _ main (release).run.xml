@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="dev | main (release)" type="FlutterRunConfigurationType" factoryName="Flutter">
-    <option name="additionalArgs" value="--release --no-enable-impeller --dart-define-from-file=dart_defines.json" />
+    <option name="additionalArgs" value="--release --no-enable-impeller --dart-define-from-file=dart_defines.json --dart-define=DEBUG_LOGIN_IN_RELEASE=true" />
     <option name="filePath" value="$PROJECT_DIR$/lib/main.dart" />
     <method v="2" />
   </configuration>
