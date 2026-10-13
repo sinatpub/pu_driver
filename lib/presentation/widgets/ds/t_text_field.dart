@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pu_taxi_driver/core/theme/tokens.dart';
@@ -84,6 +86,18 @@ class TTextField extends StatelessWidget {
     final TaarraaColors c = context.colors;
     final bool hasError = errorText != null && errorText!.isNotEmpty;
     final bool isPhone = this is _TPhoneField;
+    final TextStyle inputStyle = isPhone
+        ? _phoneInputStyle(context)
+        : context.texts.body.copyWith(color: c.textPrimary);
+
+    // DD-57: the field is exactly [Sizes.input] tall, the same as the button
+    // under it. The padding is what is left after one line of text, so the
+    // taller Khmer line height no longer makes a taller field. Larger text
+    // still grows the field: the padding never goes below [_minInputPadding].
+    final double inputPadding = math.max(
+      _minInputPadding,
+      (_inputInnerHeight - _lineHeight(context, inputStyle)) / 2,
+    );
 
     final Widget field = Container(
       constraints: const BoxConstraints(minHeight: Sizes.input),
@@ -94,7 +108,7 @@ class TTextField extends StatelessWidget {
         borderRadius: Radii.controlRadius,
         border: Border.all(
           color: hasError ? c.danger : c.borderControl,
-          width: 1.5,
+          width: _borderWidth,
         ),
       ),
       child: Row(
@@ -118,21 +132,19 @@ class TTextField extends StatelessWidget {
               onChanged: onChanged,
               onSubmitted: onSubmitted,
               cursorColor: c.borderFocus,
-              style: isPhone
-                  ? _phoneInputStyle(context)
-                  : context.texts.body.copyWith(color: c.textPrimary),
+              style: inputStyle,
               decoration: InputDecoration(
                 isDense: true,
                 // P3: the input fills the 56 px field. With zero padding the
                 // tappable text box was 22 px tall — taps on the rest of the
                 // field did nothing, and it failed the 48 px target rule.
-                constraints: const BoxConstraints(minHeight: Sizes.input),
+                constraints: const BoxConstraints(minHeight: _inputInnerHeight),
                 counterText: '',
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
                 disabledBorder: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                contentPadding: EdgeInsets.symmetric(vertical: inputPadding),
                 hintText: hint,
                 hintStyle: context.texts.body.copyWith(color: c.textSecondary),
               ),
@@ -181,6 +193,32 @@ class TTextField extends StatelessWidget {
     );
   }
 }
+
+/// The height of one line of [style] as the input lays it out. Measured, not
+/// multiplied out from the style: the text engine rounds a line to whole
+/// pixels, and half a pixel either way shows as a field that is not
+/// [Sizes.input].
+double _lineHeight(BuildContext context, TextStyle style) {
+  final TextPainter painter = TextPainter(
+    text: TextSpan(text: ' ', style: style),
+    textDirection: TextDirection.ltr,
+    textScaler: MediaQuery.textScalerOf(context),
+    strutStyle: StrutStyle.fromTextStyle(style, forceStrutHeight: true),
+    maxLines: 1,
+  )..layout();
+  final double height = painter.height;
+  painter.dispose();
+  return height;
+}
+
+const double _borderWidth = 1.5;
+
+/// What the border leaves of [Sizes.input] for the input itself.
+const double _inputInnerHeight = Sizes.input - 2 * _borderWidth;
+
+/// The least room above and below the text, kept when larger text makes one
+/// line taller than the field allows.
+const double _minInputPadding = 8;
 
 class _TPhoneField extends TTextField {
   const _TPhoneField({

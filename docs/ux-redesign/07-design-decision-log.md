@@ -1439,3 +1439,23 @@ The test account's phone and password are compiled into the APK, and anyone hold
 
 ### Impact
 `AppConfig.debugLoginInRelease`, `DebugAuthBypass.isEnabled` and its caption.
+
+---
+
+## Decision DD-57: A text field is 56 px tall, the same as the button
+
+**Settled by the user on 2026-10-13: options A and 2.**
+
+### Context
+`Sizes.input` says 56 px, but the field was taller: the padding was a fixed 16 px above and below the text, so the line height decided the rest. In Khmer the login phone field came to 66 px over a 56 px Next button, and the other fields to 62 px. In English every field was 59 px.
+
+### Decision
+- Every `TTextField` is exactly 56 px tall, border included, in both languages. The login phone field and the fields on sign-up and invite all follow.
+- The text does not change: the phone number stays 18 px, other input 15 px. Only the padding shrinks, to what is left of the field after one line of text.
+- Larger system text still grows the field. The padding never goes below 8 px, so text is not clipped.
+
+### Not chosen
+Option B, a 48 px field with a 16 px number: lighter than the button under it, and the number is the one thing on the login screen.
+
+### Impact
+`TTextField.build` (`_lineHeight`, `_inputInnerHeight`, `_minInputPadding`). Tests in `ds_components_test.dart`: 56 px and centred text for the plain and phone field in both languages, and growth at text scale 2. The login renders in `docs/qa/q1/` are older than this.

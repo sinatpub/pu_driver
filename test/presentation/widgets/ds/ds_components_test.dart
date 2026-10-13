@@ -17,6 +17,37 @@ Widget _host(Widget child) {
   );
 }
 
+/// The bordered box of a [TTextField]: its first `Container`. Found by `is`,
+/// because the phone variant is a subclass.
+final Finder _fieldBox = find
+    .descendant(
+      of: find.byWidgetPredicate((Widget w) => w is TTextField),
+      matching: find.byType(Container),
+    )
+    .first;
+
+Widget _fieldHost({
+  required bool khmer,
+  required bool phone,
+  double textScale = 1,
+}) {
+  return MaterialApp(
+    theme: AppTheme.light(khmer: khmer),
+    builder: (BuildContext context, Widget? child) => MediaQuery(
+      data: MediaQuery.of(context)
+          .copyWith(textScaler: TextScaler.linear(textScale)),
+      child: child!,
+    ),
+    home: Scaffold(
+      body: Center(
+        child: phone
+            ? TTextField.phone(label: 'Phone')
+            : const TTextField(label: 'Plate', hint: 'Plate number'),
+      ),
+    ),
+  );
+}
+
 void main() {
   group('TButton', () {
     testWidgets('renders its label and reports taps', (WidgetTester t) async {
@@ -156,6 +187,45 @@ void main() {
       await t.pumpWidget(_host(TTextField.phone(label: 'Phone')));
       expect(find.text('+855'), findsOneWidget);
     });
+
+    // DD-57: the taller Khmer line height used to make a 66 px field over a
+    // 56 px button.
+    for (final bool khmer in <bool>[false, true]) {
+      for (final bool phone in <bool>[false, true]) {
+        final String name =
+            '${phone ? 'phone' : 'plain'} field, ${khmer ? 'km' : 'en'}';
+
+        testWidgets('$name: ${Sizes.input} px tall, text centred',
+            (WidgetTester t) async {
+          await t.pumpWidget(_fieldHost(khmer: khmer, phone: phone));
+
+          final Rect box = t.getRect(_fieldBox);
+          expect(box.height, Sizes.input);
+          expect(
+            t.getRect(find.byType(EditableText)).center.dy,
+            moreOrLessEquals(box.center.dy, epsilon: 0.01),
+          );
+          // P3: the input still fills the field, so a tap anywhere lands.
+          expect(
+            t.getSize(find.byType(TextField)).height,
+            moreOrLessEquals(Sizes.input - 3, epsilon: 0.01),
+          );
+        });
+
+        testWidgets('$name: larger text grows the field, never clips',
+            (WidgetTester t) async {
+          await t.pumpWidget(
+            _fieldHost(khmer: khmer, phone: phone, textScale: 2),
+          );
+
+          final Rect box = t.getRect(_fieldBox);
+          final Rect text = t.getRect(find.byType(EditableText));
+          expect(box.height, greaterThan(Sizes.input));
+          expect(text.top - box.top, greaterThanOrEqualTo(8));
+          expect(box.bottom - text.bottom, greaterThanOrEqualTo(8));
+        });
+      }
+    }
   });
 
   group('TBadge', () {
