@@ -294,7 +294,7 @@ Full width inside the screen padding unless paired. Dialog pairs split equally w
 
 - **Provider:** Google Maps, **default light styling** — no style JSON and no new asset. The prototype's dark map was a placeholder (`docs/ui-reference/05 §4`) and does not apply in light mode.
 - **Route polyline:** `brand.identity`, 5 px (today `Colors.red` at 5 px, `booking/view.dart:335-337`).
-- **Markers:** the existing assets, unchanged (`core/utils/load_custom_marker.dart`).
+- **Markers:** the existing assets, unchanged (`core/utils/load_custom_marker.dart`). *Vehicle markers superseded by DD-60.*
 - **Overlay cards:** opaque `bg.floating` + `border.divider` + `elev.float`, so they stay legible over map imagery.
 - **Map padding:** `GoogleMap.padding.bottom` = the current sheet or card height, keeping the Google logo, zoom controls and compass visible. They stay enabled as today.
 - **Traffic layer:** stays on for Home (`home/view.dart:83`).

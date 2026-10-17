@@ -96,6 +96,7 @@ String convertSecondsToHoursMinutes(int seconds) {
 
 String typeVehicle(int typeVehicleId) {
   // Same id → name mapping; P2 moved the names to keys (and fixed "Classis").
+  // 6 (Motor) added with its marker, DD-60.
   return (typeVehicleId == 1
           ? "VEHICLE_RICKSHAW"
           : typeVehicleId == 2
@@ -104,7 +105,9 @@ String typeVehicle(int typeVehicleId) {
                   ? "VEHICLE_MINI_VAN"
                   : typeVehicleId == 4
                       ? "VEHICLE_SUV"
-                      : "VEHICLE_ALPHARD_VIP")
+                      : typeVehicleId == 6
+                          ? "VEHICLE_MOTOR"
+                          : "VEHICLE_ALPHARD_VIP")
       .tr();
 }
 

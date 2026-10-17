@@ -6,7 +6,7 @@ How to use it: correct the Khmer column in `assets/translations/km.json` (same k
 
 Generated 2026-09-14 from `git diff HEAD` of the locale files.
 
-## 1. Developer drafts — review every one (39)
+## 1. Developer drafts — review every one (40)
 
 No native source. Highest risk.
 
@@ -46,6 +46,7 @@ No native source. Highest risk.
 | ☐ | `VEHICLE_ALPHARD_VIP` | Alphard VIP | ឡាន VIP |
 | ☐ | `VEHICLE_CLASSIC_CAR` | Classic Car | ឡានតូច |
 | ☐ | `VEHICLE_MINI_VAN` | Mini Van | ឡាន Van |
+| ☐ | `VEHICLE_MOTOR` | Motor | ម៉ូតូ |
 | ☐ | `VEHICLE_RICKSHAW` | Rickshaw | រ៉ឺម៉ក |
 | ☐ | `VEHICLE_SUV` | SUV | ឡាន SUV |
 | ☐ | `VEHICLE_TYPE_HINT` | Select vehicle type | ជ្រើសរើសប្រភេទយានយន្ដ |

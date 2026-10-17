@@ -19,6 +19,11 @@ Future<BitmapDescriptor> loadCustomMarker() async {
 
 /// Shared by home_screen.dart and booking_screen.dart for the driver's own
 /// pin, styled by the vehicle type on the driver's active booking.
+///
+/// The images (DD-60) are top-down, nose up and centred in the same 3:5 box
+/// as this size, so `rotation: heading` with `anchor: Offset(0.5, 0.5)` turns
+/// the vehicle about its middle and nothing is stretched. Each is a 120x200
+/// PNG (4x) exported from its source in `docs/markers/`.
 Future<BitmapDescriptor> loadCustomMarkerTukTuk({
   required int typeVehicleId,
 }) async {
@@ -38,15 +43,17 @@ Future<BitmapDescriptor> loadCustomMarkerTukTuk({
 /// `IllegalArgumentException: 'asset' cannot open asset:` on the main thread
 /// and crashed the app on the home map's first GPS fix.
 String vehicleMarkerAsset(int typeVehicleId) => switch (typeVehicleId) {
-      1 => "assets/marker/rickshaw_icon_svg.png",
-      2 => "assets/marker/classis_car.png",
-      3 => "assets/marker/mini_van.png",
-      4 => "assets/marker/SUV.png",
-      5 => "assets/marker/alphard_vip.png",
+      1 => "assets/marker/vehicle_tuk_tuk.png",
+      2 => "assets/marker/vehicle_classic_car.png",
+      3 => "assets/marker/vehicle_mini_van.png",
+      4 => "assets/marker/vehicle_suv.png",
+      5 => "assets/marker/vehicle_alphard_vip.png",
+      6 => "assets/marker/vehicle_motor.png",
       _ => fallbackVehicleMarkerAsset,
     };
 
-const String fallbackVehicleMarkerAsset = "assets/marker/classis_car.png";
+const String fallbackVehicleMarkerAsset =
+    "assets/marker/vehicle_classic_car.png";
 
 /// The trip screen's pickup and destination pins (DD-35), drawn in code so
 /// they stay sharp at every screen density and need no asset. Pickup is a

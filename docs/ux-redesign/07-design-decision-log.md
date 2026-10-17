@@ -1506,3 +1506,25 @@ The IDE run configuration `dev | main (release)` passes `--dart-define=DEBUG_LOG
 
 ### Impact
 `.run/dev _ main (release).run.xml`.
+
+## Decision DD-60: One family of top-down driver markers, one per service
+
+**Asked for by the user on 2026-10-17.** Supersedes "the existing assets, unchanged" (`02-design-system.md`) and the vehicle image of DD-35 for the driver's own marker.
+
+### Context
+The driver marker was five unrelated images: a black tuk-tuk and the same sedan recoloured brown, yellow, green and blue for Classic Car, Mini Van, SUV and Alphard VIP. None used the theme, the three larger services could only be told apart by colour, and each image (about 1:2) was stretched into the 30×50 (3:5) box it is drawn in.
+
+### Decision
+- **Shape tells the service, not colour.** Top-down, nose up: Tuk Tuk (id 1, a remork: motorbike and rider pulling a covered carriage), Classic Car (2, sedan), Mini Van (3, long roof, three side windows), SUV (4, square, roof rails), Alphard VIP (5, longest and widest, twin sunroofs), Motor (6, motorbike and rider).
+- **Theme colours only:** `brandIdentity` body, `actionHighlight` canopy and rails, `actionPressed` tail lights, `textPrimary` glass, `bgSurface` ring and headlights. Alphard VIP is the one dark (`textPrimary`) body, with `textSecondary` glass and a `brandIdentity` pinstripe.
+- **The same white ring and soft neutral shadow as the pickup and destination pins**, so every map graphic reads as one set.
+- **One 48×80 canvas (3:5)**, centred, so `rotation: heading` and `anchor: Offset(0.5, 0.5)` turn the vehicle about its middle and nothing is stretched. Exported as 120×200 PNGs (4×), drawn at 30×50 as before.
+- Unknown ids still fall back to the classic car.
+
+- **Motor is a new vehicle type, id 6** (the user, 2026-10-17): its marker, and the name `VEHICLE_MOTOR` ("Motor", ម៉ូតូ, a developer draft in `l10n-km-review.md`) in `typeVehicle()`, which had sent every id above 5 to "Alphard VIP".
+
+### Not changed
+The names of ids 1–5 (id 1 is still `VEHICLE_RICKSHAW`, "Rickshaw" / រ៉ឺម៉ក), the 30×50 size, the mock fixtures (no Motor type), the passenger pin, and the legacy `car_marker.png` in `taxi_location.dart`.
+
+### Impact
+`core/utils/load_custom_marker.dart`, `assets/marker/vehicle_*.png` (new) replacing `rickshaw_icon_svg.png`, `classis_car.png`, `mini_van.png`, `SUV.png`, `alphard_vip.png` and the unused `Rickshaw.png` (removed, with their `pubspec.yaml` entries), sources in `docs/markers/vehicle_*.svg`, `app/funtion_convert.dart` (`typeVehicle`), `VEHICLE_MOTOR` in both locale files and `l10n-km-review.md`, `test/core/utils/vehicle_marker_asset_test.dart`.
