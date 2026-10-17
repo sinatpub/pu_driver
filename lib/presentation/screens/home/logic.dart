@@ -202,7 +202,7 @@ class HomeLogic extends GetxController {
   Future<void> updateMarker(LatLng position, double bearing) async {
     final driverMarker =
         await loadCustomMarkerTukTuk(typeVehicleId: state.typeVehicleId.value);
-    state.markers.add(Marker(
+    state.markers.putMarker(Marker(
       markerId: const MarkerId("driverMarker"),
       position: position,
       icon: driverMarker,

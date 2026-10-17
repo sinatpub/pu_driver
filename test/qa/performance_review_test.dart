@@ -9,6 +9,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:pu_taxi_driver/app/funtion_convert.dart';
+import 'package:pu_taxi_driver/core/utils/load_custom_marker.dart';
 import 'package:pu_taxi_driver/core/utils/fare_estimate.dart';
 import 'package:pu_taxi_driver/presentation/screens/booking/domain/trip_state_machine.dart';
 import 'package:pu_taxi_driver/presentation/screens/booking/state.dart';
@@ -36,8 +37,10 @@ import '../helpers/localized_host.dart';
 /// * **Trip lifecycle** — a full legal `TripStateMachine` walk, and
 ///   `LocationService` single-subscription idempotence and cancel-on-stop.
 /// * **Home map** — `HomeState` marker-set churn driven like `HomeLogic`'s GPS
-///   listener: a fresh distinct `Marker` per tick (unbounded set growth), one
-///   `currentLocation` notification per tick, one camera animate per tick.
+///   listener: the driver marker replaced in place per tick (`putMarker`; it
+///   used to be added, an unbounded set the drawer's tab switch redrew as
+///   duplicates), one `currentLocation` notification per tick, one camera
+///   animate per tick.
 ///
 /// `WidgetsBinding.addTimingsCallback` never fires under the widget-test
 /// binding (verified), so GPU/raster frame times stay on-device.
@@ -487,8 +490,8 @@ void main() {
 
   group('Home screen — GPS listener marker churn', () {
     testWidgets(
-        'each position tick adds a distinct Marker (unbounded set '
-        'growth) and notifies observers once', (WidgetTester tester) async {
+        'each position tick replaces the one driver Marker (no set '
+        'growth) and notifies observers', (WidgetTester tester) async {
       final HomeState state = HomeState();
       int markerFires = 0;
       int currentFires = 0;
@@ -499,7 +502,7 @@ void main() {
       for (int i = 0; i < _ticks; i++) {
         final LatLng at = LatLng(11.5 + i * 1e-4, 104.88 + i * 1e-4);
         // HomeLogic.initLocation's listener work: updateMarker + camera.
-        state.markers.add(Marker(
+        state.markers.putMarker(Marker(
           markerId: const MarkerId('driverMarker'),
           position: at,
           rotation: (i * 6 % 360).toDouble(),
@@ -522,13 +525,12 @@ void main() {
       _record('home.markers.markerFires', markerFires);
       _record(
           'home.note.markerChurn',
-          'each tick: one distinct Marker (same MarkerId, new position/'
-              'rotation) added to the RxSet — unbounded growth while idling — '
-              'plus one loadCustomMarkerTukTuk asset decode per tick '
-              '(device-carried)');
+          'each tick: the driver Marker replaced in the RxSet by id '
+              '(putMarker; it was added, growing one per tick, and a map '
+              'rebuilt by the drawer drew them all) plus one '
+              'loadCustomMarkerTukTuk asset decode per tick (device-carried)');
 
-      // Findings — the roadmap says measure it, not fix it.
-      expect(state.markers.length, _ticks);
+      expect(state.markers.length, 1);
       expect(currentFires, _ticks);
       expect(cameraAnimates, _ticks);
     });

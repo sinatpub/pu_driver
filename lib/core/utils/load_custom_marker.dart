@@ -55,6 +55,18 @@ String vehicleMarkerAsset(int typeVehicleId) => switch (typeVehicleId) {
 const String fallbackVehicleMarkerAsset =
     "assets/marker/vehicle_classic_car.png";
 
+extension PutMarker on Set<Marker> {
+  /// Replaces the marker with the same id. `Set.add` alone keeps every
+  /// position a marker ever had, one per GPS tick: [Marker.==] compares every
+  /// field but its hash is the id alone. A live map shows only the newest per
+  /// id, but a map built afresh — the home tab reopened from the drawer —
+  /// gets the whole set as its initial markers and draws each one.
+  void putMarker(Marker marker) {
+    removeWhere((Marker m) => m.markerId == marker.markerId);
+    add(marker);
+  }
+}
+
 /// The trip screen's pickup and destination pins (DD-35), drawn in code so
 /// they stay sharp at every screen density and need no asset. Pickup is a
 /// brand circle with a white centre; destination is a dark rounded square.

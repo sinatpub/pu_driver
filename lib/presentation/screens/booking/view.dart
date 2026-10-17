@@ -1026,36 +1026,28 @@ class _BookingScreenState extends State<BookingScreen> {
         );
 
     if (args.desLatPassenger != null && stage != TripStage.requestReceived) {
-      _putMarker(driver());
-      _putMarker(stage == TripStage.enRouteToPickup
+      _markers.putMarker(driver());
+      _markers.putMarker(stage == TripStage.enRouteToPickup
           ? pin(pickup, passengerMarker)
           : pin(LatLng(args.desLatPassenger!, args.desLngPassenger!),
               destinationPassengerMarker));
     } else if (stage == TripStage.enRouteToPickup) {
-      _putMarker(driver());
-      _putMarker(pin(pickup, passengerMarker));
+      _markers.putMarker(driver());
+      _markers.putMarker(pin(pickup, passengerMarker));
     } else if (stage == TripStage.idle || stage == TripStage.requestReceived) {
       // DD-35: a request shows the driver too, at the other end of the route.
       if (hasDriver && stage == TripStage.requestReceived) {
-        _putMarker(driver());
+        _markers.putMarker(driver());
       } else {
         _markers.removeWhere((m) => m.markerId.value == "driverMarker");
       }
-      _putMarker(pin(pickup, passengerMarker));
+      _markers.putMarker(pin(pickup, passengerMarker));
     } else {
       _markers.removeWhere((m) => m.markerId.value == "passengerMarker");
-      _putMarker(driver());
+      _markers.putMarker(driver());
     }
     getAddressPlaceMarker();
     setState(() {});
-  }
-
-  /// Replaces the marker with the same id. `Set.add` alone kept every
-  /// position a marker ever had, one per GPS tick.
-  void _putMarker(Marker marker) {
-    _markers
-      ..removeWhere((Marker m) => m.markerId == marker.markerId)
-      ..add(marker);
   }
 
   void _clearPolyline() {
