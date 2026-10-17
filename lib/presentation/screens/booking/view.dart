@@ -1058,7 +1058,7 @@ class _BookingScreenState extends State<BookingScreen> {
       ..add(marker);
   }
 
-  _clearPolyline() {
+  void _clearPolyline() {
     _polylines.clear();
   }
 
