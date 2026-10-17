@@ -4,29 +4,70 @@
   "locale": "km",
   "width": 320,
   "textStyles": [
-    "12.0px/700 #1c784d KantumruyPro Completed",
+    "11.2px/700 #5c6474 KantumruyPro ML",
+    "12.0px/400 #5c6474 KantumruyPro #7712",
+    "12.0px/400 #5c6474 KantumruyPro Phnom Penh",
+    "12.0px/400 #5c6474 KantumruyPro Total price",
+    "12.0px/700 #5c6474 KantumruyPro Cash",
+    "12.0px/700 #5c6474 KantumruyPro Destination",
+    "12.0px/700 #5c6474 KantumruyPro Pickup",
     "14.0px/400 #5c6474 KantumruyPro Distance",
     "14.0px/400 #5c6474 KantumruyPro Duration",
-    "14.0px/400 #5c6474 KantumruyPro Total price",
-    "14.0px/700 #3a3a3c KantumruyPro 14 mins",
+    "14.0px/400 #5c6474 KantumruyPro Time",
+    "14.0px/400 #5c6474 KantumruyPro You can call the passeng…",
+    "14.0px/700 #3a3a3c KantumruyPro 12/09 09:30",
+    "14.0px/700 #3a3a3c KantumruyPro 14:00",
     "14.0px/700 #3a3a3c KantumruyPro 3.5 km",
-    "14.0px/700 #3a3a3c KantumruyPro ៛7,600"
+    "14.0px/700 #3a3a3c KantumruyPro Call passenger",
+    "14.0px/700 #cc3700 KantumruyPro Contact support",
+    "16.0px/700 #3a3a3c KantumruyPro Found something the pass…",
+    "16.0px/700 #3a3a3c KantumruyPro Mey Lin",
+    "16.0px/700 #3a3a3c KantumruyPro Sisowath Quay",
+    "16.0px/700 #3a3a3c KantumruyPro St. 271",
+    "30.0px/700 #3a3a3c KantumruyPro $7,600.00 [FontFeature('tnum', 1)]"
   ],
   "radii": [
+    "0,0,0,0",
+    "14,14,14,14",
     "16,16,16,16",
     "999,999,999,999"
   ],
   "fills": [
-    "#e6f7ef",
+    "#000000",
+    "#5c6474",
+    "#e2e2e5",
+    "#f7f7f9",
+    "#ff4500",
     "#ffffff"
   ],
   "borders": [
-    "1px #e2e2e5"
+    "1px #8f90a6",
+    "1px #e2e2e5",
+    "4px #ebebf0",
+    "4px #fff1ec"
   ],
   "paddings": [
+    "0,0,0,0",
+    "0,4,0,0",
     "0,8,0,8",
-    "11,5,11,5",
-    "17,17,17,17"
+    "12,6,12,6",
+    "13,5,5,5",
+    "16,0,16,0",
+    "17,1,17,1",
+    "17,17,17,17",
+    "17,9,17,17",
+    "4,4,4,4"
   ],
-  "controls": []
+  "controls": [
+    {
+      "type": "TButton",
+      "w": 286,
+      "h": 48
+    },
+    {
+      "type": "TButton",
+      "w": 286,
+      "h": 48
+    }
+  ]
 }

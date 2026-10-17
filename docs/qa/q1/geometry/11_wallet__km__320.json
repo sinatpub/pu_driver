@@ -4,28 +4,31 @@
   "locale": "km",
   "width": 320,
   "textStyles": [
-    "12.0px/400 #5c6474 KantumruyPro 2026-09-12 [FontFeature('tnum', 1)]",
-    "13.0px/700 #1c784d KantumruyPro My Wallet",
-    "13.0px/700 #cc3700 KantumruyPro Commission Fare",
-    "14.0px/700 #3a3a3c KantumruyPro 25.00 $ [FontFeature('tnum', 1)]",
+    "12.0px/400 #5c6474 KantumruyPro 09:14 [FontFeature('tnum', 1)]",
+    "12.0px/400 #5c6474 KantumruyPro Balance",
+    "12.0px/400 #5c6474 KantumruyPro Platform commission: 10%…",
+    "12.0px/400 #86650a KantumruyPro Unpaid commission from c…",
+    "14.0px/700 #1c784d KantumruyPro +៛100,000 [FontFeature('tnum', 1)]",
     "14.0px/700 #3a3a3c KantumruyPro Top up",
-    "18.0px/700 #3a3a3c KantumruyPro 25.00 $ [FontFeature('tnum', 1)]",
-    "18.0px/700 #3a3a3c KantumruyPro 7,600 ៛ [FontFeature('tnum', 1)]"
+    "16.0px/700 #86650a KantumruyPro You owe ៛5,000 [FontFeature('tnum', 1)]",
+    "30.0px/700 #3a3a3c KantumruyPro ៛85,400 [FontFeature('tnum', 1)]"
   ],
   "radii": [
     "16,16,16,16"
   ],
   "fills": [
-    "#e6f7ef",
-    "#fff1ec",
+    "#fff6e5",
     "#ffffff"
   ],
   "borders": [
-    "1px #e2e2e5"
+    "1px #e2e2e5",
+    "1px #ffb020"
   ],
   "paddings": [
+    "0,2,0,0",
     "15,13,15,13",
-    "15,15,15,15"
+    "15,15,15,15",
+    "17,17,17,17"
   ],
   "controls": []
 }

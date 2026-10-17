@@ -4,19 +4,14 @@
   "locale": "km",
   "width": 320,
   "textStyles": [
-    "12.0px/400 #5c6474 KantumruyPro Phone Number 090000001",
-    "12.0px/700 #1c784d KantumruyPro Accept",
-    "12.0px/700 #5c6474 KantumruyPro 3",
-    "12.0px/700 #5c6474 KantumruyPro 4",
-    "12.0px/700 #5c6474 KantumruyPro Drop",
+    "11.2px/700 #5c6474 KantumruyPro SD",
+    "12.0px/400 #1a579e KantumruyPro Go to passenger",
+    "12.0px/400 #5c6474 KantumruyPro #48213",
+    "12.0px/400 #5c6474 KantumruyPro Phnom Penh",
     "12.0px/700 #5c6474 KantumruyPro Pickup",
-    "12.0px/700 #5c6474 KantumruyPro Start",
-    "12.0px/700 #cc3700 KantumruyPro Arrive",
-    "12.0px/700 #ffffff KantumruyPro 2",
     "16.0px/700 #3a3a3c KantumruyPro Sok Dara",
-    "16.0px/700 #ffffff KantumruyPro I've arrived",
-    "16.799999999999997px/700 #5c6474 KantumruyPro SD",
-    "18.0px/700 #3a3a3c KantumruyPro St. 271, Phnom Penh"
+    "16.0px/700 #3a3a3c KantumruyPro St. 271",
+    "16.0px/700 #ffffff KantumruyPro I've arrived"
   ],
   "radii": [
     "12,12,12,12",
@@ -25,18 +20,16 @@
     "999,999,999,999"
   ],
   "fills": [
+    "#1a579e",
     "#1c784d",
-    "#cc3700",
     "#e2e2e5",
-    "#e6f7ef",
     "#ebebf0",
-    "#f2f2f5",
+    "#f7f7f9",
     "#ff4500",
     "#ffffff"
   ],
   "borders": [
     "1px #1c784d",
-    "1px #cc3700",
     "1px #e2e2e5",
     "4px #fff1ec"
   ],
@@ -45,9 +38,9 @@
     "0,4,0,0",
     "0,8,0,8",
     "1,1,1,1",
-    "13,13,13,13",
+    "13,5,5,5",
     "16,0,16,0",
-    "20,12,20,16",
+    "20,0,20,16",
     "4,4,4,4"
   ],
   "controls": [

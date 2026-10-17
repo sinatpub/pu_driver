@@ -5,7 +5,11 @@
   "width": 390,
   "textStyles": [
     "14.0px/400 #5c6474 KantumruyPro Please wait.",
-    "14.0px/700 #6b7588 KantumruyPro Contact support",
+    "14.0px/700 #6b7588 KantumruyPro Check again",
+    "15.0px/400 #3a3a3c KantumruyPro Documents sent",
+    "15.0px/400 #5c6474 KantumruyPro Ready to drive",
+    "16.0px/700 #3a3a3c KantumruyPro Under review",
+    "16.0px/700 #6b7588 KantumruyPro Contact support",
     "18.0px/700 #3a3a3c KantumruyPro Waiting for approval"
   ],
   "radii": [
@@ -18,18 +22,26 @@
     "#ffffff"
   ],
   "borders": [
+    "1px #8f90a6",
     "1px #e2e2e5"
   ],
   "paddings": [
     "0,0,0,0",
     "16,0,16,0",
     "17,17,17,17",
-    "24,24,24,24"
+    "20,0,20,16",
+    "20,32,20,16",
+    "3,3,3,3"
   ],
   "controls": [
     {
       "type": "TButton",
-      "w": 308,
+      "w": 350,
+      "h": 56
+    },
+    {
+      "type": "TButton",
+      "w": 350,
       "h": 48
     }
   ]

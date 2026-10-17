@@ -5,31 +5,33 @@
   "width": 320,
   "textStyles": [
     "14.0px/400 #5c6474 KantumruyPro Please re-submit your do…",
-    "14.0px/700 #6b7588 KantumruyPro Contact support",
+    "14.0px/700 #6b7588 KantumruyPro Check again",
+    "16.0px/700 #6b7588 KantumruyPro Contact support",
     "18.0px/700 #3a3a3c KantumruyPro Application not approved"
   ],
   "radii": [
-    "14,14,14,14",
-    "16,16,16,16"
+    "14,14,14,14"
   ],
   "fills": [
     "#d32f2f",
-    "#e2e2e5",
-    "#ffffff"
+    "#e2e2e5"
   ],
-  "borders": [
-    "1px #e2e2e5"
-  ],
+  "borders": [],
   "paddings": [
     "0,0,0,0",
     "16,0,16,0",
-    "17,17,17,17",
-    "24,24,24,24"
+    "20,0,20,16",
+    "20,32,20,16"
   ],
   "controls": [
     {
       "type": "TButton",
-      "w": 238,
+      "w": 280,
+      "h": 56
+    },
+    {
+      "type": "TButton",
+      "w": 280,
       "h": 48
     }
   ]
