@@ -395,6 +395,7 @@ class TaarraaTextStyles {
     required this.bodyStrong,
     required this.body,
     required this.bodySecondary,
+    required this.bodySecondaryStrong,
     required this.label,
     required this.caption,
     required this.micro,
@@ -423,6 +424,10 @@ class TaarraaTextStyles {
 
   /// Dialog and news body.
   final TextStyle bodySecondary;
+
+  /// List-row titles and amounts — [bodySecondary]'s size at
+  /// [bodyStrong]'s weight and line height.
+  final TextStyle bodySecondaryStrong;
 
   /// Field labels, chips, tabs.
   final TextStyle label;
@@ -475,6 +480,7 @@ class TaarraaTextStyles {
       bodyStrong: _style(16, FontWeights.bold, bodyStrong),
       body: _style(15, FontWeights.regular, body),
       bodySecondary: _style(14, FontWeights.regular, bodySecondary),
+      bodySecondaryStrong: _style(14, FontWeights.bold, bodyStrong),
       label: _style(13, FontWeights.bold, label),
       caption: _style(12, FontWeights.regular, caption),
       micro: _style(12, FontWeights.bold, micro),

@@ -271,9 +271,12 @@ final Map<String, (Widget Function(), bool)> _surfaces =
               amount: '៛1,285,400',
               note: 'Platform commission: 10% of each trip',
             ),
-            WalletDebtCard(
-              title: 'You owe ៛5,000',
-              message: 'Unpaid commission from cash trips. Top up to clear it.',
+            WalletBalanceCard(
+              label: 'Balance',
+              amount: '−៛1,285,400',
+              note: 'Platform commission: 10% of each trip',
+              owing: true,
+              message: 'Unpaid commission from cash trips.',
               hint: 'You have ៛5,160 in invite rewards. Transfer it to pay '
                   'this.',
               actionLabel: 'Transfer to balance',

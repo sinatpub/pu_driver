@@ -178,7 +178,7 @@
     "WALLET_BALANCE": "សមតុល្យ",
     "WALLET_COMMISSION_NOTE": "កម្រៃជើងសារក្រុមហ៊ុន៖ {}% នៃដំណើរនីមួយៗ",
     "WALLET_DEBT_TITLE": "អ្នកជំពាក់ {}",
-    "WALLET_DEBT_MESSAGE": "កម្រៃជើងសារមិនទាន់បង់ពីដំណើរបង់សាច់ប្រាក់។ សូមបញ្ចូលទឹកប្រាក់ដើម្បីទូទាត់។",
+    "WALLET_DEBT_MESSAGE": "កម្រៃជើងសារមិនទាន់បង់ពីដំណើរបង់សាច់ប្រាក់។",
     "WALLET_TX_TOP_UP": "បញ្ចូលទឹកប្រាក់",
     "WALLET_TX_TRIP_EARNING": "ចំណូលពីដំណើរ",
     "WALLET_TX_COMMISSION": "កម្រៃជើងសារ",
@@ -304,6 +304,14 @@
     "RIDE_CREDIT_NOTE": "{} បង់ដោយក្រេឌីតធ្វើដំណើរ · បានបញ្ចូលក្នុងកាបូបរបស់អ្នក",
     "RIDE_CREDIT_FULL_NOTE": "ថ្លៃធ្វើដំណើរទាំងអស់ត្រូវបានបញ្ចូលក្នុងកាបូបរបស់អ្នក។",
     "WALLET_TX_RIDE_CREDIT": "ក្រេឌីតធ្វើដំណើរ",
+    "WALLET_TRANSACTIONS": "ប្រតិបត្តិការ",
+    "WALLET_TX_PAYMENT": "ការទូទាត់",
+    "WALLET_STATUS_PENDING": "កំពុងរង់ចាំ",
+    "WALLET_STATUS_FAILED": "បរាជ័យ",
+    "WALLET_STATUS_CANCELLED": "បានបោះបង់",
+    "WALLET_TX_A11Y_IN": "ប្រាក់ចូល {}",
+    "WALLET_TX_A11Y_OUT": "ប្រាក់ចេញ {}",
+    "WALLET_DEBT_SUPPORT_HINT": "សូមទាក់ទងជំនួយដើម្បីទូទាត់។",
     "APP_NAME": "ពូ តាក់ស៊ី",
     "DRIVER_ROLE": "អ្នកបើកបរ"
 }

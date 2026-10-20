@@ -109,7 +109,7 @@ Contrast ratios use the WCAG 2.1 relative-luminance formula and were measured in
 
 1. **Brand means action or identity, never status.** `brand.identity` is for graphics; anything with a white label on it uses `action.primary`.
 2. **Status = colour + icon + word.**
-3. **Money is `text.primary`** in ledgers, receipts and totals (`DD-04`). The in-trip meter sits on `stage.onTrip.tint` because that marks the stage, not the money.
+3. **Money is `text.primary`** in ledgers, receipts and totals (`DD-04`). The in-trip meter sits on `stage.onTrip.tint` because that marks the stage, not the money. A wallet balance the driver owes is `warning` on `warning.tint`, with the warning glyph and its "−" — never red (`DD-62`).
 4. **Destructive is an outline, never a filled red button** (layout-system §7): white fill, 1.5 px `danger` border, `danger` label.
 5. **Disabled is never the only signal**, and informational text stays at `text.secondary` even in a disabled container.
 6. **Separation is by border first, shadow only where something floats** — on light, shadow-heavy UI over a map turns to mud.
@@ -147,6 +147,7 @@ Contrast ratios use the WCAG 2.1 relative-luminance formula and were measured in
 | `bodyStrong` | 16 / 700 | 1.4 / 1.75 | `.btn` HTML:63 | Button labels, names, addresses |
 | `body` | 15 / 400 | 1.45 / 1.8 | inputs HTML:31 | Body copy, input text |
 | `bodySecondary` | 14 / 400 | 1.55 / 1.8 | `.dialog p` HTML:111 | Dialog and news body (`text.secondary`) |
+| `bodySecondaryStrong` | 14 / 700 | 1.4 / 1.75 | — (DD-61) | List-row titles and amounts |
 | `label` | 13 / 700 | 1.35 / 1.7 | `.lbl` HTML:72 | Field labels, chips, tabs |
 | `caption` | 12 / 400 | 1.35 / 1.7 | `.tiny` HTML:27 | Meta, timestamps |
 | `micro` | 12 / 700 | 1.3 / 1.6 | `.badge` HTML:90 | Badges, pills, timeline labels, overlines |

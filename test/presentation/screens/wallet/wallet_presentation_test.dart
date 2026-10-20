@@ -200,6 +200,21 @@ void main() {
       expect(WalletTxKind.unknown.labelKey, isNull);
       expect(WalletTxKind.commission.labelKey, 'WALLET_TX_COMMISSION');
     });
+
+    test('the real backend\'s "payment" has a name but no direction (DD-61)',
+        () {
+      expect(WalletTxKind.of('payment'), WalletTxKind.payment);
+      expect(WalletTxKind.of('Payment'), WalletTxKind.payment);
+      expect(WalletTxKind.payment.labelKey, 'WALLET_TX_PAYMENT');
+      // A kind matched earlier keeps its own meaning.
+      expect(WalletTxKind.of('Commission Payment'), WalletTxKind.commission);
+      expect(WalletTxKind.of('Top Up Payment'), WalletTxKind.topUp);
+      // What it pays is undocumented: only the amount's sign says which way.
+      expect(walletTxDirection(WalletTxKind.payment, -5),
+          WalletTxDirection.moneyOut);
+      expect(walletTxDirection(WalletTxKind.payment, 5),
+          WalletTxDirection.unknown);
+    });
   });
 
   group('walletTxDirection and the signed amount (DD-43)', () {
@@ -272,8 +287,24 @@ void main() {
       expect(walletDebt(5000), 5000);
       expect(walletDebt('5000'), 5000);
       expect(walletDebt(0), isNull);
+      expect(walletDebt('0.00'), isNull);
       expect(walletDebt(null), isNull);
-      expect(walletDebt(-10), isNull);
+    });
+
+    test('the backend sends the debt negative; the amount owed is positive',
+        () {
+      expect(walletDebt('-52.10'), 52.1);
+      expect(walletDebt(-10), 10);
+    });
+
+    test('the balance net of the debt (DD-62)', () {
+      expect(walletNetBalance(0, '-52.10'), closeTo(-52.1, 1e-9));
+      expect(formatWalletMoney(walletNetBalance(0, '-52.10'), 'KHR'), '−៛52');
+      expect(walletNetBalance('85400', null), 85400);
+      expect(walletNetBalance(85400, '0.00'), 85400);
+      // Not guessed: no balance, no figure.
+      expect(walletNetBalance(null, '-52.10'), isNull);
+      expect(formatWalletMoney(walletNetBalance(null, -5), 'KHR'), '—');
     });
   });
 
@@ -284,6 +315,24 @@ void main() {
       expect(isRoutineStatus(null), isTrue);
       expect(isRoutineStatus('Pending'), isFalse);
       expect(isRoutineStatus('Failed'), isFalse);
+    });
+
+    test('a status is read loosely and translated when known (DD-61)', () {
+      expect(WalletTxStatus.of('Success'), WalletTxStatus.routine);
+      expect(WalletTxStatus.of(null), WalletTxStatus.routine);
+      expect(WalletTxStatus.of('pending'), WalletTxStatus.pending);
+      expect(WalletTxStatus.of(' Pending '), WalletTxStatus.pending);
+      expect(WalletTxStatus.of('FAILED'), WalletTxStatus.failed);
+      expect(WalletTxStatus.of('Cancelled'), WalletTxStatus.cancelled);
+      expect(WalletTxStatus.of('canceled'), WalletTxStatus.cancelled);
+      expect(WalletTxStatus.of('On hold'), WalletTxStatus.other);
+
+      expect(WalletTxStatus.pending.labelKey, 'WALLET_STATUS_PENDING');
+      expect(WalletTxStatus.failed.labelKey, 'WALLET_STATUS_FAILED');
+      expect(WalletTxStatus.cancelled.labelKey, 'WALLET_STATUS_CANCELLED');
+      // Not shown, and the backend's own text, respectively.
+      expect(WalletTxStatus.routine.labelKey, isNull);
+      expect(WalletTxStatus.other.labelKey, isNull);
     });
 
     test('a header goes before the first transaction of each day', () {

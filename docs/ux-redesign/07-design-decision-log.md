@@ -1116,13 +1116,15 @@ The wallet showed two money cards — "Wallet 85,400 ៛" and "Commission fare 1
 - *(DD-46 paid rewards straight into the balance; DD-48 went back to a separate reward balance with a transfer, and settled that there is no cash withdrawal.)* **Referral rewards** (the flowchart) stay a separate balance with "Transfer to wallet" and withdraw — reward money is the driver's to cash out, top-up money is prepaid commission. Not built: no backend (DD-22, Q-4).
 
 ### Decision (this app, now)
-- **One balance card:** "Balance", the amount, and under it "Platform commission: 10% of each trip" when the rate is reported. The "Commission fare" money card is gone.
-- **Debt warning:** shown only when `debted` is above zero — "You owe ៛5,000", "Unpaid commission from cash trips. Top up to clear it." Warning amber, not red. No "Top up" button: there is no endpoint. The copy does not say requests will stop, because that rule is not yet confirmed server-side.
+- **One balance card:** "Balance", the amount, and under it "Platform commission: 10% of each trip" when the rate is reported. The "Commission fare" money card is gone. *(DD-63: the note is not shown until the backend confirms what `commission_fare` is.)*
+- **Debt warning:** shown only when `debted` is not zero — "You owe ៛5,000", "Unpaid commission from cash trips. Top up to clear it." Warning amber, not red. No "Top up" button: there is no endpoint. The copy does not say requests will stop, because that rule is not yet confirmed server-side. *(DD-61: the message is now "Unpaid commission from cash trips.", and without rewards to transfer the card says "Contact support to pay it." with a "Contact support" button. DD-62: the warning is no longer a card of its own — the balance card turns amber and shows the balance net of the debt.)*
 - **Transactions:** grouped by day (as DD-40); each row has a translated name for the kinds the app knows (`WalletTxKind`, matched loosely on `type_name`: top-up, trip earning, commission, withdrawal, referral reward) and the backend's own text otherwise; the time; a status only when it is not the routine one; and the amount with a sign — "+" in success green for money in, "−" in neutral for money out. A negative amount is always out; otherwise the kind decides, so a commission sent as a positive number still reads as out. An unknown kind with a positive amount gets no sign. The filter chips use the translated names; the filter itself still matches `type_name`.
 - **Money format:** symbol first ("៛85,400", "$125.50"), as everywhere else. The USD/riel decimal rules are unchanged.
 
 ### Needs from the backend
 - Confirm `commission_fare` is a percentage and `debted` is unpaid commission, with the balance floor and the pay-debt-first rule.
+- *(Seen 2026-10-20: the real backend sends `debted` negative, `"-52.10"` for ៛52.10 owed. The app shows the magnitude as the debt.)*
+- *(Seen 2026-10-20: `commission_fare` equals the debt in both real payloads — `5` with `"-5.00"`, `52.1` with `-52.10` — so it looks like the commission owed, not a rate. See DD-63.)*
 - *(Answered 2026-10-03: there is no automatic debt limit. The company watches debt in the admin panel and stops a driver by hand; the app shows the debt and never blocks requests itself.)*
 - Transaction `type` codes (CLIENT_BRIEF B4), so names and directions come from codes, not from matching English text.
 - Top-up and withdraw endpoints (Q-4).
@@ -1528,3 +1530,66 @@ The names of ids 1–5 (id 1 is still `VEHICLE_RICKSHAW`, "Rickshaw" / រ៉ឺ
 
 ### Impact
 `core/utils/load_custom_marker.dart`, `assets/marker/vehicle_*.png` (new) replacing `rickshaw_icon_svg.png`, `classis_car.png`, `mini_van.png`, `SUV.png`, `alphard_vip.png` and the unused `Rickshaw.png` (removed, with their `pubspec.yaml` entries), sources in `docs/markers/vehicle_*.svg`, `app/funtion_convert.dart` (`typeVehicle`), `VEHICLE_MOTOR` in both locale files and `l10n-km-review.md`, `test/core/utils/vehicle_marker_asset_test.dart`.
+
+## Decision DD-61: The wallet names the backend's rows, marks pending money, and points debt at support
+
+**Asked for by the user on 2026-10-20**, from a UX audit of the wallet against the real backend.
+
+### Context
+Against the real backend every wallet row read as the English word "payment" with the status "pending", under a heading whose Khmer (`HISTORY`, ប្រវត្តិកក់) means booking history. A pending charge looked the same as a settled one. The debt card told the driver to top up, which the app cannot do. A pull to refresh swapped the wallet for the skeleton, and a failed pull replaced it with the error page. A screen reader read each card in fragments, and the sign as "minus".
+
+### Decision
+- **"payment" is a known kind** (`WalletTxKind.payment`, "Payment" / ការទូទាត់). What it pays is undocumented, so it has no direction of its own: a negative amount is money out, a positive one is unsigned.
+- **Statuses are translated** (`WalletTxStatus`: pending, failed, cancelled), read loosely like the kinds. Any other status is the backend's own text; the routine ones are still not shown.
+- **A status is a badge with a glyph:** pending — warning tone, clock; failed — danger, warning sign; cancelled and others — neutral. **A pending amount is muted** (`textSecondary`), money in included: it has not moved yet.
+- **The amount shares the title's line**, so the time and the badge have the row's full width on the line under it. A badge that does not fit beside the time goes under it.
+- **The heading is "Transactions"** (`WALLET_TRANSACTIONS`, ប្រតិបត្តិការ). `HISTORY` stays the drawer's trip-history label.
+- **Debt:** the message is "Unpaid commission from cash trips." With invite rewards to move, the hint and the button are still the transfer (DD-48). Without, the hint is "Contact support to pay it." and a "Contact support" button opens the Contact us tab. A wallet is topped up by the admin; the app has no endpoint for it.
+- **Pull to refresh is silent:** the wallet stays on screen under the spinner, and a failed pull keeps it.
+- **Screen reader:** the balance card is one stop. A transaction row is one sentence — "Payment, Money out ៛5, 20:15, Pending" — with the direction spoken (`WALLET_TX_A11Y_IN`, `WALLET_TX_A11Y_OUT`).
+- **New type token `bodySecondaryStrong`** (14 / 700, `bodyStrong`'s line heights) for the row's title and amount, replacing `bodyStrong.copyWith(fontSize: 14)`. The pixels are the same.
+
+### Not changed
+- The commission note. Against the real backend it reads "52.1% of each trip": `commission_fare` there follows the debt (`5` with `debted` `-5.00`, `52.1` with `-52.10`), so it looks like an amount, not DD-43's rate. Open with the backend under DD-43.
+- The other `fontSize: 14` overrides (invite widgets, `TKeyValueRow`, the announcement and terms pages), and the wallet's off-grid paddings (14, 2).
+- The QA renders in `docs/qa/q1`, which show the old transaction row until they are refreshed.
+
+### Impact
+`wallet/view.dart`, `wallet/wallet_presentation.dart` (`WalletTxKind.payment`, `WalletTxStatus`), `wallet/widgets/wallet_widgets.dart` (`TransactionRow` takes `statusKind` and `semanticLabel`; `WalletBalanceCard` merges its semantics), `core/theme/tokens.dart` (`bodySecondaryStrong`), `02-design-system.md §2`. New keys: `WALLET_TRANSACTIONS`, `WALLET_TX_PAYMENT`, `WALLET_STATUS_PENDING`, `WALLET_STATUS_FAILED`, `WALLET_STATUS_CANCELLED`, `WALLET_TX_A11Y_IN`, `WALLET_TX_A11Y_OUT`, `WALLET_DEBT_SUPPORT_HINT`; `WALLET_DEBT_MESSAGE` shortened. Khmer drafts listed in `l10n-km-review.md`. `MANUAL_TEST_CASES.md`: gap 3, J-08, J-09, new J-13 and J-14.
+
+## Decision DD-62: A driver who owes sees a negative balance, in amber, in one card
+
+**Asked for by the user on 2026-10-20.** Supersedes DD-43's separate debt card.
+
+### Context
+A driver who owed commission saw "Balance ៛0" and, under it, a second card "You owe ៛52". Their real position, −៛52, had to be worked out. The user asked for a negative balance; red was considered and turned down: `02 §1.3`–`§1.4` and DD-04 took red off money because it reads as an error, DD-43 chose amber for debt, and owing commission after cash trips is the normal state for these drivers.
+
+### Decision
+- **One card.** When `debted` is not zero, the balance card shows the **balance net of the debt** (`walletNetBalance`: `balance − |debted|`), so ៛0 with ៛52.10 owed reads "−៛52". With no debt it is the plain balance, as before.
+- **Owing, the card is amber:** the warning tint and border (DD-43's debt colours), the amount in `warning`, and the warning glyph in place of the wallet icon, so the colour is never the only signal. The "−" stays.
+- **Under the commission note:** "Unpaid commission from cash trips.", the hint, and the action — the reward transfer when there are rewards to move (DD-48), "Contact support to pay it." and "Contact support" otherwise (DD-61).
+- **Screen reader:** the texts are one stop; the button stays its own.
+- A balance that is not reported still renders "—", debt or not: the net figure is never guessed.
+
+### Needs from the backend
+- Confirm a positive balance and a debt never coexist (DD-43's pay-debt-first rule). If they can, the net figure hides the two parts.
+
+### Impact
+`wallet/widgets/wallet_widgets.dart` (`WalletBalanceCard` takes `owing`, `message`, `hint`, `actionLabel`, `onAction`; `WalletDebtCard` removed), `wallet/wallet_presentation.dart` (`walletNetBalance`), `wallet/view.dart`, tests (wallet widgets and presentation, the a11y and Q1 surfaces). `02-design-system.md §1.4` rule 3. `WALLET_DEBT_TITLE` is no longer used by the app. `MANUAL_TEST_CASES.md` J-13.
+
+## Decision DD-63: The commission note is not shown
+
+**Asked for by the user on 2026-10-20.** Suspends DD-43's commission note.
+
+### Context
+DD-43 read the wallet's `commission_fare` as the platform's rate and showed it under the balance as "Platform commission: {}% of each trip". Against the real backend the note read "52.1% of each trip". In both real payloads seen, `commission_fare` equals the debt — `5` with `debted` `"-5.00"`, `52.1` with `-52.10` — so it looks like the commission owed, a sum of money, and the note gave drivers a false rate.
+
+### Decision
+- The balance card no longer shows the note. Nothing else reads `commission_fare`.
+- It comes back when the backend confirms a field that is the rate.
+
+### Not changed
+`WalletBalanceCard`'s `note` slot and `commissionRateText`, which the invite QR sheet also uses. The key `WALLET_COMMISSION_NOTE` stays in the locale files, unused by the app.
+
+### Impact
+`wallet/view.dart`, `test/qa/visual_qa_test.dart` (S11 surface), `MANUAL_TEST_CASES.md` J-08.

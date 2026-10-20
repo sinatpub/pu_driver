@@ -2,6 +2,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:pu_taxi_driver/core/theme/tokens.dart';
+import 'package:pu_taxi_driver/presentation/screens/drawer/logic.dart';
+import 'package:pu_taxi_driver/presentation/screens/drawer/state.dart';
 import 'package:pu_taxi_driver/presentation/screens/history/widgets/history_days.dart';
 import 'package:pu_taxi_driver/presentation/screens/invite/data/models/referral_model.dart';
 import 'package:pu_taxi_driver/presentation/screens/invite/invite_feature.dart';
@@ -30,8 +32,9 @@ import 'widgets/wallet_widgets.dart';
 ///
 /// UX-redesign S2 (`03 S11`) gave it design-system filter chips and skeleton
 /// / error / empty states. DD-43 reworked the content around the agreed
-/// wallet model: one balance with the commission rate as a note, a warning
-/// when commission is owed, and transactions grouped by day with translated
+/// wallet model: one balance with the commission rate as a note (dropped by
+/// DD-63), a warning when commission is owed, and transactions grouped by
+/// day with translated
 /// names and a sign for money in or out. Still no withdraw and no top-up —
 /// there is no API for either (N-01). The fetch and the filter rules are
 /// unchanged.
@@ -57,9 +60,12 @@ class _WalletPageState extends State<WalletPage> {
     if (inviteFeatureEnabled) invite.fetch();
   }
 
+  // DD-61: silent, so a pull keeps the wallet on screen under the spinner
+  // instead of swapping it for the skeleton, and a failed pull keeps it
+  // rather than replacing it with the error page.
   Future<void> _refresh() async {
     await Future.wait(<Future<void>>[
-      logic.fetch(),
+      logic.fetch(silent: true),
       if (inviteFeatureEnabled) invite.fetch(),
     ]);
   }
@@ -106,42 +112,47 @@ class _WalletPageState extends State<WalletPage> {
       case WalletStatus.loaded:
         final dataWallet = logic.state.wallet.value?.data;
         final String? currency = dataWallet?.currency?.toString();
-        final String? rate = commissionRateText(dataWallet?.commistionFare);
         final num? debt = walletDebt(dataWallet?.debted);
         final num rewards = _rewardBalance ?? 0;
+        final bool canTransfer = rewards > 0;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             if (dataWallet != null) ...<Widget>[
               // DD-43: one balance. `commission_fare` is the platform's rate,
               // not a second sum of money, so it is a note under the balance.
+              // DD-63: not shown — the real backend's `commission_fare`
+              // follows the debt (52.1 with ៛52.10 owed), so the note read
+              // "52.1% of each trip". Back when the backend confirms a rate.
+              // DD-62: `debted` is unpaid commission; when owed, the same
+              // card shows the balance net of it ("−៛52") in amber, with why
+              // and how to pay.
               WalletBalanceCard(
                 label: 'WALLET_BALANCE'.tr(),
-                amount: formatWalletMoney(dataWallet.balance, currency),
-                note: rate == null
-                    ? null
-                    : 'WALLET_COMMISSION_NOTE'.tr(args: <String>[rate]),
-              ),
-              // DD-43: `debted` is unpaid commission. Shown only when owed.
-              if (debt != null) ...<Widget>[
-                const SizedBox(height: Insets.s8),
-                WalletDebtCard(
-                  title: 'WALLET_DEBT_TITLE'.tr(
-                    args: <String>[formatWalletMoney(debt, currency)],
-                  ),
-                  message: 'WALLET_DEBT_MESSAGE'.tr(),
-                  // DD-48: the driver owes and has rewards — one tap from
-                  // the problem to the fix.
-                  hint: rewards > 0
-                      ? 'WALLET_DEBT_REWARD_HINT'.tr(args: <String>[
-                          formatWalletMoney(rewards, currency),
-                        ])
-                      : null,
-                  actionLabel: rewards > 0 ? 'INVITE_TRANSFER'.tr() : null,
-                  onAction:
-                      rewards > 0 ? () => confirmRewardTransfer(context) : null,
+                amount: formatWalletMoney(
+                  debt == null
+                      ? dataWallet.balance
+                      : walletNetBalance(dataWallet.balance, dataWallet.debted),
+                  currency,
                 ),
-              ],
+                owing: debt != null,
+                message: 'WALLET_DEBT_MESSAGE'.tr(),
+                // DD-48: the driver owes and has rewards — one tap from the
+                // problem to the fix. DD-61: without rewards there is no
+                // in-app way to pay (no top-up endpoint), so the fix is
+                // support, one tap away on the contact tab.
+                hint: canTransfer
+                    ? 'WALLET_DEBT_REWARD_HINT'.tr(args: <String>[
+                        formatWalletMoney(rewards, currency),
+                      ])
+                    : 'WALLET_DEBT_SUPPORT_HINT'.tr(),
+                actionLabel: canTransfer
+                    ? 'INVITE_TRANSFER'.tr()
+                    : 'CONTACT_SUPPORT'.tr(),
+                onAction: canTransfer
+                    ? () => confirmRewardTransfer(context)
+                    : _contactSupport,
+              ),
               // DD-48: invite rewards are a pot of their own, shown under the
               // balance with the button that moves them into it. Shown once
               // they have loaded; a failure to load them never takes the
@@ -190,6 +201,9 @@ class _WalletPageState extends State<WalletPage> {
     );
   }
 
+  void _contactSupport() =>
+      Get.find<DrawerLogic>().selectTab(DrawerTab.contactUs);
+
   /// The kind's translated name, or the backend's own text when the kind is
   /// not one the app knows.
   String _typeLabel(String? typeName) =>
@@ -206,8 +220,9 @@ class _WalletPageState extends State<WalletPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
+        // DD-61: not `HISTORY`, whose Khmer is the drawer's "booking history".
         Text(
-          'HISTORY'.tr(),
+          'WALLET_TRANSACTIONS'.tr(),
           style: context.texts.subtitle.copyWith(color: c.textPrimary),
         ),
         if (filters.length > 1)
@@ -255,18 +270,42 @@ class _WalletPageState extends State<WalletPage> {
   Widget _transactionRow(Transaction t, String? walletCurrency) {
     final WalletTxKind kind = WalletTxKind.of(t.typeName?.toString());
     final WalletTxDirection direction = walletTxDirection(kind, t.amount);
-    final String? status = t.statusName?.toString();
+    final String? statusName = t.statusName?.toString();
+    final WalletTxStatus statusKind = WalletTxStatus.of(statusName);
+    // DD-61: translated when the app knows the status; the backend's own
+    // text otherwise, as for an unknown kind.
+    final String? status = statusKind == WalletTxStatus.routine
+        ? null
+        : statusKind.labelKey?.tr() ?? statusName;
+    final String? currency = t.currency?.toString() ?? walletCurrency;
+    final String title = _typeLabel(t.typeName?.toString());
+    final String? time = formatTransactionTime(t.createdAt);
+
+    // DD-61: the sign is spoken as a direction, not as "minus".
+    final String figure =
+        formatSignedWalletMoney(t.amount, currency, WalletTxDirection.unknown);
+    final String spokenAmount = switch (direction) {
+      WalletTxDirection.moneyIn =>
+        'WALLET_TX_A11Y_IN'.tr(args: <String>[figure]),
+      WalletTxDirection.moneyOut =>
+        'WALLET_TX_A11Y_OUT'.tr(args: <String>[figure]),
+      WalletTxDirection.unknown => figure,
+    };
+
     return TransactionRow(
-      title: _typeLabel(t.typeName?.toString()),
+      title: title,
       kind: kind,
       direction: direction,
-      time: formatTransactionTime(t.createdAt),
-      status: isRoutineStatus(status) ? null : status,
-      amount: formatSignedWalletMoney(
-        t.amount,
-        t.currency?.toString() ?? walletCurrency,
-        direction,
-      ),
+      time: time,
+      status: status,
+      statusKind: statusKind,
+      semanticLabel: <String>[
+        title,
+        spokenAmount,
+        if (time != null) time,
+        if (status != null && status.isNotEmpty) status,
+      ].join(', '),
+      amount: formatSignedWalletMoney(t.amount, currency, direction),
     );
   }
 

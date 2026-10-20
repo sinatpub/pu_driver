@@ -6,7 +6,7 @@ How to use it: correct the Khmer column in `assets/translations/km.json` (same k
 
 Generated 2026-09-14 from `git diff HEAD` of the locale files.
 
-## 1. Developer drafts — review every one (40)
+## 1. Developer drafts — review every one (49)
 
 No native source. Highest risk.
 
@@ -50,6 +50,15 @@ No native source. Highest risk.
 | ☐ | `VEHICLE_RICKSHAW` | Rickshaw | រ៉ឺម៉ក |
 | ☐ | `VEHICLE_SUV` | SUV | ឡាន SUV |
 | ☐ | `VEHICLE_TYPE_HINT` | Select vehicle type | ជ្រើសរើសប្រភេទយានយន្ដ |
+| ☐ | `WALLET_DEBT_MESSAGE` | Unpaid commission from cash trips. | កម្រៃជើងសារមិនទាន់បង់ពីដំណើរបង់សាច់ប្រាក់។ |
+| ☐ | `WALLET_DEBT_SUPPORT_HINT` | Contact support to pay it. | សូមទាក់ទងជំនួយដើម្បីទូទាត់។ |
+| ☐ | `WALLET_STATUS_CANCELLED` | Cancelled | បានបោះបង់ |
+| ☐ | `WALLET_STATUS_FAILED` | Failed | បរាជ័យ |
+| ☐ | `WALLET_STATUS_PENDING` | Pending | កំពុងរង់ចាំ |
+| ☐ | `WALLET_TRANSACTIONS` | Transactions | ប្រតិបត្តិការ |
+| ☐ | `WALLET_TX_A11Y_IN` | Money in {} (screen reader only) | ប្រាក់ចូល {} |
+| ☐ | `WALLET_TX_A11Y_OUT` | Money out {} (screen reader only) | ប្រាក់ចេញ {} |
+| ☐ | `WALLET_TX_PAYMENT` | Payment | ការទូទាត់ |
 | ☐ | `YOU_ARE_OFFLINE` | You're offline | អ្នកបានបិទទទួល |
 | ☐ | `YOU_ARE_ONLINE` | You're online | អ្នកកំពុងបើកទទួល |
 

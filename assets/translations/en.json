@@ -179,7 +179,7 @@
     "WALLET_BALANCE": "Balance",
     "WALLET_COMMISSION_NOTE": "Platform commission: {}% of each trip",
     "WALLET_DEBT_TITLE": "You owe {}",
-    "WALLET_DEBT_MESSAGE": "Unpaid commission from cash trips. Top up to clear it.",
+    "WALLET_DEBT_MESSAGE": "Unpaid commission from cash trips.",
     "WALLET_TX_TOP_UP": "Top up",
     "WALLET_TX_TRIP_EARNING": "Trip earning",
     "WALLET_TX_COMMISSION": "Commission",
@@ -304,6 +304,14 @@
     "RIDE_CREDIT_NOTE": "{} paid by ride credit · added to your wallet",
     "RIDE_CREDIT_FULL_NOTE": "The whole fare is added to your wallet.",
     "WALLET_TX_RIDE_CREDIT": "Ride credit",
+    "WALLET_TRANSACTIONS": "Transactions",
+    "WALLET_TX_PAYMENT": "Payment",
+    "WALLET_STATUS_PENDING": "Pending",
+    "WALLET_STATUS_FAILED": "Failed",
+    "WALLET_STATUS_CANCELLED": "Cancelled",
+    "WALLET_TX_A11Y_IN": "Money in {}",
+    "WALLET_TX_A11Y_OUT": "Money out {}",
+    "WALLET_DEBT_SUPPORT_HINT": "Contact support to pay it.",
     "APP_NAME": "PU TAXI",
     "DRIVER_ROLE": "DRIVER"
 }

@@ -78,13 +78,16 @@ void main() {
 
       expect(data.currency, 'KHR');
       expect(commissionRateText(data.commistionFare), '5');
-      // Known gap: `debted` arrives negative ("-5.00"); the app treats only a
-      // positive figure as money owed, so no debt warning shows.
-      expect(walletDebt(data.debted), isNull);
-      // Known gap: the type is "payment", which the app has no name for.
+      // `debted` arrives negative ("-5.00"): the driver owes ៛5.
+      expect(walletDebt(data.debted), 5);
+      // The type is "payment" (DD-61), and its status "pending".
       expect(
         WalletTxKind.of(data.transactions?.first.typeName?.toString()),
-        WalletTxKind.unknown,
+        WalletTxKind.payment,
+      );
+      expect(
+        WalletTxStatus.of(data.transactions?.first.statusName?.toString()),
+        WalletTxStatus.pending,
       );
     });
   });

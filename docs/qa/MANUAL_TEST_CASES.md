@@ -58,7 +58,7 @@ they behave differently from what is written here.
 |---|---|---|
 | Gap 1 | No route line on the map. Time and distance to pickup are missing. The request has no fare estimate. | Google refuses the route request for the app's map key. |
 | Gap 2 | A driver who is waiting for approval, or rejected, is not blocked. Going online fails with a message from the server. | The backend does not send the driver's status where the app reads it. |
-| Gap 3 | Wallet rows show the word "payment" with no + or − sign. | The backend's row type has no name in the app yet. |
+| Gap 3 | Wallet rows are named "Payment". A row has a − sign only when the amount is negative; otherwise no sign. | What a backend "payment" pays is not documented, so the app does not guess which way the money moved. |
 | Gap 4 | Ride fares are in dollars (`$0.50`); the wallet is in riel (`៛`). | The backend does not send a currency with a ride. |
 | Gap 5 | Invite, rewards and transfer show sample data. A transfer moves no real money. | The backend has no routes for them yet. |
 | Gap 6 | No logout button. | Product decision still open. |
@@ -215,11 +215,13 @@ The passenger chooses a destination before requesting.
 | J-05 | Open "Cancelled". | Cancelled trips show with no amount. | |
 | J-06 | As a new driver with no trips, open History. | "No completed trips yet" and "No cancelled trips". | |
 | J-07 | Scroll to the end of a long history. | More trips load. No duplicates, no endless spinner. | |
-| J-08 | Menu → Wallet. | "Balance" with an amount, and "Platform commission: N% of each trip". Below it, "History" with rows grouped by day. | |
-| J-09 | Pull down on the wallet page. | It reloads. | |
+| J-08 | Menu → Wallet. | "Balance" with an amount, and no commission line under it. Below it, "Transactions" with rows grouped by day. | |
+| J-09 | Pull down on the wallet page. | It reloads. The balance and the rows stay on screen under the spinner; no grey placeholders. | |
 | J-10 | Finish a cash trip, then open Wallet. | A new row for that trip. Note the amount and the sign. (Row name: see gap 3.) | |
 | J-11 | Have the admin top up the driver. Open Wallet. | The balance grows by the top-up. A "Top up" row with + shows. | |
 | J-12 | Open Wallet with no internet. | An error with "Please try again", not an endless loading page. | |
+| J-13 | Owe commission, with no invite rewards. Open Wallet. | The balance card is amber with a warning sign and shows the balance minus what is owed (owing ៛52 with ៛0: "−៛52"). Under it: "Unpaid commission from cash trips.", "Contact support to pay it." and a "Contact support" button that opens Contact us. No separate debt card. | |
+| J-14 | Have a pending row (a cash trip not yet settled). Open Wallet. | The row has a "Pending" badge with a clock, and its amount is grey, not black or green. | |
 
 ### K. Invite, rewards and transfer (sample data)
 

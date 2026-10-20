@@ -64,6 +64,11 @@ enum WalletTxKind {
 
   /// The part of a cash fare a passenger paid with ride credit (DD-51).
   rideCredit,
+
+  /// The real backend's "payment" (DD-61). What it pays is not documented,
+  /// so it gets a translated name but no direction of its own: only a
+  /// negative amount reads as money out.
+  payment,
   unknown;
 
   static WalletTxKind of(String? typeName) {
@@ -79,6 +84,7 @@ enum WalletTxKind {
       return WalletTxKind.referralReward;
     }
     if (name.contains('earning')) return WalletTxKind.tripEarning;
+    if (name.contains('payment')) return WalletTxKind.payment;
     return WalletTxKind.unknown;
   }
 
@@ -92,6 +98,7 @@ enum WalletTxKind {
         WalletTxKind.referralReward => 'WALLET_TX_REFERRAL_REWARD',
         WalletTxKind.rewardTransfer => 'WALLET_TX_REWARD_TRANSFER',
         WalletTxKind.rideCredit => 'WALLET_TX_RIDE_CREDIT',
+        WalletTxKind.payment => 'WALLET_TX_PAYMENT',
         WalletTxKind.unknown => null,
       };
 }
@@ -116,7 +123,7 @@ WalletTxDirection walletTxDirection(WalletTxKind kind, dynamic amount) {
     WalletTxKind.rewardTransfer ||
     WalletTxKind.rideCredit =>
       WalletTxDirection.moneyIn,
-    WalletTxKind.unknown => WalletTxDirection.unknown,
+    WalletTxKind.payment || WalletTxKind.unknown => WalletTxDirection.unknown,
   };
 }
 
@@ -153,9 +160,22 @@ String? commissionRateText(dynamic commissionFare) {
 
 /// What the driver owes the platform — the wallet's `debted`, unpaid
 /// commission (DD-43) — or null when nothing is owed or it is not reported.
+///
+/// The backend sends the debt negative ("-52.10" when the driver owes
+/// ៛52.10), not positive as DD-43 assumed, so the sign is ignored and the
+/// amount owed is the magnitude.
 num? walletDebt(dynamic debted) {
   final num? value = parseMoney(debted);
-  return value != null && value > 0 ? value : null;
+  return value != null && value != 0 ? value.abs() : null;
+}
+
+/// The balance net of what is owed (DD-62): `balance − debt`, so a driver
+/// with ៛0 who owes ៛52.10 sees "−៛52". Null when the balance itself is not
+/// reported — a guessed figure on the driver's own money is worse than none.
+num? walletNetBalance(dynamic balance, dynamic debted) {
+  final num? value = parseMoney(balance);
+  if (value == null) return null;
+  return value - (walletDebt(debted) ?? 0);
 }
 
 /// Whether a status needs no mention. "Success" on every row is noise; a
@@ -167,6 +187,39 @@ bool isRoutineStatus(String? statusName) => const <String>{
       'completed',
       'paid',
     }.contains((statusName ?? '').trim().toLowerCase());
+
+/// A transaction's status (DD-61), read loosely from the backend's
+/// `status_name` like [WalletTxKind]. A name that matches nothing is [other]
+/// and is shown as the backend wrote it.
+enum WalletTxStatus {
+  /// Needs no mention — see [isRoutineStatus].
+  routine,
+
+  /// Not settled yet: the amount has not moved.
+  pending,
+  failed,
+  cancelled,
+  other;
+
+  static WalletTxStatus of(String? statusName) {
+    if (isRoutineStatus(statusName)) return WalletTxStatus.routine;
+    final String name =
+        statusName!.toLowerCase().replaceAll(RegExp('[^a-z]'), '');
+    if (name.contains('pending')) return WalletTxStatus.pending;
+    if (name.contains('fail')) return WalletTxStatus.failed;
+    if (name.contains('cancel')) return WalletTxStatus.cancelled;
+    return WalletTxStatus.other;
+  }
+
+  /// The translation key for this status's name; null for [routine], which
+  /// is not shown, and for [other], whose name is the backend's own text.
+  String? get labelKey => switch (this) {
+        WalletTxStatus.pending => 'WALLET_STATUS_PENDING',
+        WalletTxStatus.failed => 'WALLET_STATUS_FAILED',
+        WalletTxStatus.cancelled => 'WALLET_STATUS_CANCELLED',
+        WalletTxStatus.routine || WalletTxStatus.other => null,
+      };
+}
 
 /// When a transaction happened, in local time, or null.
 DateTime? transactionDateTime(dynamic createdAt) =>

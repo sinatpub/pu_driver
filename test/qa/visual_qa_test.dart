@@ -498,12 +498,16 @@ final List<_SurfaceDef> _surfaces = <_SurfaceDef>[
             WalletBalanceCard(
               label: 'WALLET_BALANCE'.tr(),
               amount: '៛85,400',
-              note: 'WALLET_COMMISSION_NOTE'.tr(args: <String>['10']),
             ),
             const SizedBox(height: Insets.s8),
-            WalletDebtCard(
-              title: 'WALLET_DEBT_TITLE'.tr(args: <String>['៛5,000']),
+            WalletBalanceCard(
+              label: 'WALLET_BALANCE'.tr(),
+              amount: '−៛5,000',
+              owing: true,
               message: 'WALLET_DEBT_MESSAGE'.tr(),
+              hint: 'WALLET_DEBT_SUPPORT_HINT'.tr(),
+              actionLabel: 'CONTACT_SUPPORT'.tr(),
+              onAction: () {},
             ),
             const SizedBox(height: Insets.s24),
             TransactionRow(
