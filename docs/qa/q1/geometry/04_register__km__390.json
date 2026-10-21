@@ -4,8 +4,10 @@
   "locale": "km",
   "width": 390,
   "textStyles": [
+    "12.0px/400 #5c6474 KantumruyPro An invite code can only …",
     "13.0px/600 #5c6474 KantumruyPro Color",
     "13.0px/600 #5c6474 KantumruyPro Full name",
+    "13.0px/600 #5c6474 KantumruyPro Invite code (optional)",
     "13.0px/600 #5c6474 KantumruyPro Plate",
     "13.0px/700 #3a3a3c KantumruyPro Driver license",
     "13.0px/700 #3a3a3c KantumruyPro ID card",
@@ -16,6 +18,7 @@
     "14.0px/400 #5c6474 KantumruyPro Vehicle + documents for …",
     "15.0px/400 #5c6474 KantumruyPro Enter your full name",
     "15.0px/400 #5c6474 KantumruyPro Select vehicle type",
+    "15.0px/400 #5c6474 KantumruyPro Type or scan a code",
     "15.0px/400 #5c6474 KantumruyPro e.g. Yellow",
     "15.0px/400 #5c6474 KantumruyPro xxx-xxxx",
     "16.0px/700 #3a3a3c KantumruyPro Tuk-Tuk",
@@ -24,7 +27,8 @@
   ],
   "radii": [
     "12,12,12,12",
-    "14,14,14,14"
+    "14,14,14,14",
+    "16,16,16,16"
   ],
   "fills": [
     "#000000",
@@ -32,11 +36,14 @@
     "#ffffff"
   ],
   "borders": [
-    "1px #8f90a6"
+    "1px #8f90a6",
+    "1px #e2e2e5"
   ],
   "paddings": [
     "0,0,0,0",
     "15,1,15,1",
+    "15,1,5,1",
+    "15,15,15,15",
     "16,0,16,0",
     "17,1,17,1",
     "20,8,20,16",
@@ -45,6 +52,11 @@
     "8,8,8,0"
   ],
   "controls": [
+    {
+      "type": "TIconButton",
+      "w": 48,
+      "h": 48
+    },
     {
       "type": "TIconButton",
       "w": 48,

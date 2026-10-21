@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "mobile-uiux-pro-max": {
+      "source": "noumanzindani/mobile-app-uiux-pro-max-skill",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "9806c7f04932ab09629d9ed4ae8d833c4b04631c90616cca964954934bc928ab"
+    }
+  }
+}

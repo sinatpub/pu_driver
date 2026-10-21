@@ -1,0 +1,18 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    { "label": "clean", "type": "shell", "command": "fvm flutter clean" },
+    { "label": "dev | apk", "type": "shell", "command": "fvm flutter build apk --dart-define-from-file=dart_defines.json" },
+    { "label": "dev | ios", "type": "shell", "command": "fvm flutter build ios --dart-define-from-file=dart_defines.json" },
+    { "label": "dev | ipa", "type": "shell", "command": "fvm flutter build ipa --dart-define-from-file=dart_defines.json" },
+    { "label": "dev | release", "type": "shell", "command": "fvm flutter build ipa --dart-define-from-file=dart_defines.json & fvm flutter build apk --dart-define-from-file=dart_defines.json" },
+    { "label": "prd | appbundle", "type": "shell", "command": "fvm flutter build appbundle --dart-define-from-file=dart_defines.json" },
+    { "label": "prd | release", "type": "shell", "command": "fvm flutter build ipa --dart-define-from-file=dart_defines.json & fvm flutter build appbundle --dart-define-from-file=dart_defines.json" },
+    {
+      "label": "dev | firebase | config",
+      "type": "shell",
+      "command": "flutterfire config --project=taarraa-passenger --out=lib/firebase_options.dart --ios-bundle-id=com.tara.driver.application --android-package-name=com.tara.driver_application"
+    },
+    { "label": "when flutterfire not found", "type": "shell", "command": "dart pub global activate flutterfire_cli" }
+  ]
+}
