@@ -144,7 +144,7 @@ DateTime? _dateOrNull(Object? v) => v is String ? DateTime.parse(v) : null;
 
 /// The fake server. Owns everything the real backend would: the driver's
 /// online flag, the ride and its lifecycle, dispatching requests, the
-/// passenger's behaviour, history and wallet. Its state survives an app
+/// passenger's behaviour and history. Its state survives an app
 /// restart (SharedPreferences), which is what lets "kill the app mid-trip"
 /// be tested through the app's real resume path (`get-current-drive-info`).
 class MockBackend {
@@ -156,7 +156,7 @@ class MockBackend {
   })  : _now = clock ?? DateTime.now,
         _settings = settings ?? (() => MockMode.settings),
         _scale = scale ?? MockMode.scaled {
-    _seedHistoryAndWallet();
+    _seedHistory();
   }
 
   static final MockBackend instance = MockBackend();
@@ -182,12 +182,10 @@ class MockBackend {
   MockRide? ride;
   LatLng parkedAt = MockPlaces.driverStart.latLng;
   int _nextRideId = MockData.firstRideId;
-  int _walletBalance = 0;
-  final List<Map<String, dynamic>> _transactions = [];
   final List<Map<String, dynamic>> _history = [];
 
-  /// DD-48: rewards the driver moved into the wallet balance, and the
-  /// request ids that did it (request id → amount moved).
+  /// DD-48: rewards the driver transferred out of the reward balance, and
+  /// the request ids that did it (request id → amount moved).
   final List<Map<String, dynamic>> _rewardTransfers = [];
   final Map<String, int> _transferRequests = {};
 
@@ -248,7 +246,6 @@ class MockBackend {
     if (path.endsWith('/taxi-driver/history-drive-info')) {
       return _historyPage(request);
     }
-    if (path.endsWith('/taxi-driver/wallet')) return _wallet();
     if (path.endsWith('/taxi-driver/referral')) return _referral();
     if (path.endsWith('/taxi-driver/referral/transfer')) {
       return _transferRewards(request);
@@ -542,7 +539,6 @@ class MockBackend {
       });
     }
     final current = ride!..status = BookingStatus.completed;
-    _recordEarnings(current);
     _archive(current);
     parkedAt = current.endPoint ?? current.driveTarget;
     _clearRide();
@@ -551,7 +547,7 @@ class MockBackend {
     return _ok({'status': true, 'message': 'Payment accepted'});
   }
 
-  // ---- History, wallet, announcements ---------------------------------------
+  // ---- History, announcements ----------------------------------------------
 
   MockResponse _historyPage(MockRequest request) {
     final page = int.tryParse('${request.query['page'] ?? 1}') ?? 1;
@@ -571,13 +567,6 @@ class MockBackend {
     });
   }
 
-  MockResponse _wallet() => _ok({
-        'status': true,
-        'message': 'Success',
-        'data': MockData.wallet(
-            balance: _walletBalance, transactions: _transactions),
-      });
-
   // DD-45, DD-48: the real backend has no referral endpoints yet; these are
   // the shape the app proposes.
   MockResponse _referral() => _ok({
@@ -586,9 +575,9 @@ class MockBackend {
         'data': MockData.referral(now: _now(), transfers: _rewardTransfers),
       });
 
-  /// DD-48, DD-49: moves the asked amount from the reward balance into the
-  /// wallet balance. An amount that is not above zero, or is more than the
-  /// reward balance, is refused. A request id seen before is answered again
+  /// DD-48, DD-49: takes the asked amount out of the reward balance. The
+  /// wallet is not simulated, so nothing is added to it. An amount that is
+  /// not above zero, or is more than the reward balance, is refused. A request id seen before is answered again
   /// without moving anything twice.
   MockResponse _transferRewards(MockRequest request) {
     final requestId = '${request.body['request_id'] ?? ''}';
@@ -618,12 +607,6 @@ class MockBackend {
       'created_at': MockData.timestamp(_now()),
     });
     if (requestId.isNotEmpty) _transferRequests[requestId] = amount;
-    _walletBalance += amount;
-    _transactions.add(MockData.transaction(
-        id: _transactions.length + 1,
-        typeName: 'Reward Transfer',
-        amount: amount,
-        at: _now()));
     _changed();
     return _ok({
       'status': true,
@@ -631,7 +614,6 @@ class MockBackend {
       'data': {
         'transferred': amount,
         'reward_balance': available - amount,
-        'wallet_balance': _walletBalance,
       },
     });
   }
@@ -825,7 +807,7 @@ class MockBackend {
     _changed();
   }
 
-  /// Drops the current ride, keeping history, wallet and the online flag.
+  /// Drops the current ride, keeping history and the online flag.
   void resetTrip() {
     _clearRide();
     parkedAt = MockPlaces.driverStart.latLng;
@@ -833,14 +815,14 @@ class MockBackend {
     _changed();
   }
 
-  /// Back to first-launch state: offline, no ride, seeded history and wallet.
+  /// Back to first-launch state: offline, no ride, seeded history.
   void resetAll() {
     _clearRide();
     _dispatchTimer?.cancel();
     online = false;
     parkedAt = MockPlaces.driverStart.latLng;
     _nextRideId = MockData.firstRideId;
-    _seedHistoryAndWallet();
+    _seedHistory();
     _changed();
   }
 
@@ -953,46 +935,8 @@ class MockBackend {
         0, _rideJson(r, driverPosition: r.endPoint ?? r.driverStart));
   }
 
-  void _recordEarnings(MockRide r) {
-    final fare = r.fare ?? 0;
-    // DD-51: commission is on the full fare, whoever paid it.
-    final commission = (fare * 0.10).round();
-    final id = _transactions.length + 1;
-    if (r.paymentMethod == MockPaymentMethod.cash.label) {
-      // DD-51: the part the passenger paid with ride credit was not handed
-      // over in cash, so the platform pays it into the wallet.
-      final credit = r.rideCredit ?? 0;
-      if (credit > 0) {
-        _walletBalance += credit;
-        _transactions.add(MockData.transaction(
-            id: id,
-            typeName: 'Ride Credit',
-            amount: credit,
-            at: _now(),
-            referenceId: r.id));
-      }
-      // Cash stays with the driver; the platform takes its commission.
-      _walletBalance -= commission;
-      _transactions.add(MockData.transaction(
-          id: _transactions.length + 1,
-          typeName: 'Commission',
-          amount: -commission,
-          at: _now(),
-          referenceId: r.id));
-    } else {
-      _walletBalance += fare - commission;
-      _transactions.add(MockData.transaction(
-          id: id,
-          typeName: 'Trip Earning',
-          amount: fare - commission,
-          at: _now(),
-          referenceId: r.id));
-    }
-  }
-
-  void _seedHistoryAndWallet() {
+  void _seedHistory() {
     _history.clear();
-    _transactions.clear();
     _rewardTransfers.clear();
     _transferRequests.clear();
     final now = _now();
@@ -1064,33 +1008,6 @@ class MockBackend {
     ]) {
       _history.add(_rideJson(r, driverPosition: r.endPoint));
     }
-
-    _walletBalance = 85400;
-    _transactions.addAll([
-      MockData.transaction(
-          id: 1,
-          typeName: 'Top Up',
-          amount: 100000,
-          at: now.subtract(const Duration(days: 7))),
-      MockData.transaction(
-          id: 2,
-          typeName: 'Commission',
-          amount: -1100,
-          at: now.subtract(const Duration(days: 6)),
-          referenceId: 980005),
-      MockData.transaction(
-          id: 3,
-          typeName: 'Commission',
-          amount: -1300,
-          at: now.subtract(const Duration(days: 3)),
-          referenceId: 980004),
-      MockData.transaction(
-          id: 4,
-          typeName: 'Trip Earning',
-          amount: 18200,
-          at: now.subtract(const Duration(days: 1)),
-          referenceId: 980002),
-    ]);
   }
 
   // ---------------------------------------------------------------------
@@ -1111,8 +1028,6 @@ class MockBackend {
           'ride': ride?.toJson(),
           'parkedAt': _latLngToJson(parkedAt),
           'nextRideId': _nextRideId,
-          'walletBalance': _walletBalance,
-          'transactions': _transactions,
           'history': _history,
           'rewardTransfers': _rewardTransfers,
         }));
@@ -1135,10 +1050,6 @@ class MockBackend {
       if (ride?.status == BookingStatus.request) ride = null;
       parkedAt = _latLngFromJson(json['parkedAt']) ?? parkedAt;
       _nextRideId = json['nextRideId'] as int? ?? _nextRideId;
-      _walletBalance = json['walletBalance'] as int? ?? _walletBalance;
-      _transactions
-        ..clear()
-        ..addAll((json['transactions'] as List).cast<Map<String, dynamic>>());
       _history
         ..clear()
         ..addAll((json['history'] as List).cast<Map<String, dynamic>>());

@@ -270,19 +270,6 @@ class MockData {
     ];
   }
 
-  static Map<String, dynamic> wallet({
-    required int balance,
-    required List<Map<String, dynamic>> transactions,
-  }) =>
-      {
-        'id': 77,
-        'balance': balance,
-        'debted': 0,
-        'commission_fare': 10,
-        'currency': 'KHR',
-        'transactions': transactions,
-      };
-
   /// The mock driver's own invite code (DD-45).
   static const String inviteCode = 'PU7K2M';
 
@@ -297,7 +284,7 @@ class MockData {
   /// who joined with it and what each has earned the driver. Every amount is
   /// derived from a rate, so the totals on screen add up.
   ///
-  /// [transfers] are the moves into the wallet balance so far (DD-48);
+  /// [transfers] are the moves out of the reward balance so far (DD-48);
   /// `reward_balance` is what was earned less what was moved.
   static Map<String, dynamic> referral({
     required DateTime now,
@@ -387,24 +374,4 @@ class MockData {
               transfers.fold<int>(0, (sum, t) => sum + (t['amount'] as int)),
     };
   }
-
-  static Map<String, dynamic> transaction({
-    required int id,
-    required String typeName,
-    required int amount,
-    required DateTime at,
-    int? referenceId,
-  }) =>
-      {
-        'id': id,
-        'type': typeName == 'Top Up' ? 1 : 2,
-        'type_name': typeName,
-        'amount': amount,
-        'currency': 'KHR',
-        'status': 1,
-        'status_name': 'Success',
-        'reference_id': referenceId,
-        'created_by': driverId,
-        'created_at': timestamp(at),
-      };
 }

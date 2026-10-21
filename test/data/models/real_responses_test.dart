@@ -8,6 +8,7 @@ import 'package:pu_taxi_driver/data/models/complete_driver_model.dart'
 import 'package:pu_taxi_driver/data/models/confirm_booking_model.dart'
     as confirm;
 import 'package:pu_taxi_driver/data/models/current_driver_info_model.dart';
+import 'package:pu_taxi_driver/presentation/screens/invite/data/models/referral_model.dart';
 import 'package:pu_taxi_driver/presentation/screens/wallet/data/models/wallet_model.dart'
     as wallet;
 import 'package:pu_taxi_driver/presentation/screens/wallet/wallet_presentation.dart';
@@ -89,6 +90,30 @@ void main() {
         WalletTxStatus.of(data.transactions?.first.statusName?.toString()),
         WalletTxStatus.pending,
       );
+    });
+  });
+
+  group('GET /taxi-driver/referral, 2026-10-20', () {
+    final Map<String, dynamic> body = _fixture('referral_2026_10_20.json');
+
+    test('parses as the invite QR and rewards response', () {
+      final ReferralModel model = ReferralModel.fromJson(body);
+
+      expect(model.code, 'A7P0VL');
+      expect(model.link, 'https://putaxi.example/i/A7P0VL');
+      expect(model.currency, 'KHR');
+      expect(model.driverTopUpRate, 1);
+      expect(model.passengerCommissionRate, 10);
+      expect(model.rewardBalance, 0);
+      expect(model.invitees, hasLength(1));
+      expect(model.invitees.first.id, 6);
+      expect(model.invitees.first.name, 'Referral Test');
+      expect(model.invitees.first.image, '');
+      expect(model.invitees.first.role, 'passenger');
+      expect(model.invitees.first.joinedAt, '2026-10-20 18:38:02');
+      expect(model.invitees.first.earned, 0);
+      expect(model.rewards, isEmpty);
+      expect(model.transfers, isEmpty);
     });
   });
 }

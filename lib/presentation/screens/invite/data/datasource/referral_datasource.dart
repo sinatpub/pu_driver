@@ -2,9 +2,8 @@ import 'package:pu_taxi_driver/core/network/api_client.dart';
 import 'package:pu_taxi_driver/core/network/result.dart';
 import 'package:pu_taxi_driver/presentation/screens/invite/data/models/referral_model.dart';
 
-/// DD-45, DD-48. **None of these endpoints exists on the real backend yet** — the paths are
-/// the app's proposal and only the mock backend answers them. See
-/// `invite_feature.dart`, which keeps the screens hidden until they do.
+/// DD-45, DD-48. Served by the real backend; QA mock mode and the
+/// `DEMO_INVITE` build answer the same paths from made-up data.
 class ReferralDatasource {
   ReferralDatasource({ApiClient? apiClient})
       : _apiClient = apiClient ?? ApiClient();

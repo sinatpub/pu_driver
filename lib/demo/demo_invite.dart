@@ -21,10 +21,8 @@ import 'package:pu_taxi_driver/mock/mock_mode.dart';
 /// is also why the flag must never be in a build that ships.
 ///
 /// **What is made up:** the invite code and link, the invited people, the
-/// rewards, and the transfers. A transfer moves no real money. So that the
-/// wallet still tells one story during a demo, the transferred amount is
-/// added to the balance the real wallet reports, with a "Reward Transfer"
-/// row — on the screen only.
+/// rewards, and the transfers. A transfer moves no real money, and the
+/// wallet always shows exactly what the real backend reports.
 ///
 /// The data starts over each time the app starts.
 class DemoInvite {
@@ -36,8 +34,7 @@ class DemoInvite {
   static bool get isActive => enabled && !MockMode.isActive;
 }
 
-/// Answers the three referral calls from made-up data, and adds the demo
-/// transfers to the wallet the real backend returns. Every other request
+/// Answers the three referral calls from made-up data. Every other request
 /// goes to the network untouched.
 class DemoInviteInterceptor extends Interceptor {
   DemoInviteInterceptor({
@@ -103,19 +100,6 @@ class DemoInviteInterceptor extends Interceptor {
     }
   }
 
-  @override
-  void onResponse(
-    Response<dynamic> response,
-    ResponseInterceptorHandler handler,
-  ) {
-    if (_isActive() &&
-        _transfers.isNotEmpty &&
-        response.requestOptions.uri.path.endsWith('/taxi-driver/wallet')) {
-      _addTransfersToWallet(response);
-    }
-    handler.next(response);
-  }
-
   Map<String, dynamic> _ok(String message, Object? data) =>
       <String, dynamic>{'status': true, 'message': message, 'data': data};
 
@@ -169,45 +153,5 @@ class DemoInviteInterceptor extends Interceptor {
       'transferred': amount,
       'reward_balance': available - amount,
     });
-  }
-
-  /// On the screen only: the real wallet's balance plus what was "moved" in
-  /// this demo, and a row for each move. Nothing is sent to the backend.
-  void _addTransfersToWallet(Response<dynamic> response) {
-    final Object? body = response.data;
-    if (body is! Map) return;
-    final Object? wallet = body['data'];
-    if (wallet is! Map) return;
-
-    final int moved = _transfers.fold<int>(
-      0,
-      (int sum, Map<String, dynamic> t) => sum + (t['amount'] as int),
-    );
-    final num balance = parseMoney(wallet['balance']) ?? 0;
-    final Object? existing = wallet['transactions'];
-
-    response.data = <String, dynamic>{
-      ...body.cast<String, dynamic>(),
-      'data': <String, dynamic>{
-        ...wallet.cast<String, dynamic>(),
-        'balance': balance + moved,
-        'transactions': <dynamic>[
-          for (int i = _transfers.length - 1; i >= 0; i--)
-            <String, dynamic>{
-              // Far from any id the backend would use.
-              'id': 900000 + i,
-              'type': 0,
-              'type_name': 'Reward Transfer',
-              'amount': _transfers.elementAt(i)['amount'],
-              'currency': wallet['currency'] ?? _referral['currency'],
-              'status': 1,
-              'status_name': 'Success',
-              'reference_id': null,
-              'created_at': _transfers.elementAt(i)['created_at'],
-            },
-          if (existing is List) ...existing,
-        ],
-      },
-    };
   }
 }

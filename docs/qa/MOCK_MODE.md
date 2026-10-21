@@ -38,18 +38,22 @@ tree-shaken out. `USE_MOCK_DATA` is deliberately not in
 Inside a mock build, **Use mock backend** in the panel turns mock mode off at
 runtime (after restarting the app), so one install can talk to either backend.
 
+**The wallet is not mocked.** The mock backend has no `/taxi-driver/wallet`
+handler, so the Wallet screen shows its error state in mock mode. Test the
+wallet against the real backend.
+
 ## Developer controls (MOCK tab)
 
 | Control | Values | Effect |
 |---|---|---|
 | Send ride request | button | Dispatches a request now (replaces a pending one; never interrupts a trip) |
 | Passenger cancels | button | Pushes `onPassengerCancelDrive` for the current ride |
-| Reset trip | button | Drops the current ride; keeps history/wallet/online |
-| Reset all mock data | button | Offline, no ride, re-seeded history and wallet |
+| Reset trip | button | Drops the current ride; keeps history/online |
+| Reset all mock data | button | Offline, no ride, re-seeded history |
 | Scenario | see below | Backend behaviour |
 | Simulation speed | 1x · 2x · 5x · 10x | Divides every delay in `MockTimings` |
 | Ride requests | Auto · Manual | Auto: a request arrives a few seconds after going online / finishing a ride |
-| Passenger pays with | Cash · Wallet · Card | `payment_method` on the receipt and in history; wallet entry type |
+| Passenger pays with | Cash · Wallet · Card | `payment_method` on the receipt and in history |
 | Driver approval | Approved · Pending · Rejected | `driver.status` → the approval gate (applies next time Home loads) |
 | Ride has a destination | on/off | Off: no route; the trip screen runs its live distance/fare meter |
 | Use mock backend | on/off | Runtime kill switch, applies after restart |
@@ -80,10 +84,10 @@ Also available regardless of scenario:
   **Dara Sok** (Toyota Prius, white, 2AB-1234).
 - **Invite and rewards** (DD-45) exist in mock mode only — the real backend
   has no referral endpoints. The QR button on the home map opens "My QR"
-  (code `PU7K2M`). The wallet shows the reward balance (៛5,160 from five
-  invited people) with "Transfer to balance" (DD-48), and opens "Invite
-  rewards". The driver types the amount (DD-49); a transfer moves it into the
-  wallet balance and is saved with the rest of the mock state; **Reset all mock data** brings the reward
+  (code `PU7K2M`) and links to "Invite rewards", which shows the reward
+  balance (៛5,160 from five invited people) with "Transfer to balance" (DD-48). The driver types
+  the amount (DD-49); a transfer lowers the reward balance and is saved with
+  the rest of the mock state; **Reset all mock data** brings the reward
   balance back. On the sign-up
   form the invite codes `SOKHA88` and `BOPHA21` are accepted; anything else
   is "not recognised".
@@ -110,7 +114,7 @@ On trip — car drives Central Market → Airport (≈10 km), timer runs,
   → Drop off
 Collect payment receipt (distance, realistic duration, fare in riel, method)
   → Payment done                                            payment 1.5 s
-Home (history + wallet updated; next request in 5 s if Auto)
+Home (history updated; next request in 5 s if Auto)
 ```
 
 The driver still taps each trip action (Accept, Arrived, Start, Drop off,
@@ -128,7 +132,7 @@ seeded history uses `980001+`, and the token is `mock-token-qa-only`.
 ## Persistence (kill and relaunch)
 
 The mock backend saves its state to SharedPreferences after every change
-(online flag, ride and its phase timestamps, history, wallet). Relaunching the
+(online flag, ride and its phase timestamps, history). Relaunching the
 app goes through the app's **real** resume path: `get-current-drive-info`
 returns the ride, and Home redirects into the trip screen at the right stage
 (or to Collect Payment if the drop-off already happened). The simulated car

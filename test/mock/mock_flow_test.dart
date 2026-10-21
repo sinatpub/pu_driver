@@ -37,8 +37,6 @@ import 'package:pu_taxi_driver/presentation/screens/login/data/datasource/auth_d
 import 'package:pu_taxi_driver/presentation/screens/login/data/repository/auth_repository.dart';
 import 'package:pu_taxi_driver/presentation/screens/profile/data/datasource/profile_datasource.dart';
 import 'package:pu_taxi_driver/presentation/screens/profile/data/repository/profile_repository.dart';
-import 'package:pu_taxi_driver/presentation/screens/wallet/data/datasource/wallet_datasource.dart';
-import 'package:pu_taxi_driver/presentation/screens/wallet/data/repository/wallet_repository.dart';
 
 /// The whole driver flow, through the app's **real** datasources,
 /// repositories, models and trip controller — the only substitution is the
@@ -212,7 +210,7 @@ void main() {
     await fee.acceptPayment();
     expect(fee.state.status.value, PaymentStatus.success);
 
-    // ---- Back home: no ride, history and wallet reflect the trip ----------
+    // ---- Back home: no ride, history reflects the trip ---------------------
     expect(value(await home.getCurrentDriveInfo()).data?.status, isNull);
     final history = value(
         await HistoryRepository(HistoryDatasource(apiClient: api))
@@ -225,9 +223,6 @@ void main() {
     expect(cancelled.data, isNotEmpty);
     expect(cancelled.data!.every((r) => r.payment != null), isTrue,
         reason: 'the history card reads payment! on every row');
-    final wallet = value(
-        await WalletRepository(WalletDatasource(apiClient: api)).getWallet());
-    expect(wallet.data?.transactions?.last.typeName, 'Commission');
     final news = value(
         await NotificationRepository(NotificationDatasource(apiClient: api))
             .getAnnouncements(page: 1));
@@ -505,19 +500,17 @@ void main() {
 
     test('rewards are a pot of their own until transferred (DD-48)', () async {
       final referral = await data('/taxi-driver/referral');
-      final wallet = await data('/taxi-driver/wallet');
       final earned = (referral['rewards'] as List)
           .fold<int>(0, (sum, r) => sum + ((r as Map)['amount'] as int));
 
       expect(referral['reward_balance'], earned);
       expect(referral['transfers'], isEmpty);
-      // Not in the wallet: the seeded balance, and no reward rows.
-      expect(wallet['balance'], 85400);
-      expect(
-        (wallet['transactions'] as List)
-            .where((tx) => '${(tx as Map)['type_name']}'.contains('Reward')),
-        isEmpty,
-      );
+    });
+
+    test('the wallet is not mocked: it has no handler', () async {
+      final response = await backend.handle(MockRequest(
+          method: 'GET', path: '/taxi-driver/wallet', authenticated: true));
+      expect(response.statusCode, 404);
     });
 
     test('a transfer moves the typed amount and leaves the rest (DD-49)',
@@ -530,13 +523,8 @@ void main() {
       expect(((response.data as Map)['data'] as Map)['transferred'], 2000);
 
       final referral = await data('/taxi-driver/referral');
-      final wallet = await data('/taxi-driver/wallet');
       expect(referral['reward_balance'], available - 2000);
       expect((referral['transfers'] as List).single['amount'], 2000);
-      expect(wallet['balance'], 85400 + 2000);
-      final last = (wallet['transactions'] as List).last as Map;
-      expect(last['type_name'], 'Reward Transfer');
-      expect(last['amount'], 2000);
     });
 
     test('the whole balance can be moved, in one go or in parts', () async {
@@ -548,7 +536,6 @@ void main() {
 
       expect(rest.statusCode, 200);
       expect((await data('/taxi-driver/referral'))['reward_balance'], 0);
-      expect((await data('/taxi-driver/wallet'))['balance'], 85400 + available);
     });
 
     test('the same request sent twice moves the money once', () async {
@@ -557,7 +544,6 @@ void main() {
 
       expect(again.statusCode, 200);
       expect(((again.data as Map)['data'] as Map)['transferred'], 2000);
-      expect((await data('/taxi-driver/wallet'))['balance'], 85400 + 2000);
       expect(
         ((await data('/taxi-driver/referral'))['transfers'] as List).length,
         1,
@@ -580,7 +566,6 @@ void main() {
         final response = await transfer('req-$bad', bad);
         expect(response.isSuccess, isFalse, reason: 'amount $bad');
       }
-      expect((await data('/taxi-driver/wallet'))['balance'], 85400);
       expect(
           (await data('/taxi-driver/referral'))['reward_balance'], available);
     });

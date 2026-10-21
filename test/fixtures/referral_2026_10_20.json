@@ -1,0 +1,24 @@
+{
+    "data": {
+        "code": "A7P0VL",
+        "link": "https://putaxi.example/i/A7P0VL",
+        "currency": "KHR",
+        "driver_top_up_rate": 1,
+        "passenger_commission_rate": 10,
+        "reward_balance": 0,
+        "invitees": [
+            {
+                "id": 6,
+                "name": "Referral Test",
+                "profile_image": "",
+                "role": "passenger",
+                "joined_at": "2026-10-20 18:38:02",
+                "earned": 0
+            }
+        ],
+        "rewards": [],
+        "transfers": []
+    },
+    "status": true,
+    "message": "Success"
+}

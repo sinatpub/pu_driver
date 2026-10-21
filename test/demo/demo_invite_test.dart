@@ -5,8 +5,8 @@ import 'package:pu_taxi_driver/mock/mock_fixtures.dart';
 import 'package:pu_taxi_driver/presentation/screens/invite/invite_feature.dart';
 
 /// DD-55 — the invite feature shown on the real backend with made-up data.
-/// Only the referral calls are answered here; the wallet the "real backend"
-/// returns gets the demo transfers added, on the screen only.
+/// Only the referral calls are answered here; the wallet is always exactly
+/// what the "real backend" returns.
 void main() {
   /// What the stand-in for the real backend was asked.
   late List<String> reachedBackend;
@@ -91,10 +91,14 @@ void main() {
         data: <String, dynamic>{'amount': amount, 'request_id': requestId},
       );
 
-  test('off by default: no build has the feature unless it asks', () {
+  test('off by default: no build has the demo unless it asks', () {
     expect(DemoInvite.enabled, isFalse);
     expect(DemoInvite.isActive, isFalse);
-    expect(inviteFeatureEnabled, isFalse);
+  });
+
+  test('the invite feature is on without the demo: the backend serves it',
+      () {
+    expect(inviteFeatureEnabled, isTrue);
   });
 
   test('the referral is answered here and never reaches the backend', () async {
@@ -125,10 +129,9 @@ void main() {
     expect(reachedBackend, isEmpty);
   });
 
-  test('a transfer lowers the reward balance and shows in the wallet',
+  test('a transfer lowers the reward balance and leaves the wallet alone',
       () async {
     final int before = (await referral())['reward_balance'] as int;
-    expect((await wallet())['balance'], 0);
 
     final Response<dynamic> done = await transfer(1000, 'r-1');
     expect((done.data as Map)['data']['transferred'], 1000);
@@ -137,16 +140,8 @@ void main() {
     expect(after['reward_balance'], before - 1000);
     expect((after['transfers'] as List).single['amount'], 1000);
 
-    // The real wallet said 0; the screen shows it with the demo transfer.
-    final Map<String, dynamic> shown = await wallet();
-    expect(shown['balance'], 1000);
-    final List<dynamic> rows = shown['transactions'] as List<dynamic>;
-    expect(rows.first['type_name'], 'Reward Transfer');
-    expect(rows.first['amount'], 1000);
-    // What the backend sent is still there, after it.
-    expect(rows.last['type_name'], 'payment');
-    expect(shown['debted'], '-5.00');
-    expect(shown['currency'], 'KHR');
+    // The wallet is the real one, with no demo transfer added.
+    expect(await wallet(), realWallet()['data']);
   });
 
   test('the same request sent twice moves the money once', () async {
@@ -156,7 +151,6 @@ void main() {
 
     expect((again.data as Map)['message'], 'Already transferred');
     expect((await referral())['reward_balance'], before - 500);
-    expect((await wallet())['balance'], 500);
   });
 
   test('an amount that cannot be moved is refused, with the reason', () async {
@@ -176,7 +170,6 @@ void main() {
       );
     }
     expect((await referral())['reward_balance'], available);
-    expect((await wallet())['balance'], 0);
   });
 
   test('with no transfer made, the wallet is exactly what the backend sent',

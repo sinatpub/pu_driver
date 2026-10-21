@@ -1,15 +1,11 @@
-import 'package:pu_taxi_driver/demo/demo_invite.dart';
-import 'package:pu_taxi_driver/mock/mock_mode.dart';
-
 /// Whether the invite QR, the rewards screens and the sign-up invite code are
 /// shown (DD-45).
 ///
-/// The backend has no referral endpoints yet, so the feature is served by the
-/// mock backend only. Against the real API the entry points stay hidden —
-/// a driver never reaches a screen that can only fail. Replace this with
-/// `true` (or a server flag) when the endpoints in `ReferralDatasource` exist.
+/// The backend now answers every endpoint in `ReferralDatasource`
+/// (`/taxi-driver/referral`, `/referral/check-code`, `/referral/transfer`),
+/// so the feature is on for every build. Kept as one switch so it can be
+/// turned off (or tied to a server flag) in one place.
 ///
-/// One exception, DD-55: a build made with `DEMO_INVITE=true` shows the
-/// feature on the real backend too, answered with made-up data
-/// (`demo/demo_invite.dart`), for showing it before the endpoints exist.
-bool get inviteFeatureEnabled => MockMode.isActive || DemoInvite.isActive;
+/// QA mock mode and a `DEMO_INVITE=true` build (DD-55) still answer these
+/// calls from made-up data instead of the backend.
+bool get inviteFeatureEnabled => true;

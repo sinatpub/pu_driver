@@ -3,16 +3,6 @@ import 'package:pu_taxi_driver/data/models/complete_driver_model.dart';
 import 'package:pu_taxi_driver/data/models/confirm_booking_model.dart';
 import 'package:pu_taxi_driver/presentation/screens/booking/domain/trip_state_machine.dart';
 
-/// One successful trip-lifecycle action, for the screen's `ever()` listener
-/// to react to (socket triggers, navigation) — the same shape as the
-/// `BlocConsumer` listener branches `booking_screen.dart` used to have, now
-/// carrying the response data instead of the screen digging it out of the
-/// bloc's state.
-///
-/// Deliberately no `const` constructors here — these are events, not values.
-/// A canonicalized `const TripArrived()` would be `identical()` to every
-/// other `const TripArrived()`, and `ever()` only fires on change, so a
-/// second occurrence within one screen's lifetime would silently not fire.
 sealed class TripActionResult {}
 
 class TripAccepted extends TripActionResult {

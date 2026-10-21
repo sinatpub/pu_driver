@@ -2,9 +2,8 @@ import 'package:pu_taxi_driver/core/utils/money.dart';
 
 /// The driver's invite code, what it earns, and who it brought in (DD-45).
 ///
-/// The shape is the app's proposal: no backend endpoint exists yet, so the
-/// mock backend is the only thing that produces it. Parsing is tolerant in
-/// the way the wallet's is — a missing field is null or empty, never a throw.
+/// The shape of `GET /taxi-driver/referral`. Parsing is tolerant in the way
+/// the wallet's is — a missing field is null or empty, never a throw.
 class ReferralModel {
   const ReferralModel({
     this.code,
