@@ -49,3 +49,8 @@ app.*.map.json
 
 # Local secrets — never commit real values, only dart_defines.example.json
 dart_defines.json
+# AI tooling and generated output, not app source
+.claude/
+.opencode/
+graphify-out/
+/android/build/
