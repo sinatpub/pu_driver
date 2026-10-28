@@ -13,6 +13,7 @@
     "15.0px/400 #3a3a3c KantumruyPro History",
     "15.0px/400 #3a3a3c KantumruyPro Term & Condition",
     "15.0px/400 #3a3a3c KantumruyPro Wallet",
+    "15.0px/400 #d32f2f KantumruyPro Logout",
     "15.0px/700 #cc3700 KantumruyPro Home",
     "16.0px/700 #3a3a3c KantumruyPro Mey Lin",
     "18.9px/700 #5c6474 KantumruyPro ML"
@@ -36,6 +37,7 @@
     "0,0,0,1",
     "1,1,1,1",
     "12,0,12,0",
+    "12,0,12,12",
     "16,0,16,0",
     "16,16,16,16",
     "16,8,16,8",

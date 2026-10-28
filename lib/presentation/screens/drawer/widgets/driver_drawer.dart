@@ -10,18 +10,21 @@ import 'package:pu_taxi_driver/presentation/widgets/language_segment.dart';
 ///
 /// Destinations are exactly the ones the app has today. The prototype's drawer
 /// also offers Referral, Announcements, a sound toggle, a second online
-/// toggle and Logout; each is excluded for a recorded reason (`DD-05`,
-/// `DD-06`, `DD-22`) — three have no backend, one duplicates the app bar, and
-/// logout is a product decision that is still open.
+/// toggle and Logout. Logout is in (audit D-1, 2026-10-28), in the pattern
+/// `DD-05` recorded for it: a red row at the bottom and a confirm dialog. The
+/// rest are excluded for a recorded reason (`DD-05`, `DD-06`, `DD-22`) — they
+/// have no backend or duplicate the app bar.
 class DriverDrawer extends StatelessWidget {
   const DriverDrawer({
     super.key,
     required this.activeTab,
     required this.onSelect,
+    required this.onLogout,
   });
 
   final DrawerTab activeTab;
   final ValueChanged<DrawerTab> onSelect;
+  final VoidCallback onLogout;
 
   static const List<(DrawerTab, String, String)> _items =
       <(DrawerTab, String, String)>[
@@ -97,6 +100,21 @@ class DriverDrawer extends StatelessWidget {
                 ],
               ),
             ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                Insets.s12,
+                0,
+                Insets.s12,
+                Insets.s12,
+              ),
+              child: _DrawerRow(
+                icon: DsIcons.logout,
+                label: 'LOGOUT'.tr(),
+                selected: false,
+                danger: true,
+                onTap: onLogout,
+              ),
+            ),
           ],
         ),
       ),
@@ -110,6 +128,7 @@ class _DrawerRow extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
+    this.danger = false,
   });
 
   final String icon;
@@ -117,10 +136,17 @@ class _DrawerRow extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
 
+  /// Logout: icon and label in the danger colour.
+  final bool danger;
+
   @override
   Widget build(BuildContext context) {
     final TaarraaColors c = context.colors;
-    final Color content = selected ? c.brandText : c.textSecondary;
+    final Color content = danger
+        ? c.danger
+        : selected
+            ? c.brandText
+            : c.textSecondary;
 
     return Semantics(
       button: true,
@@ -146,7 +172,11 @@ class _DrawerRow extends StatelessWidget {
                   child: Text(
                     label,
                     style: context.texts.body.copyWith(
-                      color: selected ? c.brandText : c.textPrimary,
+                      color: danger
+                          ? c.danger
+                          : selected
+                              ? c.brandText
+                              : c.textPrimary,
                       fontWeight:
                           selected ? FontWeights.bold : FontWeights.regular,
                     ),

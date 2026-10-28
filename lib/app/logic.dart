@@ -188,6 +188,31 @@ class AppLogic extends GetxController {
     await _setOnline(turnOn, quiet: false);
   }
 
+  /// How long a sign-out waits for `set-status` before ending the session
+  /// anyway. The client's own timeout is a minute.
+  static const Duration signOutGrace = Duration(seconds: 5);
+
+  /// Audit D-1: the driver signs out from the drawer.
+  ///
+  /// Offline on the server first, while the token still works: otherwise the
+  /// server goes on offering rides to a phone nobody is signed in on. That
+  /// call is best effort — a sign-out never fails, or waits long, because of
+  /// the network. Then the session ends ([SessionService.endSession]): token,
+  /// sign-in record, socket, online service and GPS, and back to sign-in.
+  Future<void> signOut() async {
+    _showBusy();
+    try {
+      await _repository
+          .setStatus(0)
+          .then<void>((_) {})
+          .timeout(signOutGrace, onTimeout: () {});
+    } finally {
+      _hideBusy();
+    }
+    state.isOnline.value = false;
+    await _session.endSession();
+  }
+
   /// [quiet] is the app going online by itself: no overlay over the home,
   /// the status card just changes. A failure is said either way — the
   /// server's own words when it sent some — because a switch that falls

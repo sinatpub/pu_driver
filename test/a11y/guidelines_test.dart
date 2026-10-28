@@ -146,7 +146,8 @@ final Map<String, (Widget Function(), bool)> _surfaces =
   'register': (() => const RegisterPage(), true),
   'drawer': (
     () => Scaffold(
-          body: DriverDrawer(activeTab: DrawerTab.home, onSelect: (_) {}),
+          body: DriverDrawer(
+              activeTab: DrawerTab.home, onSelect: (_) {}, onLogout: () {}),
         ),
     true
   ),

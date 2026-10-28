@@ -1,7 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:pu_taxi_driver/routes/app_routes.dart';
-import 'package:pu_taxi_driver/core/storage/remove_storage.dart';
-import 'package:pu_taxi_driver/services/location_service.dart';
+import 'package:pu_taxi_driver/app/logic.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart' hide Trans;
@@ -12,18 +10,21 @@ import 'package:pu_taxi_driver/presentation/widgets/process_book_dialog_widget.d
 import '../presentation/widgets/yesno_dialog_widget.dart';
 
 class AlertWidget {
-  void logout(BuildContext context) async {
+  /// Audit D-1: the drawer's logout row. This used to remove the sign-in
+  /// record and nothing else, from a row nobody could reach: the token, the
+  /// socket and the online service outlived it, and the next launch signed
+  /// the driver straight back in. [AppLogic.signOut] ends all of it.
+  void logout(BuildContext context) {
     try {
       showYesNoCustomDialog(
           context: context,
           title: "LOGOUT".tr(),
           description: "ARE_YOU_LOGOUT".tr(),
-          onYes: () async {
-            EasyLoading.show();
-            await StorageRemove.removeDriverData();
-            LocationService.instance.stop();
-            Get.offAllNamed(AppRoutes.login);
-            EasyLoading.dismiss();
+          yesLabel: "LOGOUT".tr(),
+          noLabel: "STAY".tr(),
+          onYes: () {
+            Navigator.of(context).pop();
+            Get.find<AppLogic>().signOut();
           });
     } catch (e) {
       Logger().e("message: $e");

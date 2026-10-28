@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;
+import 'package:pu_taxi_driver/app/alert_widget.dart';
 import 'package:pu_taxi_driver/core/theme/tokens.dart';
 import 'package:pu_taxi_driver/presentation/screens/announcement/view.dart';
 import 'package:pu_taxi_driver/presentation/screens/contact_us/view.dart';
@@ -116,6 +117,10 @@ class DrawerScreen extends StatelessWidget {
           onSelect: (DrawerTab tab) {
             Navigator.pop(context);
             logic.selectTab(tab);
+          },
+          onLogout: () {
+            Navigator.pop(context);
+            AlertWidget().logout(context);
           },
         ),
       ),

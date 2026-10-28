@@ -234,7 +234,8 @@ final List<_SurfaceDef> _surfaces = <_SurfaceDef>[
   (
     name: 'S05 drawer',
     build: () => Scaffold(
-          body: DriverDrawer(activeTab: DrawerTab.home, onSelect: (_) {}),
+          body: DriverDrawer(
+              activeTab: DrawerTab.home, onSelect: (_) {}, onLogout: () {}),
         ),
     page: true
   ),

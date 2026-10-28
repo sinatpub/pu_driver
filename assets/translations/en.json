@@ -23,7 +23,7 @@
     "DESSTART": "Started the journey. Heading to the location.",
     "DESCOMPLED": "The trip arrived successfully.",
     "LOGOUT": "Logout",
-    "ARE_YOU_LOGOUT": "Are you sure you want to log out?",
+    "ARE_YOU_LOGOUT": "Are you sure you want to log out? GPS tracking will stop.",
     "NO": "No",
     "YES": "Yes",
     "OK": "OK",

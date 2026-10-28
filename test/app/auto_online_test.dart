@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:pu_taxi_driver/app/logic.dart';
 import 'package:pu_taxi_driver/app/state.dart';
 import 'package:pu_taxi_driver/core/network/api_client.dart';
@@ -12,6 +15,7 @@ import 'package:pu_taxi_driver/presentation/screens/home/data/datasource/home_da
 import 'package:pu_taxi_driver/presentation/screens/home/data/repository/home_repository.dart';
 import 'package:pu_taxi_driver/services/online_service.dart';
 import 'package:pu_taxi_driver/services/session_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// DD-53 — the app puts the driver online by itself, once per sign-in, when
 /// the account may work, the server's status has been read and the phone
@@ -86,6 +90,8 @@ class _Service extends OnlineService {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  // A sign-out ends on `Get.offAllNamed(login)`; there is no navigator here.
+  Get.testMode = true;
 
   late _Server server;
   late _Service service;
@@ -95,6 +101,7 @@ void main() {
 
   setUp(() {
     FlutterSecureStorage.setMockInitialValues(<String, String>{});
+    SharedPreferences.setMockInitialValues(<String, Object>{});
     server = _Server();
     service = _Service();
     messages = <String>[];
@@ -307,6 +314,60 @@ void main() {
 
     expect(app.state.isOnline.value, isTrue);
     expect(server.setStatusCalls, <int>[1, 0, 1]);
+  });
+
+  group('signing out (audit D-1, D-2)', () {
+    /// What OTP sign-in stores: the sign-in record, token inside.
+    void signedIn(String token) => SharedPreferences.setMockInitialValues(
+          <String, Object>{
+            'register_data': jsonEncode(<String, dynamic>{
+              'data': <String, dynamic>{'token': token},
+            }),
+          },
+        );
+
+    test('goes offline on the server, then ends the session', () async {
+      signedIn('driver-token');
+      await launch();
+      expect(await SessionService.instance.getToken(), 'driver-token');
+
+      await app.signOut();
+      await pumpEventQueue();
+
+      expect(server.setStatusCalls, <int>[1, 0]);
+      expect(app.state.isOnline.value, isFalse);
+      expect(service.calls, <String>['start', 'stop']);
+      expect(await SessionService.instance.getToken(), isNull);
+    });
+
+    test('also tells the server for a driver the app has as offline',
+        () async {
+      await launch(location: false);
+
+      await app.signOut();
+
+      expect(server.setStatusCalls, <int>[0]);
+    });
+
+    test('the next driver on the phone starts clean', () async {
+      await launch();
+      await app.signOut();
+      server.available = 0;
+      await launch();
+
+      expect(app.state.isOnline.value, isTrue);
+      expect(server.setStatusCalls, <int>[1, 0, 1]);
+    });
+
+    test('an ended session\'s token does not come back from the sign-in record',
+        () async {
+      signedIn('refused-token');
+      expect(await SessionService.instance.getToken(), 'refused-token');
+
+      await SessionService.instance.clear();
+
+      expect(await SessionService.instance.getToken(), isNull);
+    });
   });
 
   test('a sign-out forgets the last driver\'s approval until it is checked',

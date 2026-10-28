@@ -7,8 +7,9 @@ import 'package:pu_taxi_driver/core/theme/tokens.dart';
 /// 24×24, stroke 2, round caps and joins (`docs/ux-redesign/02-design-system.md
 /// §6`), extracted from the prototype's inline sprite. Only the icons the
 /// redesign actually uses were extracted: the prototype also ships rating,
-/// referral, sound and logout glyphs, and those features are not adopted
-/// (`DD-05`, `DD-22`, `DD-31`), so bundling them would be dead assets.
+/// referral and sound glyphs, and those features are not adopted
+/// (`DD-22`, `DD-31`), so bundling them would be dead assets. Logout's glyph
+/// came in with logout itself (audit D-1, 2026-10-28).
 ///
 /// Rendered through the existing `flutter_svg` dependency — no new package.
 class DsIcons {
@@ -31,6 +32,7 @@ class DsIcons {
   static const String mail = '$_base/mail.svg';
   static const String globe = '$_base/globe.svg';
   static const String bell = '$_base/bell.svg';
+  static const String logout = '$_base/logout.svg';
 
   // Trip.
   static const String car = '$_base/car.svg';
