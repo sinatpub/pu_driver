@@ -47,6 +47,8 @@ dependencies:
 
   # pinput otp
   pinput: ^5.0.0
+  # D-11: the installed version, for the update check
+  package_info_plus: ^8.1.2
   
   dropdown_button2: ^2.3.9
   image_picker: ^1.1.2

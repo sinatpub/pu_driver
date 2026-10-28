@@ -15,6 +15,7 @@ import 'package:pu_taxi_driver/presentation/screens/booking/domain/trip_state_ma
 import 'package:pu_taxi_driver/presentation/screens/home/trip_resume.dart';
 import 'package:pu_taxi_driver/core/storage/get_storages.dart';
 import 'package:pu_taxi_driver/core/utils/app_constant.dart';
+import 'package:pu_taxi_driver/core/utils/app_version.dart';
 import 'package:pu_taxi_driver/core/utils/check_platform_device.dart';
 import 'package:pu_taxi_driver/core/utils/load_custom_marker.dart';
 import 'package:pu_taxi_driver/data/datasources/device_info_repo.dart';
@@ -44,13 +45,6 @@ class HomeLogic extends GetxController {
   final DriverSocketService driverSocket = DriverSocketService();
 
   final HomeState state = HomeState();
-
-  // Version pins, carried over verbatim. P-16/D-14 territory: these are
-  // hardcoded rather than read from the running build (`12`).
-  static const currentVersionIos = "1.1.9";
-  static const currentVersionAndroid = "1.1.9";
-  static const releaseDateVersionIos = "2026-04-25";
-  static const releaseDateVersionAndroid = "026-04-25";
 
   StreamSubscription<Position>? _positionSub;
   GoogleMapController? mapController;
@@ -152,16 +146,17 @@ class HomeLogic extends GetxController {
         final data = model.data;
         if (data == null) return;
         final platform = checkPlatformDevice();
-        if (platform == "Android") {
-          state.updateVersion.value =
-              !(data.versionAndroid.toString() == currentVersionAndroid ||
-                  data.releaseDate == releaseDateVersionAndroid);
-        }
-        if (platform == "ios") {
-          state.updateVersion.value =
-              !(data.versionIos.toString() == currentVersionIos ||
-                  data.releaseDateIos == releaseDateVersionIos);
-        }
+        // Audit D-11: against the installed version, not a hand-kept
+        // constant, and only when the server's is newer. The release-date
+        // pins went with the constants: one was mistyped ("026-04-25").
+        final dynamic server = platform == "Android"
+            ? data.versionAndroid
+            : platform == "ios"
+                ? data.versionIos
+                : null;
+        if (server == null) return;
+        state.updateVersion.value =
+            isNewerVersion('$server', installed: AppVersion.current);
       },
       err: (_) {},
     );

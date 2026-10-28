@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:pu_taxi_driver/core/utils/app_version.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:pu_taxi_driver/app/root_main.dart';
 import 'package:pu_taxi_driver/app/service.dart';
@@ -22,6 +23,8 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 void main() async {
   BaseHttpClient.init();
   WidgetsFlutterBinding.ensureInitialized();
+  // Audit D-11: read once, for the update check and Contact Us.
+  await AppVersion.load();
   // QA mock backend — a no-op unless built with USE_MOCK_DATA=true in a
   // non-release build. Must run before anything makes a request.
   await MockMode.init();

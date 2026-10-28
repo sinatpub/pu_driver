@@ -1,8 +1,7 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:pu_taxi_driver/core/theme/tokens.dart';
-import 'package:pu_taxi_driver/presentation/screens/home/logic.dart';
+import 'package:pu_taxi_driver/core/utils/app_version.dart';
 import 'package:pu_taxi_driver/presentation/widgets/ds/ds.dart';
 
 import 'logic.dart';
@@ -22,10 +21,9 @@ import 'package:easy_localization/easy_localization.dart';
 class ContactUsPage extends StatelessWidget {
   const ContactUsPage({super.key});
 
-  /// The version the app's update check is pinned to (`HomeLogic`).
-  String get _version => defaultTargetPlatform == TargetPlatform.iOS
-      ? HomeLogic.currentVersionIos
-      : HomeLogic.currentVersionAndroid;
+  /// The installed version (audit D-11). Was the constant the update check
+  /// was pinned to in `HomeLogic`.
+  String get _version => AppVersion.current;
 
   @override
   Widget build(BuildContext context) {
@@ -82,11 +80,12 @@ class ContactUsPage extends StatelessWidget {
             ],
           ),
           const SizedBox(height: Insets.s24),
-          Text(
-            'APP_VERSION'.tr(args: <String>[_version]),
-            textAlign: TextAlign.center,
-            style: context.texts.caption.copyWith(color: c.textSecondary),
-          ),
+          if (_version.isNotEmpty)
+            Text(
+              'APP_VERSION'.tr(args: <String>[_version]),
+              textAlign: TextAlign.center,
+              style: context.texts.caption.copyWith(color: c.textSecondary),
+            ),
           const SizedBox(height: 2),
           Text(
             'COPYRIGHT'.tr(args: <String>['${DateTime.now().year}']),
