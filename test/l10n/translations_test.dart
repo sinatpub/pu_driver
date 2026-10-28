@@ -70,13 +70,17 @@ void main() {
     // Not copy: a language name is shown in its own language; Smart and
     // Cellcard are carrier brand names in front of a phone number; the plate
     // hint is a format placeholder; the splash role pill is bilingual by
-    // design, shown the same in both languages like the brand name above it.
+    // design, shown the same in both languages like the brand name above it;
+    // the app's title is its name in the OS task switcher, the same
+    // untranslated name the launcher shows (`android:label`,
+    // `CFBundleDisplayName`).
     const List<String> allowed = <String>[
       '"English"',
       '"Driver · អ្នកបើកបរ"',
       r'"Smart: ${state.smartPhone}"',
       r'"Cellcard: ${state.cellcardPhone}"',
       '"xxx-xxxx"',
+      'lib/app/root_main.dart: "PU Taxi Driver"',
     ];
     found.removeWhere((String s) => allowed.any(s.endsWith));
     expect(found, isEmpty);

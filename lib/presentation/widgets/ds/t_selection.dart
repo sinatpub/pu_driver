@@ -30,30 +30,37 @@ class TSegmented extends StatelessWidget {
     // 4 px from its neighbour), while the tappable area still spans the full
     // 48 px height.
     const double gap = 4;
-    return Container(
-      decoration: BoxDecoration(
-        color: c.bgRaised,
-        borderRadius: BorderRadius.circular(Radii.full),
-        border: Border.all(color: c.borderDivider),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          for (int i = 0; i < options.length; i++)
-            _SelectableSegment(
-              label: options[i],
-              isSelected: i == selected,
-              onTap: () => onChanged(i),
-              radius: Radii.full,
-              sizeToLabels: options,
-              inset: EdgeInsets.fromLTRB(
-                i == 0 ? gap : gap / 2,
-                gap,
-                i == options.length - 1 ? gap : gap / 2,
-                gap,
+    // Audit D-9: at the largest text scale the app allows (1.3) on a 320 px
+    // screen, the pills are wider than the drawer (by 45 px) and the login
+    // header (by 37 px). There, and only there, the control scales down to
+    // fit; at every size where it fits it is unchanged.
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Container(
+        decoration: BoxDecoration(
+          color: c.bgRaised,
+          borderRadius: BorderRadius.circular(Radii.full),
+          border: Border.all(color: c.borderDivider),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            for (int i = 0; i < options.length; i++)
+              _SelectableSegment(
+                label: options[i],
+                isSelected: i == selected,
+                onTap: () => onChanged(i),
+                radius: Radii.full,
+                sizeToLabels: options,
+                inset: EdgeInsets.fromLTRB(
+                  i == 0 ? gap : gap / 2,
+                  gap,
+                  i == options.length - 1 ? gap : gap / 2,
+                  gap,
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }

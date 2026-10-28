@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:pu_taxi_driver/app/alert_widget.dart';
+import 'package:pu_taxi_driver/app/logic.dart';
+import 'package:pu_taxi_driver/app/state.dart';
 import 'package:pu_taxi_driver/mock/mock_backend.dart';
 import 'package:pu_taxi_driver/mock/mock_mode.dart';
 import 'package:pu_taxi_driver/routes/app_routes.dart';
@@ -44,6 +46,12 @@ Map<String, dynamic> buildSocketOptions() => io.OptionBuilder()
     .setReconnectionDelay(2000)
     .setReconnectionDelayMax(30000)
     .build();
+
+/// Audit D-3 — whether a `newRide` should reach the driver. Not once the
+/// app has read the driver's status and has them offline.
+@visibleForTesting
+bool acceptsRideRequests({required bool statusChecked, required bool isOnline}) =>
+    !statusChecked || isOnline;
 
 // Base socket service
 abstract class BaseSocketService {
@@ -150,10 +158,19 @@ class DriverSocketService extends BaseSocketService {
       });
       return;
     }
-    if (_socket != null && _socket!.connected) {
-      tlog("Socket already connected, skipping new connection.");
+    // Audit D-5: this checked `connected`, so a socket that was down but
+    // still reconnecting on its own was replaced without being disposed.
+    // Both stayed alive with their listeners, and once the network came back
+    // both delivered `newRide`: the request screen opened twice. A socket
+    // that is still trying (`active`) is kept — it also holds the events
+    // buffered while it was down. Only one that has stopped trying (a
+    // server-side disconnect) is disposed and replaced.
+    final io.Socket? existing = _socket;
+    if (existing != null && existing.active) {
+      tlog("Socket already connected or reconnecting, keeping it.");
       return;
     }
+    existing?.dispose();
 
     super.connectToSocket(url, id, role, context: context);
     tlog("Socket connecting to $url, userId=$id, role=$role");
@@ -178,6 +195,13 @@ class DriverSocketService extends BaseSocketService {
   void _onNewRide(dynamic data) {
     tlog("New ride data: $data");
 
+    // Audit D-3: the socket is open whatever the driver's status, so a
+    // request that reached an offline driver opened the trip screen anyway.
+    if (!_acceptsRideRequests()) {
+      tlog("Ride request ignored: the driver is offline.");
+      return;
+    }
+
     try {
       final args = parseNewRideEvent(data);
       Get.toNamed(AppRoutes.booking, arguments: args);
@@ -195,6 +219,18 @@ class DriverSocketService extends BaseSocketService {
         isSound: true);
   }
 
+  /// Whether a ride request should be shown, by the app's own record of the
+  /// driver's status. Without one yet ([AppLogic] not registered, or the
+  /// status not read) the request is shown, as before.
+  bool _acceptsRideRequests() {
+    if (!Get.isRegistered<AppLogic>()) return true;
+    final AppState state = Get.find<AppLogic>().state;
+    return acceptsRideRequests(
+      statusChecked: state.statusChecked.value,
+      isOnline: state.isOnline.value,
+    );
+  }
+
   void cancelDrive(BuildContext context) {
     _socket?.on(
       SocketEvent.onPassengerCancelDrive.name,
@@ -205,7 +241,12 @@ class DriverSocketService extends BaseSocketService {
   void _onPassengerCancelDrive(BuildContext context, dynamic data) {
     tlog("On cancel: $data");
     try {
-      AlertWidget().cancelBooking(context);
+      // Audit D-4: [context] is the screen that first connected the socket,
+      // kept for the life of the listener. By the time a passenger cancels
+      // that screen may be gone, the dialog failed to open, and the driver
+      // stayed on a trip that no longer existed. The navigator's own context
+      // is current.
+      AlertWidget().cancelBooking(Get.context ?? context);
     } catch (e) {
       tlog("On cancel: $e");
     }

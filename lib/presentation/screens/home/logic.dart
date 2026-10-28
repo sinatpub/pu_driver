@@ -10,6 +10,9 @@ import 'package:pu_taxi_driver/core/contracts/booking_status.dart';
 import 'package:pu_taxi_driver/core/helper/local_notification_helper.dart';
 import 'package:pu_taxi_driver/routes/app_routes.dart';
 import 'package:pu_taxi_driver/routes/route_arguments.dart';
+import 'package:pu_taxi_driver/core/utils/pretty_logger.dart';
+import 'package:pu_taxi_driver/presentation/screens/booking/domain/trip_state_machine.dart';
+import 'package:pu_taxi_driver/presentation/screens/home/trip_resume.dart';
 import 'package:pu_taxi_driver/core/storage/get_storages.dart';
 import 'package:pu_taxi_driver/core/utils/app_constant.dart';
 import 'package:pu_taxi_driver/core/utils/check_platform_device.dart';
@@ -215,9 +218,20 @@ class HomeLogic extends GetxController {
   void navigateBasedOnDriverStatus(DataDriverInfo dataDriver) {
     if (dataDriver.status == BookingStatus.pendingPayment) {
       navigateToCalculateFeeScreen(dataDriver);
-    } else if (dataDriver.status != null) {
-      navigateToBookingScreen(dataDriver);
+      return;
     }
+    // Audit D-6, D-7: only an accepted, unfinished trip reopens, and only
+    // when the server sent enough of it to drive. Otherwise the driver stays
+    // on Home rather than being sent into a trip that is not there.
+    final TripStage? stage = resumeStage(dataDriver.status);
+    if (stage == null) return;
+    final BookingScreenArgs? args = resumeBookingArgs(dataDriver, stage);
+    if (args == null) {
+      tlog('Not resuming trip ${dataDriver.id}: the server sent too little '
+          'of it (status ${dataDriver.status})');
+      return;
+    }
+    navigateToBookingScreen(args);
   }
 
   void navigateToCalculateFeeScreen(DataDriverInfo dataDriver) {
@@ -232,60 +246,14 @@ class HomeLogic extends GetxController {
     );
   }
 
-  void navigateToBookingScreen(DataDriverInfo dataDriver) {
+  void navigateToBookingScreen(BookingScreenArgs args) {
     // The 2s dialog-then-navigate sequence is carried over verbatim: the
     // "processing" dialog is shown first, then the push happens under it.
+    // The arguments are built before it opens (audit D-6), so nothing in the
+    // delayed callback can throw and leave the dialog up.
     AlertWidget().onProcessBooking(Get.context!);
     Future.delayed(const Duration(seconds: 2), () {
-      Get.offNamed(
-        AppRoutes.booking,
-        arguments: BookingScreenArgs(
-          startTime: dataDriver.startTime.toString(),
-          latStart: double.parse(dataDriver.startLatitude.toString()),
-          lngStart: double.parse(dataDriver.startLongitude.toString()),
-          refreshApp: true,
-          typeVehicleId: dataDriver.driver!.vehicle!.typeVehicleId!,
-          // 0 is "not known" and shows no estimate. This used to fall back
-          // to 1200 — a riel price that would be read as dollars now.
-          pricrVehicle: dataDriver.driver!.vehicle!.pricrVehicle ?? 0,
-          namePassanger: dataDriver.passenger!.name.toString(),
-          phonePassanger: dataDriver.passenger!.phone.toString(),
-          imagePassanger: dataDriver.passenger!.profileImage.toString(),
-          timeOut: 30,
-          processStepBook: getProcessStepBook(dataDriver.status!),
-          bookingCode: int.parse(dataDriver.bookingCode.toString()),
-          bookingId: int.parse(dataDriver.id.toString()),
-          latPassenger: double.parse(
-              dataDriver.passenger!.lastLocation!.latitude.toString()),
-          lngPassenger: double.parse(
-              dataDriver.passenger!.lastLocation!.longitude.toString()),
-          latDriver: double.parse(
-              dataDriver.driver!.lastLocation!.latitude.toString()),
-          lngDriver: double.parse(
-              dataDriver.driver!.lastLocation!.longitude.toString()),
-          passengerId: dataDriver.passenger!.id!,
-          desLatPassenger: dataDriver.endLatitude == null
-              ? null
-              : double.parse(dataDriver.endLatitude!.toString()),
-          desLngPassenger: dataDriver.endLongitude == null
-              ? null
-              : double.parse(dataDriver.endLongitude!.toString()),
-        ),
-      );
+      Get.offNamed(AppRoutes.booking, arguments: args);
     });
-  }
-
-  /// `08` M-21: any status outside 8/3 falls through to `enRouteToPickup`,
-  /// including `cancel` (5) and `completed` (4/7). Pre-existing, carried over
-  /// unchanged — flagged, not fixed, in this move.
-  int getProcessStepBook(int status) {
-    switch (status) {
-      case 8:
-        return 3;
-      case 3:
-        return 4;
-      default:
-        return 2;
-    }
   }
 }

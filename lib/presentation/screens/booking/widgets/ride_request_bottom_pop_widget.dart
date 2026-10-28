@@ -11,7 +11,6 @@ import 'package:pu_taxi_driver/presentation/screens/booking/widgets/trip_action_
 import 'package:pu_taxi_driver/presentation/screens/booking/widgets/trip_timeline.dart';
 import 'package:pu_taxi_driver/presentation/widgets/ds/ds.dart';
 import 'package:pu_taxi_driver/presentation/widgets/yesno_dialog_widget.dart';
-import 'package:pu_taxi_driver/services/socket_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../widgets/ds/t_motion.dart';
@@ -203,7 +202,10 @@ class _ModelBottomSheetNewRequestWidgetState
   /// On trip (`DD-38`), including the drop-off in flight (6).
   bool get _isOnTrip => widget.processType == 4 || widget.processType == 6;
 
-  /// Preserved verbatim: the socket emit fires first, then the controller.
+  /// Audit X-4: the `driverCancelDrive` emit used to fire here, before the
+  /// `cancel-drive` call had even been made, so a call that then failed had
+  /// already told the passenger the request was declined. It now goes out
+  /// from the booking screen once the server has confirmed (`TripCancelled`).
   void _confirmCancel() {
     showYesNoCustomDialog(
         context: context,
@@ -212,10 +214,6 @@ class _ModelBottomSheetNewRequestWidgetState
         yesLabel: "YES_CANCEL".tr(),
         noLabel: "STAY".tr(),
         onYes: () {
-          DriverSocketService().driverCancelDrive(
-              bookingId: widget.bookingId,
-              bookingCode: widget.bookingCode,
-              passengerId: widget.passengerId);
           widget.onCancel();
         });
   }

@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:pu_taxi_driver/app/funtion_convert.dart';
 import 'package:pu_taxi_driver/core/utils/fare_money.dart';
 import 'package:pu_taxi_driver/core/helper/get_address_latlng_helper.dart';
 import 'package:pu_taxi_driver/routes/app_routes.dart';
@@ -846,10 +845,13 @@ class _BookingScreenState extends State<BookingScreen> {
     ever<VehicleStatus>(vehicleController.status, _onVehicleStatus);
     vehicleController.getAllVehicles();
     if (tripController.state.stage.value == TripStage.inProgress) {
-      if (args.startTime != "" || args.startTime != "null") {
+      // Audit D-8: this read `!= "" || != "null"`, which is always true, so
+      // a resumed trip with no start time threw in `DateTime.parse` here.
+      final DateTime? startedAt = DateTime.tryParse(args.startTime);
+      if (startedAt != null) {
         setState(() {
-          remaining =
-              Duration(seconds: calculateDuration(args.startTime.toString()));
+          remaining = Duration(
+              seconds: DateTime.now().difference(startedAt).inSeconds);
         });
       }
       startTimer();
@@ -945,11 +947,18 @@ class _BookingScreenState extends State<BookingScreen> {
           bookingCode: args.bookingCode.toString(),
           passengerId: args.passengerId.toString(),
           currentLat: currentLatDriver,
-          currentLng: currentLatDriver, // sic — same as the original
+          // Audit X-5: this sent the latitude twice.
+          currentLng: currentLngDriver,
         );
         StorageRemove.removeTripDistance();
         _navigateToCalculateFee(completed);
       case TripCancelled():
+        // Audit X-4: only now that `cancel-drive` has succeeded.
+        socketService.driverCancelDrive(
+          bookingId: args.bookingId,
+          bookingCode: args.bookingCode,
+          passengerId: args.passengerId,
+        );
         StorageRemove.removeArrivedAt();
         StorageRemove.removeTripDistance();
         Get.offAllNamed(AppRoutes.home);
